@@ -80,7 +80,7 @@ fn main() {
             0.035, 0.035, 0.035,
         )))
         .insert_resource(bevy::time::Time::<bevy::time::Virtual>::from_max_delta(
-            std::time::Duration::from_millis(50),
+            std::time::Duration::from_millis(250),
         ))
         .insert_resource(bevy::winit::WinitSettings {
             focused_mode: bevy::winit::UpdateMode::Continuous,
@@ -1294,8 +1294,11 @@ fn main() {
                                                     *ed = project;
                                                     *view = 3;
                                                 } else if store[project].5.is_some() {
-                                                    for image in [DIR.join(format!("{:016x}.img", store[project].4))] {
-                                                        std::fs::write(&image, include_bytes!(env!("BIOS_IMG"))).unwrap();
+                                                    for (kernel, image) in
+                                                        [(DIR.join("kernel"), DIR.join(format!("{:016x}.img", store[project].4)))]
+                                                    {
+                                                        std::fs::write(&kernel, include_bytes!(env!("CARGO_BIN_FILE_KERNEL_kernel"))).unwrap();
+                                                        bootloader::DiskImageBuilder::new(kernel).create_bios_image(&image).unwrap();
                                                         std::process::Command::new("qemu-system-x86_64")
                                                             .args([
                                                                 "-no-reboot",

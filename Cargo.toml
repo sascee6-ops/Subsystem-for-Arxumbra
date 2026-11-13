@@ -12,6 +12,8 @@ name = "subsystem-for-arxumbra"
 path = "src/main.rs"
 
 [dependencies]
+bootloader = { version = "0.11", default-features = false, features = ["bios"] }
+kernel = { path = "kernel", artifact = "bin", target = "x86_64-unknown-none" }
 mimalloc = { git = "https://github.com/purpleprotocol/mimalloc_rust", rev = "a35cc759c071fd7bd586685048367839002b95dd", default-features = false }
 redb = { git = "https://github.com/cberner/redb", tag = "v4.5.0" }
 bevy = { git = "https://github.com/bevyengine/bevy", tag = "v0.20.1", default-features = false, features = [
@@ -30,7 +32,3 @@ bevy = { git = "https://github.com/bevyengine/bevy", tag = "v0.20.1", default-fe
     "png",
     "default_font",
 ] }
-
-[build-dependencies]
-bootloader = { version = "0.11", default-features = false, features = ["bios"] }
-kernel = { path = "kernel", artifact = "bin", target = "x86_64-unknown-none" }

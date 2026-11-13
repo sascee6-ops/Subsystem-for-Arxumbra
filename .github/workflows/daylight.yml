@@ -1,92 +1,25 @@
 name: Daylight
 on:
   workflow_dispatch:
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
 permissions:
   contents: read
-env:
-  RUST_TOOLCHAIN: nightly-2026-11-06
-  CARGO_INCREMENTAL: "0"
-  CARGO_NET_RETRY: "10"
-  CARGO_TERM_COLOR: always
-  RUSTUP_MAX_RETRIES: "10"
 jobs:
-  daylight:
-    name: ${{ matrix.artifact }}
-    runs-on: ${{ matrix.runner }}
+  AArch64-Linux:
+    name: AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 120
-    defaults:
-      run:
-        shell: bash
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-        - artifact: AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
-          runner: ubuntu-24.04-arm
-          target: aarch64-unknown-linux-gnu
-          cpu: generic
-          extension: ""
-          archive: tar.gz
-          packages: pkg-config libwayland-dev libxkbcommon-dev
-        - artifact: x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
-          runner: ubuntu-24.04
-          target: x86_64-unknown-linux-gnu
-          cpu: x86-64-v2
-          extension: ""
-          archive: tar.gz
-          packages: pkg-config libwayland-dev libxkbcommon-dev
-        - artifact: AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
-          runner: macos-15
-          target: aarch64-apple-darwin
-          cpu: apple-m1
-          extension: ""
-          archive: tar.gz
-          packages: ""
-        - artifact: x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
-          runner: macos-15-intel
-          target: x86_64-apple-darwin
-          cpu: x86-64-v2
-          extension: ""
-          archive: tar.gz
-          packages: ""
-        - artifact: AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
-          runner: windows-11-arm
-          target: aarch64-pc-windows-msvc
-          cpu: generic
-          extension: .exe
-          archive: zip
-          packages: ""
-        - artifact: x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
-          runner: windows-2025
-          target: x86_64-pc-windows-msvc
-          cpu: x86-64-v2
-          extension: .exe
-          archive: zip
-          packages: ""
-    env:
-      ARTIFACT: ${{ matrix.artifact }}
-      TARGET: ${{ matrix.target }}
-      EXT: ${{ matrix.extension }}
-      PACKAGES: ${{ matrix.packages }}
-      CPU: ${{ matrix.cpu }}
     steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      with:
-        persist-credentials: false
-    - name: Install system packages
-      if: matrix.packages != ''
+    - shell: bash
       run: |
-        sudo apt-get update -q
-        sudo apt-get install -y -q --no-install-recommends ${PACKAGES}
-    - name: Install Rust nightly
-      run: rustup toolchain install "${RUST_TOOLCHAIN}" --profile minimal --component rust-src --component llvm-tools-preview --target "${TARGET}" --target x86_64-unknown-none --no-self-update
-    - name: Build Daylight binary
-      run: |
-        export "CARGO_TARGET_$(echo "${TARGET}" | tr 'a-z-' 'A-Z_')_RUSTFLAGS=-C target-cpu=${CPU} -Z location-detail=none"
-        cargo +"${RUST_TOOLCHAIN}" -Zbindeps build --locked --release --quiet \
+        exec >/dev/null 2>&1
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev
+        git init -q .
+        git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
+        git checkout -q FETCH_HEAD
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --component rust-src --component llvm-tools-preview --target aarch64-unknown-linux-gnu --target x86_64-unknown-none --no-self-update
+        cargo +nightly-2026-11-06 -Zbindeps build --locked --release --quiet \
+          --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \
           --config 'profile.release.codegen-units=1' \
@@ -96,20 +29,184 @@ jobs:
           --config 'profile.release.incremental=false' \
           --config 'profile.release.strip=true' \
           --config 'profile.release.panic="abort"' \
-          --target "${TARGET}" --bin subsystem-for-arxumbra
-    - name: Stage executable
-      run: |
-        mkdir -p "dist/${ARTIFACT}"
-        cp "target/${TARGET}/release/subsystem-for-arxumbra${EXT}" "dist/${ARTIFACT}/${ARTIFACT}${EXT}"
-    - name: Package archive
-      if: matrix.archive == 'tar.gz'
-      run: tar -czf "dist/${ARTIFACT}.tar.gz" -C dist "${ARTIFACT}"
-    - name: Package archive
-      if: matrix.archive == 'zip'
-      run: pwsh -NoProfile -Command "Compress-Archive -Path 'dist/${ARTIFACT}/${ARTIFACT}${EXT}' -DestinationPath 'dist/${ARTIFACT}.zip' -CompressionLevel Optimal"
+          --config 'target.aarch64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none"]' \
+          --target aarch64-unknown-linux-gnu --bin subsystem-for-arxumbra
+        mkdir -p dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+        cp target/aarch64-unknown-linux-gnu/release/subsystem-for-arxumbra dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+        tar -czf dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0.tar.gz -C dist AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
-        name: ${{ matrix.artifact }}
-        path: dist/${{ matrix.artifact }}.${{ matrix.archive }}
+        name: AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+        path: dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0.tar.gz
+        if-no-files-found: error
+        retention-days: 14
+  x86_64-Linux:
+    name: x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+    - shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev
+        git init -q .
+        git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
+        git checkout -q FETCH_HEAD
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --component rust-src --component llvm-tools-preview --target x86_64-unknown-linux-gnu --target x86_64-unknown-none --no-self-update
+        cargo +nightly-2026-11-06 -Zbindeps build --locked --release --quiet \
+          --config 'net.retry=10' \
+          --config 'profile.release.opt-level=3' \
+          --config 'profile.release.lto="fat"' \
+          --config 'profile.release.codegen-units=1' \
+          --config 'profile.release.debug=false' \
+          --config 'profile.release.debug-assertions=false' \
+          --config 'profile.release.overflow-checks=false' \
+          --config 'profile.release.incremental=false' \
+          --config 'profile.release.strip=true' \
+          --config 'profile.release.panic="abort"' \
+          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none"]' \
+          --target x86_64-unknown-linux-gnu --bin subsystem-for-arxumbra
+        mkdir -p dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+        cp target/x86_64-unknown-linux-gnu/release/subsystem-for-arxumbra dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+        tar -czf dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0.tar.gz -C dist x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+        path: dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0.tar.gz
+        if-no-files-found: error
+        retention-days: 14
+  AArch64-macOS:
+    name: AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+    runs-on: macos-15
+    timeout-minutes: 120
+    steps:
+    - shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        git init -q .
+        git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
+        git checkout -q FETCH_HEAD
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --component rust-src --component llvm-tools-preview --target aarch64-apple-darwin --target x86_64-unknown-none --no-self-update
+        cargo +nightly-2026-11-06 -Zbindeps build --locked --release --quiet \
+          --config 'net.retry=10' \
+          --config 'profile.release.opt-level=3' \
+          --config 'profile.release.lto="fat"' \
+          --config 'profile.release.codegen-units=1' \
+          --config 'profile.release.debug=false' \
+          --config 'profile.release.debug-assertions=false' \
+          --config 'profile.release.overflow-checks=false' \
+          --config 'profile.release.incremental=false' \
+          --config 'profile.release.strip=true' \
+          --config 'profile.release.panic="abort"' \
+          --config 'target.aarch64-apple-darwin.rustflags=["-C","target-cpu=generic","-Z","location-detail=none"]' \
+          --target aarch64-apple-darwin --bin subsystem-for-arxumbra
+        mkdir -p dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+        cp target/aarch64-apple-darwin/release/subsystem-for-arxumbra dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+        tar -czf dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0.tar.gz -C dist AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+        path: dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0.tar.gz
+        if-no-files-found: error
+        retention-days: 14
+  x86_64-macOS:
+    name: x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+    runs-on: macos-15-intel
+    timeout-minutes: 120
+    steps:
+    - shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        git init -q .
+        git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
+        git checkout -q FETCH_HEAD
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --component rust-src --component llvm-tools-preview --target x86_64-apple-darwin --target x86_64-unknown-none --no-self-update
+        cargo +nightly-2026-11-06 -Zbindeps build --locked --release --quiet \
+          --config 'net.retry=10' \
+          --config 'profile.release.opt-level=3' \
+          --config 'profile.release.lto="fat"' \
+          --config 'profile.release.codegen-units=1' \
+          --config 'profile.release.debug=false' \
+          --config 'profile.release.debug-assertions=false' \
+          --config 'profile.release.overflow-checks=false' \
+          --config 'profile.release.incremental=false' \
+          --config 'profile.release.strip=true' \
+          --config 'profile.release.panic="abort"' \
+          --config 'target.x86_64-apple-darwin.rustflags=["-C","target-cpu=generic","-Z","location-detail=none"]' \
+          --target x86_64-apple-darwin --bin subsystem-for-arxumbra
+        mkdir -p dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+        cp target/x86_64-apple-darwin/release/subsystem-for-arxumbra dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+        tar -czf dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0.tar.gz -C dist x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+        path: dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0.tar.gz
+        if-no-files-found: error
+        retention-days: 14
+  AArch64-Windows:
+    name: AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+    runs-on: windows-11-arm
+    timeout-minutes: 120
+    steps:
+    - shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        git init -q .
+        git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
+        git checkout -q FETCH_HEAD
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --component rust-src --component llvm-tools-preview --target aarch64-pc-windows-msvc --target x86_64-unknown-none --no-self-update
+        cargo +nightly-2026-11-06 -Zbindeps build --locked --release --quiet \
+          --config 'net.retry=10' \
+          --config 'profile.release.opt-level=3' \
+          --config 'profile.release.lto="fat"' \
+          --config 'profile.release.codegen-units=1' \
+          --config 'profile.release.debug=false' \
+          --config 'profile.release.debug-assertions=false' \
+          --config 'profile.release.overflow-checks=false' \
+          --config 'profile.release.incremental=false' \
+          --config 'profile.release.strip=true' \
+          --config 'profile.release.panic="abort"' \
+          --config 'target.aarch64-pc-windows-msvc.rustflags=["-C","target-cpu=generic","-Z","location-detail=none"]' \
+          --target aarch64-pc-windows-msvc --bin subsystem-for-arxumbra
+        mkdir dist
+        cp target/aarch64-pc-windows-msvc/release/subsystem-for-arxumbra.exe dist/AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0.exe
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+        path: dist/AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0.exe
+        if-no-files-found: error
+        retention-days: 14
+  x86_64-Windows:
+    name: x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+    runs-on: windows-2025
+    timeout-minutes: 120
+    steps:
+    - shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        git init -q .
+        git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
+        git checkout -q FETCH_HEAD
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --component rust-src --component llvm-tools-preview --target x86_64-pc-windows-msvc --target x86_64-unknown-none --no-self-update
+        cargo +nightly-2026-11-06 -Zbindeps build --locked --release --quiet \
+          --config 'net.retry=10' \
+          --config 'profile.release.opt-level=3' \
+          --config 'profile.release.lto="fat"' \
+          --config 'profile.release.codegen-units=1' \
+          --config 'profile.release.debug=false' \
+          --config 'profile.release.debug-assertions=false' \
+          --config 'profile.release.overflow-checks=false' \
+          --config 'profile.release.incremental=false' \
+          --config 'profile.release.strip=true' \
+          --config 'profile.release.panic="abort"' \
+          --config 'target.x86_64-pc-windows-msvc.rustflags=["-C","target-cpu=generic","-Z","location-detail=none"]' \
+          --target x86_64-pc-windows-msvc --bin subsystem-for-arxumbra
+        mkdir dist
+        cp target/x86_64-pc-windows-msvc/release/subsystem-for-arxumbra.exe dist/x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0.exe
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0
+        path: dist/x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s0.exe
         if-no-files-found: error
         retention-days: 14

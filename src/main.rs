@@ -18,6 +18,14 @@ static DIR: std::sync::LazyLock<std::path::PathBuf> = std::sync::LazyLock::new(|
     .join("Subsystem-for-Arxumbra")
 });
 
+static TITLE: &str = if cfg!(target_os = "linux") {
+    "Linux-Subsystem-for-Arxumbra"
+} else if cfg!(target_os = "macos") {
+    "macOS-Subsystem-for-Arxumbra"
+} else {
+    "Windows-Subsystem-for-Arxumbra"
+};
+
 static DB: std::sync::LazyLock<redb::Database> = std::sync::LazyLock::new(|| {
     std::fs::create_dir_all(&*DIR).unwrap();
     redb::Database::create(DIR.join("projects.redb")).unwrap()
@@ -63,13 +71,7 @@ fn main() {
                     mode: bevy::window::WindowMode::BorderlessFullscreen(
                         bevy::window::MonitorSelection::Primary,
                     ),
-                    title: String::from(if cfg!(target_os = "linux") {
-                        "Linux-Subsystem-for-Arxumbra"
-                    } else if cfg!(target_os = "macos") {
-                        "macOS-Subsystem-for-Arxumbra"
-                    } else {
-                        "Windows-Subsystem-for-Arxumbra"
-                    }),
+                    title: String::from(TITLE),
                     skip_taskbar: true,
                     present_mode: bevy::window::PresentMode::AutoVsync,
                     position: bevy::window::WindowPosition::Automatic,
@@ -88,7 +90,7 @@ fn main() {
                         maximize: true,
                         close: true,
                     },
-                    decorations: true,
+                    decorations: false,
                     transparent: false,
                     focused: true,
                     window_level: bevy::window::WindowLevel::Normal,
@@ -108,11 +110,11 @@ fn main() {
                     recognize_pan_gesture: None,
                     movable_by_window_background: false,
                     fullsize_content_view: false,
-                    has_shadow: true,
-                    titlebar_shown: true,
+                    has_shadow: false,
+                    titlebar_shown: false,
                     titlebar_transparent: false,
-                    titlebar_show_title: true,
-                    titlebar_show_buttons: true,
+                    titlebar_show_title: false,
+                    titlebar_show_buttons: false,
                     borderless_game: true,
                     prefers_home_indicator_hidden: false,
                     prefers_status_bar_hidden: false,
@@ -760,6 +762,64 @@ fn main() {
                               ..........................\
                               .........................."
                                 .as_slice(),
+                            b"ffffffffffffffffffffffffff"
+                              .as_slice(),
+                            b"\
+                              ....39dffffffffffffd93....\
+                              ...9ffffffffffffffffff9...\
+                              ..bffffffffffffffffffffb..\
+                              .9ffffffffffffffffffffff9.\
+                              3ffffffffffffffffffffffff3\
+                              9ffffffffffffffffffffffff9\
+                              dffffffffffffffffffffffffd\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              dffffffffffffffffffffffffd\
+                              9ffffffffffffffffffffffff9\
+                              3ffffffffffffffffffffffff3\
+                              .9ffffffffffffffffffffff9.\
+                              ..bffffffffffffffffffffb..\
+                              ...9ffffffffffffffffff9...\
+                              ....39dffffffffffffd93...."
+                              .as_slice(),
+                            b"\
+                              ....39dffffffffffffd93....\
+                              ...9d73............37d9...\
+                              ..b9..................9b..\
+                              .99....................99.\
+                              3d......................d3\
+                              97......................79\
+                              d3......................3d\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              d3......................3d\
+                              97......................79\
+                              3d......................d3\
+                              .99....................99.\
+                              ..b9..................9b..\
+                              ...9d73............37d9...\
+                              ....39dffffffffffffd93...."
+                              .as_slice(),
                         ]
                         .map(|art: &[u8]| {
                             images.add(bevy::image::Image::new(
@@ -784,7 +844,6 @@ fn main() {
                             ))
                         }),
                     );
-                    ic.push(bevy::asset::Handle::Uuid(bevy::asset::AssetId::<bevy::image::Image>::DEFAULT_UUID, std::marker::PhantomData));
                     st.0 = redb::ReadableDatabase::begin_read(&*DB)
                         .unwrap()
                         .open_table(redb::TableDefinition::<&str, &[u8]>::new("fs"))
@@ -824,7 +883,7 @@ fn main() {
                             (name, None, kind, dim, id, at)
                         })
                         .collect();
-                    commands.spawn_batch((0..208).map(|_| {
+                    commands.spawn_batch((0..272).map(|_| {
                         (
                             bevy::sprite::Sprite {
                                 image: bevy::asset::Handle::Uuid(bevy::asset::AssetId::<bevy::image::Image>::DEFAULT_UUID, std::marker::PhantomData),
@@ -986,6 +1045,19 @@ fn main() {
                                                 if s.custom_size != Some(r.size()) {
                                                     s.custom_size = Some(r.size());
                                                 }
+                                                Some(if i > 15 {
+                                                    bevy::sprite::SpriteImageMode::Sliced(bevy::sprite::TextureSlicer {
+                                                        border: bevy::sprite::BorderRect::all(9.0),
+                                                        center_scale_mode: bevy::sprite::SliceScaleMode::Stretch,
+                                                        sides_scale_mode: bevy::sprite::SliceScaleMode::Stretch,
+                                                        max_corner_scale: 1.0,
+                                                    })
+                                                } else {
+                                                    bevy::sprite::SpriteImageMode::Auto
+                                                })
+                                                .filter(|m| s.image_mode != *m)
+                                                .into_iter()
+                                                .for_each(|m| s.image_mode = m);
                                                 Some(bevy::math::Vec3::new(r.center().x - w / 2.0, h / 2.0 - r.center().y, z))
                                                     .filter(|p| t.translation != *p)
                                                     .into_iter()
@@ -1036,18 +1108,18 @@ fn main() {
                                     .into_iter()
                                     .for_each(|(mut spr, mut txt, gr, rc, cs)| {
                                         if !*hud {
-                                            spr(rc(0.0, 0.0, side, h), 2.0, gr(0.071, 1.0), 15);
-                                            spr(rc(side - 1.0, 0.0, side, h), 3.0, gr(0.149, 1.0), 15);
-                                            spr(rc(0.0, 60.0, side - 1.0, 61.0), 3.0, gr(0.149, 1.0), 15);
-                                            spr(cs(30.0, 32.0, 18.0, 18.0), 6.0, gr(0.871, 1.0), if *view == 2 { 5 } else { 4 });
+                                            spr(rc(0.0, 0.0, side, h), 2.0, gr(0.059, 1.0), 15);
+                                            spr(rc(side - 1.0, 0.0, side, h), 3.0, gr(0.118, 1.0), 15);
+                                            spr(rc(0.0, 60.0, side - 1.0, 61.0), 3.0, gr(0.118, 1.0), 15);
+                                            spr(cs(30.0, 32.0, 18.0, 18.0), 6.0, gr(0.93, 1.0), if *view == 2 { 5 } else { 4 });
                                             txt(
                                                 48.0,
                                                 22.0,
                                                 1,
-                                                if *view == 2 { "Laboratory" } else { window.title.as_str() },
-                                                if *view == 2 { 15.0 } else { ((side - 56.0) / (0.6 * window.title.len() as f32)).clamp(9.0, 15.0) },
+                                                if *view == 2 { "Laboratory" } else { TITLE },
+                                                if *view == 2 { 15.0 } else { ((side - 56.0) / (0.6 * TITLE.len() as f32)).clamp(9.0, 15.0) },
                                                 6.0,
-                                                gr(0.871, 1.0),
+                                                gr(0.93, 1.0),
                                             );
                                             if *view < 2 {
                                                 for (k, (r, label)) in [
@@ -1058,36 +1130,41 @@ fn main() {
                                                 .enumerate()
                                                 {
                                                     bt.push((r, k, (*view as usize == k) as u8 as f32, 5.0, !*modal && !*picker, 1.0));
-                                                    spr(cs(48.0, r.center().y, 20.0, 20.0 * 22.0 / 26.0), 6.0, gr(0.871 - 0.804 * anim[k][3], 1.0), k);
-                                                    txt(68.0, r.center().y, 0, label, 15.0, 6.5, gr(0.871 - 0.804 * anim[k][3], 1.0));
+                                                    spr(
+                                                        cs(48.0, r.center().y, 20.0, 20.0 * 22.0 / 26.0),
+                                                        6.0,
+                                                        gr(0.6 + 0.33 * anim[k][0].max(anim[k][3]), 1.0),
+                                                        k,
+                                                    );
+                                                    txt(68.0, r.center().y, 0, label, 15.0, 6.5, gr(0.6 + 0.33 * anim[k][0].max(anim[k][3]), 1.0));
                                                 }
                                             } else if *view == 2 {
                                                 bt.push((rc(20.0, 78.0, (side - 20.0).max(21.0), 130.0), 3, 0.0, 5.0, !*modal && !*picker, 1.0));
-                                                spr(cs(48.0, 104.0, 18.0, 18.0), 6.0, gr(0.871, 1.0), 3);
-                                                txt(68.0, 104.0, 0, "Create project", 15.0, 6.5, gr(0.871, 1.0));
+                                                spr(cs(48.0, 104.0, 18.0, 18.0), 6.0, gr(0.7 + 0.23 * anim[3][0], 1.0), 3);
+                                                txt(68.0, 104.0, 0, "Create project", 15.0, 6.5, gr(0.7 + 0.23 * anim[3][0], 1.0));
                                             } else {
-                                                spr(rc(20.0, 78.0, side - 20.0, 130.0), 3.5, gr(0.149, 1.0), 15);
-                                                spr(rc(21.0, 79.0, side - 21.0, 129.0), 3.6, gr(0.071, 1.0), 15);
+                                                spr(rc(20.0, 78.0, side - 20.0, 130.0), 3.5, gr(0.059, 1.0), 16);
+                                                spr(rc(20.0, 78.0, side - 20.0, 130.0), 3.6, gr(0.133, 1.0), 17);
                                             }
                                             if *view > 0 {
                                                 for a in [fades[0]] {
-                                                    spr(rc(side + 20.0, 24.0, (w - 24.0).max(side + 60.0), (h - 24.0).max(48.0)), 1.0, gr(0.169, a), 15);
-                                                    spr(rc(side + 21.0, 25.0, (w - 25.0).max(side + 59.0), (h - 25.0).max(47.0)), 1.5, gr(0.078, a), 15);
+                                                    spr(rc(side + 20.0, 24.0, (w - 24.0).max(side + 60.0), (h - 24.0).max(48.0)), 1.0, gr(0.071, a), 16);
+                                                    spr(rc(side + 20.0, 24.0, (w - 24.0).max(side + 60.0), (h - 24.0).max(48.0)), 1.1, gr(0.133, a), 17);
                                                     if *view == 1 {
                                                         for cd in [rc(side + 44.0, 48.0, xr, 192.0)] {
-                                                            spr(cd, 1.6, gr(0.169, a), 15);
-                                                            spr(cd.inflate(-1.0), 1.7, gr(0.106, a), 15);
-                                                            spr(rc(cd.min.x + 20.0, cd.min.y + 64.0, cd.max.x - 20.0, cd.min.y + 65.0), 1.8, gr(0.169, a), 15);
-                                                            spr(cs(cd.min.x + 35.0, cd.min.y + 32.0, 26.0, 26.0), 6.0, gr(0.871, a), 5);
-                                                            txt(cd.min.x + 62.0, cd.min.y + 32.0, 0, "Laboratory", 18.0, 6.5, gr(0.871, a));
+                                                            spr(cd, 1.6, gr(0.102, a), 16);
+                                                            spr(cd, 1.7, gr(0.157, a), 17);
+                                                            spr(rc(cd.min.x + 20.0, cd.min.y + 64.0, cd.max.x - 20.0, cd.min.y + 65.0), 1.8, gr(0.157, a), 15);
+                                                            spr(cs(cd.min.x + 35.0, cd.min.y + 32.0, 26.0, 26.0), 6.0, gr(0.93, a), 5);
+                                                            txt(cd.min.x + 62.0, cd.min.y + 32.0, 0, "Laboratory", 18.0, 6.5, gr(0.93, a));
                                                             for lr in [rc(cd.max.x - 128.0, cd.max.y - 52.0, cd.max.x - 16.0, cd.max.y - 16.0)] {
                                                                 bt.push((lr, 2, 0.0, 5.0, !*modal && !*picker, a));
-                                                                spr(cs(lr.min.x + 22.0, lr.center().y, 18.0, 18.0), 6.0, gr(0.871, a), 2);
-                                                                txt(lr.min.x + 40.0, lr.center().y, 0, "Launch", 14.0, 6.5, gr(0.871, a));
+                                                                spr(cs(lr.min.x + 22.0, lr.center().y, 18.0, 18.0), 6.0, gr(0.93, a), 2);
+                                                                txt(lr.min.x + 40.0, lr.center().y, 0, "Launch", 14.0, 6.5, gr(0.93, a));
                                                             }
                                                         }
                                                     } else {
-                                                        spr(cs(side + 55.0, 56.0, 26.0, 26.0), 6.0, gr(0.871, a), if *view == 2 { 6 } else { 8 });
+                                                        spr(cs(side + 55.0, 56.0, 26.0, 26.0), 6.0, gr(0.93, a), if *view == 2 { 6 } else { 8 });
                                                         txt(
                                                             side + 82.0,
                                                             56.0,
@@ -1095,17 +1172,17 @@ fn main() {
                                                             if *view == 2 { "Workspace" } else { store[*ed].0.as_str() },
                                                             18.0,
                                                             6.5,
-                                                            gr(0.871, a),
+                                                            gr(0.93, a),
                                                         );
-                                                        spr(rc(side + 40.0, 88.0, (w - 44.0).max(side + 41.0), 89.0), 1.8, gr(0.169, a), 15);
+                                                        spr(rc(side + 40.0, 88.0, (w - 44.0).max(side + 41.0), 89.0), 1.8, gr(0.133, a), 15);
                                                         if *view == 2 {
                                                             for (i, pr) in store.iter().enumerate().skip(*lscroll * cols).take(rows * cols) {
                                                                 for pc in [(side + 40.0 + (i % cols) as f32 * 396.0, 108.0 + (i / cols - *lscroll) as f32 * 160.0)]
                                                                     .map(|(x, y)| rc(x, y, x + 380.0, y + 144.0))
                                                                 {
-                                                                    spr(pc, 2.0, gr(0.169, a), 15);
-                                                                    spr(pc.inflate(-1.0), 2.1, gr(0.106, a), 15);
-                                                                    spr(rc(pc.min.x + 20.0, pc.min.y + 64.0, pc.max.x - 20.0, pc.min.y + 65.0), 2.2, gr(0.169, a), 15);
+                                                                    spr(pc, 2.0, gr(0.102, a), 16);
+                                                                    spr(pc, 2.1, gr(0.157, a), 17);
+                                                                    spr(rc(pc.min.x + 20.0, pc.min.y + 64.0, pc.max.x - 20.0, pc.min.y + 65.0), 2.2, gr(0.157, a), 15);
                                                                     match pr.1 {
                                                                         Some((index, size)) => spr(
                                                                             cs(pc.min.x + 35.0, pc.min.y + 32.0, size.x * 26.0, size.y * 26.0),
@@ -1113,9 +1190,9 @@ fn main() {
                                                                             gr(1.0, a),
                                                                             index,
                                                                         ),
-                                                                        None => spr(cs(pc.min.x + 35.0, pc.min.y + 32.0, 22.0, 22.0), 6.0, gr(0.871, a), 4),
+                                                                        None => spr(cs(pc.min.x + 35.0, pc.min.y + 32.0, 22.0, 22.0), 6.0, gr(0.93, a), 4),
                                                                     }
-                                                                    txt(pc.min.x + 62.0, pc.min.y + 32.0, 0, pr.0.as_str(), 18.0, 6.5, gr(0.871, a));
+                                                                    txt(pc.min.x + 62.0, pc.min.y + 32.0, 0, pr.0.as_str(), 18.0, 6.5, gr(0.93, a));
                                                                     for (k, lr) in [
                                                                         rc(pc.max.x - 172.0, pc.max.y - 52.0, pc.max.x - 136.0, pc.max.y - 16.0),
                                                                         rc(pc.max.x - 128.0, pc.max.y - 52.0, pc.max.x - 16.0, pc.max.y - 16.0),
@@ -1124,11 +1201,18 @@ fn main() {
                                                                     .enumerate()
                                                                     {
                                                                         for ready in [k == 0 || pr.2 != 1 || pr.5.is_some()] {
-                                                                            bt.push((lr, 32 + 2 * i + k, 0.0, 5.0, !*modal && !*picker && ready, a));
+                                                                            bt.push((
+                                                                                lr,
+                                                                                32 + 2 * i + k,
+                                                                                0.0,
+                                                                                5.0,
+                                                                                !*modal && !*picker && ready,
+                                                                                a * (0.4 + 0.6 * ready as u8 as f32),
+                                                                            ));
                                                                             spr(
                                                                                 cs(if k == 0 { lr.center().x } else { lr.min.x + 22.0 }, lr.center().y, 18.0, 18.0),
                                                                                 6.0,
-                                                                                gr(0.871, a * (0.35 + 0.65 * ready as u8 as f32)),
+                                                                                gr(0.93, a * (0.35 + 0.65 * ready as u8 as f32)),
                                                                                 if k == 0 { 7 } else { 2 },
                                                                             );
                                                                             if k == 1 {
@@ -1139,7 +1223,7 @@ fn main() {
                                                                                     "Launch",
                                                                                     14.0,
                                                                                     6.5,
-                                                                                    gr(0.871, a * (0.35 + 0.65 * ready as u8 as f32)),
+                                                                                    gr(0.93, a * (0.35 + 0.65 * ready as u8 as f32)),
                                                                                 );
                                                                             }
                                                                         }
@@ -1147,10 +1231,10 @@ fn main() {
                                                                 }
                                                             }
                                                         } else {
-                                                            spr(cv, 1.6, gr(0.125, a), 15);
-                                                            spr(cv.inflate(-1.0), 1.7, gr(0.047, a), 15);
+                                                            spr(cv, 1.6, gr(0.043, a), 16);
+                                                            spr(cv, 1.7, gr(0.118, a), 17);
                                                             if store[*ed].5.is_none() {
-                                                                txt(cv.center().x, cv.center().y, 2, "Drag the Boot image block here", 14.0, 6.5, gr(0.337, a));
+                                                                txt(cv.center().x, cv.center().y, 2, "Drag the Boot image block here", 14.0, 6.5, gr(0.38, a));
                                                             }
                                                         }
                                                     }
@@ -1166,24 +1250,26 @@ fn main() {
                                                     (None, None, _) => rc(20.0, 78.0, side - 20.0, 130.0),
                                                 };
                                                 for hv in [window.cursor_position().is_some_and(|c| brect.contains(c)) as u8 as f32] {
-                                                    spr(*brect, 8.0, gr(0.169 + 0.15 * hv, fades[0]), 15);
-                                                    spr(brect.inflate(-1.0), 8.1, gr(0.106 + 0.05 * hv, fades[0]), 15);
-                                                    spr(cs(brect.min.x + 26.0, brect.center().y, 22.0, 22.0), 8.2, gr(0.871, fades[0]), 8);
-                                                    txt(brect.min.x + 54.0, brect.center().y, 0, "Boot image", 15.0, 8.3, gr(0.871, fades[0]));
+                                                    spr(*brect, 8.0, gr(0.122 + 0.05 * hv, fades[0]), 16);
+                                                    spr(*brect, 8.05, gr(0.2 + 0.2 * hv, fades[0]), 17);
+                                                    spr(cs(brect.min.x + 26.0, brect.center().y, 22.0, 22.0), 8.2, gr(0.93, fades[0]), 8);
+                                                    txt(brect.min.x + 54.0, brect.center().y, 0, "Boot image", 15.0, 8.3, gr(0.93, fades[0]));
                                                 }
                                             }
                                             if *modal {
                                                 for a in [fades[1]] {
-                                                    spr(rc(0.0, 0.0, w, h), 20.0, bevy::color::Color::srgba(0.0, 0.0, 0.0, 0.6 * a), 15);
-                                                    spr(mrect, 21.0, gr(0.169, a), 15);
-                                                    spr(mrect.inflate(-1.0), 22.0, gr(0.078, a), 15);
-                                                    spr(cs(mrect.min.x + 35.0, mrect.min.y + 32.0, 26.0, 26.0), 23.0, gr(0.871, a), 3);
-                                                    txt(mrect.min.x + 62.0, mrect.min.y + 32.0, 0, "Create project", 18.0, 23.0, gr(0.871, a));
+                                                    spr(rc(0.0, 0.0, w, h), 20.0, bevy::color::Color::srgba(0.0, 0.0, 0.0, 0.62 * a), 15);
+                                                    spr(mrect.inflate(18.0), 20.4, gr(0.0, 0.16 * a), 16);
+                                                    spr(mrect.inflate(9.0), 20.7, gr(0.0, 0.24 * a), 16);
+                                                    spr(mrect, 21.0, gr(0.078, a), 16);
+                                                    spr(mrect, 21.5, gr(0.176, a), 17);
+                                                    spr(cs(mrect.min.x + 35.0, mrect.min.y + 32.0, 26.0, 26.0), 23.0, gr(0.93, a), 3);
+                                                    txt(mrect.min.x + 62.0, mrect.min.y + 32.0, 0, "Create project", 18.0, 23.0, gr(0.93, a));
                                                     for dy in [64.0, 416.0] {
-                                                        spr(rc(mrect.min.x + 20.0, mrect.min.y + dy, mrect.max.x - 20.0, mrect.min.y + dy + 1.0), 23.0, gr(0.169, a), 15);
+                                                        spr(rc(mrect.min.x + 20.0, mrect.min.y + dy, mrect.max.x - 20.0, mrect.min.y + dy + 1.0), 23.0, gr(0.157, a), 15);
                                                     }
-                                                    for (dy, label) in [(80.0, "Icon"), (176.0, "Name"), (244.0, "Type")] {
-                                                        txt(mrect.min.x + 24.0, mrect.min.y + dy, 1, label, 12.0, 23.0, gr(0.459, a));
+                                                    for (dy, label) in [(80.0, "ICON"), (176.0, "NAME"), (244.0, "TYPE")] {
+                                                        txt(mrect.min.x + 24.0, mrect.min.y + dy, 1, label, 11.0, 23.0, gr(0.42, a));
                                                     }
                                                     for ir in [rc(mrect.min.x + 24.0, mrect.min.y + 100.0, mrect.min.x + 88.0, mrect.min.y + 164.0)] {
                                                         bt.push((ir, 4, 0.0, 24.0, !*picker, a));
@@ -1194,7 +1280,7 @@ fn main() {
                                                                 gr(1.0, a),
                                                                 index,
                                                             ),
-                                                            None => spr(cs(ir.center().x, ir.center().y, 28.0, 28.0), 25.0, gr(0.459, a), 14),
+                                                            None => spr(cs(ir.center().x, ir.center().y, 28.0, 28.0), 25.0, gr(0.5 + 0.3 * anim[4][0], a), 14),
                                                         }
                                                         txt(
                                                             ir.max.x + 16.0,
@@ -1203,12 +1289,12 @@ fn main() {
                                                             if icon.is_some() { "PNG selected - click to change" } else { "Click to choose a PNG file" },
                                                             13.0,
                                                             23.0,
-                                                            gr(0.459, a),
+                                                            gr(0.5, a),
                                                         );
                                                     }
                                                     for fr in [rc(mrect.min.x + 24.0, mrect.min.y + 196.0, mrect.max.x - 24.0, mrect.min.y + 232.0)] {
-                                                        spr(fr, 23.0, gr(0.337, a), 15);
-                                                        spr(fr.inflate(-1.0), 23.2, gr(0.047, a), 15);
+                                                        spr(fr, 23.0, gr(0.039, a), 16);
+                                                        spr(fr, 23.2, gr(if *picker { 0.2 } else { 0.5 }, a), 17);
                                                         txt(
                                                             fr.min.x + 12.0,
                                                             fr.center().y,
@@ -1216,7 +1302,7 @@ fn main() {
                                                             if name.is_empty() { "Project name" } else { name.as_str() },
                                                             15.0,
                                                             24.5,
-                                                            gr(if name.is_empty() { 0.337 } else { 0.871 }, a),
+                                                            gr(if name.is_empty() { 0.34 } else { 0.93 }, a),
                                                         );
                                                         if !*picker {
                                                             spr(
@@ -1227,7 +1313,7 @@ fn main() {
                                                                     fr.center().y + 9.0,
                                                                 ),
                                                                 24.6,
-                                                                gr(0.871, a),
+                                                                gr(0.93, a),
                                                                 15,
                                                             );
                                                         }
@@ -1243,8 +1329,21 @@ fn main() {
                                                             mrect.min.y + 304.0 + k as f32 * 48.0,
                                                         )] {
                                                             bt.push((tr, 5 + k, (*kind as usize == k + 1) as u8 as f32, 24.0, !*picker, a));
-                                                            spr(cs(tr.min.x + 26.0, tr.center().y, 22.0, 22.0), 25.0, gr(0.871 - 0.804 * anim[5 + k][3], a), index);
-                                                            txt(tr.min.x + 54.0, tr.center().y, 0, label, 14.0, 25.5, gr(0.871 - 0.804 * anim[5 + k][3], a));
+                                                            spr(
+                                                                cs(tr.min.x + 26.0, tr.center().y, 22.0, 22.0),
+                                                                25.0,
+                                                                gr(0.6 + 0.33 * anim[5 + k][0].max(anim[5 + k][3]), a),
+                                                                index,
+                                                            );
+                                                            txt(
+                                                                tr.min.x + 54.0,
+                                                                tr.center().y,
+                                                                0,
+                                                                label,
+                                                                14.0,
+                                                                25.5,
+                                                                gr(0.6 + 0.33 * anim[5 + k][0].max(anim[5 + k][3]), a),
+                                                            );
                                                         }
                                                     }
                                                     if *kind == 3 {
@@ -1256,8 +1355,21 @@ fn main() {
                                                                 mrect.min.y + 468.0,
                                                             )] {
                                                                 bt.push((dr, 8 + k, (*dim as usize == k + 1) as u8 as f32, 24.0, !*picker, a));
-                                                                spr(cs(dr.min.x + 24.0, dr.center().y, 18.0, 18.0), 25.0, gr(0.871 - 0.804 * anim[8 + k][3], a), index);
-                                                                txt(dr.min.x + 44.0, dr.center().y, 0, label, 14.0, 25.5, gr(0.871 - 0.804 * anim[8 + k][3], a));
+                                                                spr(
+                                                                    cs(dr.min.x + 24.0, dr.center().y, 18.0, 18.0),
+                                                                    25.0,
+                                                                    gr(0.6 + 0.33 * anim[8 + k][0].max(anim[8 + k][3]), a),
+                                                                    index,
+                                                                );
+                                                                txt(
+                                                                    dr.min.x + 44.0,
+                                                                    dr.center().y,
+                                                                    0,
+                                                                    label,
+                                                                    14.0,
+                                                                    25.5,
+                                                                    gr(0.6 + 0.33 * anim[8 + k][0].max(anim[8 + k][3]), a),
+                                                                );
                                                             }
                                                         }
                                                     }
@@ -1265,19 +1377,29 @@ fn main() {
                                                         rc(mrect.max.x - 136.0, mrect.min.y + 432.0, mrect.max.x - 24.0, mrect.min.y + 468.0),
                                                         !name.is_empty() && *kind > 0 && (*kind < 3 || *dim > 0),
                                                     )] {
-                                                        bt.push((sr, 10, 0.0, 24.0, ok && !*picker, a * if ok { 1.0 } else { 0.4 }));
-                                                        txt(sr.center().x, sr.center().y, 2, "SAVE", 14.0, 25.5, gr(0.871, a * if ok { 1.0 } else { 0.4 }));
+                                                        bt.push((sr, 10, ok as u8 as f32, 24.0, ok && !*picker, a));
+                                                        txt(
+                                                            sr.center().x,
+                                                            sr.center().y,
+                                                            2,
+                                                            "SAVE",
+                                                            14.0,
+                                                            25.5,
+                                                            gr(0.93 - 0.86 * anim[10][3], a * (0.4 + 0.6 * anim[10][3])),
+                                                        );
                                                     }
                                                 }
                                             }
                                             if *picker {
                                                 for a in [fades[2]] {
                                                     spr(rc(0.0, 0.0, w, h), 30.0, bevy::color::Color::srgba(0.0, 0.0, 0.0, 0.5 * a), 15);
-                                                    spr(prect, 31.0, gr(0.169, a), 15);
-                                                    spr(prect.inflate(-1.0), 32.0, gr(0.078, a), 15);
-                                                    spr(cs(prect.min.x + 35.0, prect.min.y + 32.0, 26.0, 26.0), 33.0, gr(0.871, a), 13);
-                                                    txt(prect.min.x + 62.0, prect.min.y + 32.0, 0, "Choose PNG icon", 18.0, 33.0, gr(0.871, a));
-                                                    spr(rc(prect.min.x + 20.0, prect.min.y + 64.0, prect.max.x - 20.0, prect.min.y + 65.0), 33.0, gr(0.169, a), 15);
+                                                    spr(prect.inflate(18.0), 30.4, gr(0.0, 0.16 * a), 16);
+                                                    spr(prect.inflate(9.0), 30.7, gr(0.0, 0.24 * a), 16);
+                                                    spr(prect, 31.0, gr(0.078, a), 16);
+                                                    spr(prect, 31.5, gr(0.176, a), 17);
+                                                    spr(cs(prect.min.x + 35.0, prect.min.y + 32.0, 26.0, 26.0), 33.0, gr(0.93, a), 13);
+                                                    txt(prect.min.x + 62.0, prect.min.y + 32.0, 0, "Choose PNG icon", 18.0, 33.0, gr(0.93, a));
+                                                    spr(rc(prect.min.x + 20.0, prect.min.y + 64.0, prect.max.x - 20.0, prect.min.y + 65.0), 33.0, gr(0.157, a), 15);
                                                     for path in [dir.to_string_lossy()] {
                                                         txt(
                                                             prect.min.x + 24.0,
@@ -1286,7 +1408,7 @@ fn main() {
                                                             &path[path.char_indices().rev().nth(63).map_or(0, |c| c.0)..],
                                                             12.0,
                                                             33.0,
-                                                            gr(0.459, a),
+                                                            gr(0.42, a),
                                                         );
                                                     }
                                                     for k in 0..12usize {
@@ -1302,7 +1424,7 @@ fn main() {
                                                                 ),
                                                             )] {
                                                                 bt.push((rr, 16 + k, 0.0, 33.0, true, a));
-                                                                spr(cs(rr.min.x + 22.0, rr.center().y, 16.0, 16.0), 34.0, gr(0.871, a), if folder { 13 } else { 14 });
+                                                                spr(cs(rr.min.x + 22.0, rr.center().y, 16.0, 16.0), 34.0, gr(0.6 + 0.33 * anim[16 + k][0].max(anim[16 + k][1]), a), if folder { 13 } else { 14 });
                                                                 txt(
                                                                     rr.min.x + 40.0,
                                                                     rr.center().y,
@@ -1310,7 +1432,7 @@ fn main() {
                                                                     &label[..label.char_indices().nth(52).map_or(label.len(), |c| c.0)],
                                                                     14.0,
                                                                     34.5,
-                                                                    gr(0.871, a),
+                                                                    gr(0.6 + 0.33 * anim[16 + k][0].max(anim[16 + k][1]), a),
                                                                 );
                                                             }
                                                         }
@@ -1322,16 +1444,24 @@ fn main() {
                                                     anim[*id],
                                                     if (16..28).contains(id) { *al * anim[*id][0].max(anim[*id][1]) } else { *al },
                                                 )] {
-                                                    if fc > 0.0 {
-                                                        spr(r.inflate(2.0), z - 1.0, gr(0.459, fc * al), 15);
-                                                    }
                                                     if ga > 0.0 {
                                                         spr(
                                                             *r,
                                                             *z,
-                                                            gr((0.125 + 0.8 * sl + (0.063 + 0.012 * sl) * hv) * (1.0 - pr) + (0.235 + 0.615 * sl) * pr, ga),
-                                                            15,
+                                                            gr(
+                                                                1.0,
+                                                                if *id == 10 {
+                                                                    (0.012 + 0.9 * sl + 0.07 * hv * sl) * (1.0 - 0.2 * pr) * ga
+                                                                } else {
+                                                                    ((0.012 + 0.014 * hv + 0.026 * sl) * (1.0 - pr) + 0.07 * pr) * ga
+                                                                },
+                                                            ),
+                                                            16,
                                                         );
+                                                        spr(*r, *z + 0.01, gr(1.0, (0.02 + 0.03 * hv + 0.02 * sl) * ga), 17);
+                                                    }
+                                                    if fc > 0.0 {
+                                                        spr(r.inflate(2.0), *z + 0.02, gr(0.55, fc * al), 17);
                                                     }
                                                 }
                                             }

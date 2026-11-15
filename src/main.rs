@@ -3,35 +3,35 @@
 #[global_allocator]
 static GLOBAL_ALLOCATOR: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
-static DIR: std::sync::LazyLock<std::path::PathBuf> = std::sync::LazyLock::new(|| {
-    (if cfg!(target_os = "windows") {
-        std::path::PathBuf::from(std::env::var_os("APPDATA").unwrap())
-    } else if cfg!(target_os = "macos") {
-        std::path::PathBuf::from(std::env::var_os("HOME").unwrap())
-            .join("Library/Application Support")
-    } else {
-        std::env::var_os("XDG_DATA_HOME").map_or_else(
-            || std::path::PathBuf::from(std::env::var_os("HOME").unwrap()).join(".local/share"),
-            std::path::PathBuf::from,
+fn main() {
+    std::iter::once(
+        (if cfg!(target_os = "windows") {
+            std::path::PathBuf::from(std::env::var_os("APPDATA").unwrap())
+        } else if cfg!(target_os = "macos") {
+            std::path::PathBuf::from(std::env::var_os("HOME").unwrap()).join("Library/Application Support")
+        } else {
+            std::env::var_os("XDG_DATA_HOME").map_or_else(
+                || std::path::PathBuf::from(std::env::var_os("HOME").unwrap()).join(".local/share"),
+                std::path::PathBuf::from,
+            )
+        })
+        .join("Subsystem-for-Arxumbra"),
+    )
+    .inspect(|home| std::fs::create_dir_all(home).unwrap())
+    .map(|home| {
+        (
+            redb::Database::create(home.join("projects.redb")).unwrap(),
+            home,
+            if cfg!(target_os = "linux") {
+                "Linux-Subsystem-for-Arxumbra"
+            } else if cfg!(target_os = "macos") {
+                "macOS-Subsystem-for-Arxumbra"
+            } else {
+                "Windows-Subsystem-for-Arxumbra"
+            },
         )
     })
-    .join("Subsystem-for-Arxumbra")
-});
-
-static TITLE: &str = if cfg!(target_os = "linux") {
-    "Linux-Subsystem-for-Arxumbra"
-} else if cfg!(target_os = "macos") {
-    "macOS-Subsystem-for-Arxumbra"
-} else {
-    "Windows-Subsystem-for-Arxumbra"
-};
-
-static DB: std::sync::LazyLock<redb::Database> = std::sync::LazyLock::new(|| {
-    std::fs::create_dir_all(&*DIR).unwrap();
-    redb::Database::create(DIR.join("projects.redb")).unwrap()
-});
-
-fn main() {
+    .for_each(|(db, home, title)| {
     bevy::app::App::new()
         .add_plugins((
             bevy::app::TaskPoolPlugin {
@@ -71,7 +71,7 @@ fn main() {
                     mode: bevy::window::WindowMode::BorderlessFullscreen(
                         bevy::window::MonitorSelection::Primary,
                     ),
-                    title: String::from(TITLE),
+                    title: String::from(title),
                     skip_taskbar: true,
                     present_mode: bevy::window::PresentMode::AutoVsync,
                     position: bevy::window::WindowPosition::Automatic,
@@ -261,14 +261,8 @@ fn main() {
             ),
         })
         .add_systems(
-            bevy::app::Startup,
-            |mut commands: bevy::ecs::system::Commands| {
-                commands.spawn((bevy::camera::Camera2d, bevy::render::view::Msaa::Off));
-            },
-        )
-        .add_systems(
             bevy::app::Update,
-            |window: bevy::ecs::system::Single<
+            move |window: bevy::ecs::system::Single<
                 &bevy::window::Window,
                 bevy::ecs::query::With<bevy::window::PrimaryWindow>,
             >,
@@ -279,31 +273,31 @@ fn main() {
                 bevy::input::ButtonInput<bevy::input::mouse::MouseButton>,
             >,
              time: bevy::ecs::system::Res<bevy::time::Time>,
-             mut kb: bevy::ecs::message::MessageReader<bevy::input::keyboard::KeyboardInput>,
-             mut wheel: bevy::ecs::message::MessageReader<bevy::input::mouse::MouseWheel>,
-             mut images: bevy::ecs::system::ResMut<bevy::asset::Assets<bevy::image::Image>>,
-             mut commands: bevy::ecs::system::Commands,
-             mut sprites: bevy::ecs::system::Query<
+             kb: bevy::ecs::message::MessageReader<bevy::input::keyboard::KeyboardInput>,
+             wheel: bevy::ecs::message::MessageReader<bevy::input::mouse::MouseWheel>,
+             images: bevy::ecs::system::ResMut<bevy::asset::Assets<bevy::image::Image>>,
+             commands: bevy::ecs::system::Commands,
+             sprites: bevy::ecs::system::Query<
                 (
-                    &mut bevy::sprite::Sprite,
-                    &mut bevy::transform::components::Transform,
-                    &mut bevy::camera::visibility::Visibility,
+                    bevy::ecs::change_detection::Mut<bevy::sprite::Sprite>,
+                    bevy::ecs::change_detection::Mut<bevy::transform::components::Transform>,
+                    bevy::ecs::change_detection::Mut<bevy::camera::visibility::Visibility>,
                 ),
                 bevy::ecs::query::Without<bevy::sprite::Text2d>,
             >,
-             mut texts: bevy::ecs::system::Query<
+             texts: bevy::ecs::system::Query<
                 (
-                    &mut bevy::sprite::Text2d,
-                    &mut bevy::text::TextFont,
-                    &mut bevy::text::TextColor,
-                    &mut bevy::sprite::Anchor,
-                    &mut bevy::transform::components::Transform,
-                    &mut bevy::camera::visibility::Visibility,
+                    bevy::ecs::change_detection::Mut<bevy::sprite::Text2d>,
+                    bevy::ecs::change_detection::Mut<bevy::text::TextFont>,
+                    bevy::ecs::change_detection::Mut<bevy::text::TextColor>,
+                    bevy::ecs::change_detection::Mut<bevy::sprite::Anchor>,
+                    bevy::ecs::change_detection::Mut<bevy::transform::components::Transform>,
+                    bevy::ecs::change_detection::Mut<bevy::camera::visibility::Visibility>,
                 ),
                 bevy::ecs::query::Without<bevy::sprite::Sprite>,
             >,
-             mut winit: bevy::ecs::system::ResMut<bevy::winit::WinitSettings>,
-             mut ma: bevy::ecs::system::Local<(
+             winit: bevy::ecs::system::ResMut<bevy::winit::WinitSettings>,
+             ma: bevy::ecs::system::Local<(
                 u8,
                 bool,
                 bool,
@@ -314,7 +308,7 @@ fn main() {
                 Option<bevy::math::Vec2>,
                 bevy::math::Rect,
             )>,
-             mut fo: bevy::ecs::system::Local<(
+             fo: bevy::ecs::system::Local<(
                 String,
                 Option<(usize, bevy::math::Vec2)>,
                 u8,
@@ -326,7 +320,7 @@ fn main() {
                 f32,
                 Vec<u8>,
             )>,
-             mut st: bevy::ecs::system::Local<(
+             st: bevy::ecs::system::Local<(
                 Vec<(
                     String,
                     Option<(usize, bevy::math::Vec2)>,
@@ -338,7 +332,7 @@ fn main() {
                 usize,
                 Vec<(usize, Vec<u8>)>,
             )>,
-             mut pt: bevy::ecs::system::Local<(
+             pt: bevy::ecs::system::Local<(
                 Option<usize>,
                 Option<usize>,
                 Option<(usize, f32)>,
@@ -346,480 +340,660 @@ fn main() {
                 [f32; 3],
                 Vec<(bevy::math::Rect, usize, f32, f32, bool, f32)>,
             )>,
-             mut ic: bevy::ecs::system::Local<Vec<bevy::asset::Handle<bevy::image::Image>>>| {
+             ic: bevy::ecs::system::Local<Vec<bevy::asset::Handle<bevy::image::Image>>>| {
+                Some((kb, wheel, images, commands, sprites, texts, winit, ma, fo, st, pt, ic))
+                    .iter_mut()
+                    .for_each(|(kb, wheel, images, commands, sprites, texts, winit, ma, fo, st, pt, ic)| {
                 if ic.is_empty() {
+                    commands.spawn((bevy::camera::Camera2d, bevy::render::view::Msaa::Off));
                     ic.extend(
                         [
                             b"\
-                              ..........................\
-                              ............33............\
-                              ...........7ff7...........\
-                              .........1cffffc1.........\
-                              ........5ffffffff5........\
-                              ......1affffffffffa1......\
-                              .....4effffffffffffe4.....\
-                              ....9ffffffffffffffff9....\
-                              ..3dffffffffffffffffffd3..\
-                              .178bffffffffffffffffb871.\
-                              ....8ffffffffffffffff8....\
-                              ....8ffffffffffffffff8....\
-                              ....8ffffffffffffffff8....\
-                              ....8ffffffffffffffff8....\
-                              ....8fffff8....8fffff8....\
-                              ....8fffff8....8fffff8....\
-                              ....8fffff8....8fffff8....\
-                              ....8fffff8....8fffff8....\
-                              ....8fffff8....8fffff8....\
-                              ....8fffff8....8fffff8....\
-                              ....4888884....4888884....\
-                              .........................."
+                              ....39dffffffffffffd93....\
+                              ...9ffffffffffffffffff9...\
+                              ..bffffffffffffffffffffb..\
+                              .9ffffffffffffffffffffff9.\
+                              3ffffffffffffffffffffffff3\
+                              9ffffffffffffffffffffffff9\
+                              dffffffffffffffffffffffffd\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              ffffffffffffffffffffffffff\
+                              dffffffffffffffffffffffffd\
+                              9ffffffffffffffffffffffff9\
+                              3ffffffffffffffffffffffff3\
+                              .9ffffffffffffffffffffff9.\
+                              ..bffffffffffffffffffffb..\
+                              ...9ffffffffffffffffff9...\
+                              ....39dffffffffffffd93...."
                                 .as_slice(),
                             b"\
-                              ..........................\
-                              ..afffffffa....afffffffa..\
-                              .5fffffffff5..5fffffffff5.\
-                              .8fffffffff8..8fffffffff8.\
-                              .8fffffffff8..8fffffffff8.\
-                              .8fffffffff8..8fffffffff8.\
-                              .8fffffffff8..8fffffffff8.\
-                              .8fffffffff8..8fffffffff8.\
-                              .5fffffffff5..5fffffffff5.\
-                              ..afffffffa....afffffffa..\
-                              ..........................\
-                              ..........................\
-                              ..afffffffa....afffffffa..\
-                              .5fffffffff5..5fffffffff5.\
-                              .8fffffffff8..8fffffffff8.\
-                              .8fffffffff8..8fffffffff8.\
-                              .8fffffffff8..8fffffffff8.\
-                              .8fffffffff8..8fffffffff8.\
-                              .8fffffffff8..8fffffffff8.\
-                              .5fffffffff5..5fffffffff5.\
-                              ..afffffffa....afffffffa..\
-                              .........................."
-                                .as_slice(),
-                            b"\
-                              ..........................\
-                              ..........................\
-                              ..........................\
-                              ..........................\
-                              ..........................\
-                              ................269cc.....\
-                              ..............4bffffc.....\
-                              ............2bffffff9.....\
-                              ...........3efeadfff6.....\
-                              ..........3ffe2.1dff1.....\
-                              ........37fffb...9fb......\
-                              ....26aefffffe2.2ef4......\
-                              ...7ffffffffffebefb.......\
-                              ...467affffffffffe2.......\
-                              .......5fffffffff3........\
-                              .......9ffffffff4.........\
-                              ......17fffffff7..........\
-                              ......aa5ffffff3..........\
-                              .....3ffb795ffe...........\
-                              .....affa...afb...........\
-                              ....2fb4....7f7...........\
-                              ....33......5f3...........\
-                              ............48............\
-                              ..........................\
-                              ..........................\
-                              .........................."
-                                .as_slice(),
-                            b"\
-                              ..........................\
-                              ..........................\
-                              ..........................\
-                              ............11............\
-                              ...........8ee9...........\
-                              ...........dffe...........\
-                              ...........cffd...........\
-                              ...........cffd...........\
-                              ...........cffd...........\
-                              ...........cffd...........\
-                              ...........cffd...........\
-                              ....8ccccccffffcccccc9....\
-                              ...1ffffffffffffffffff1...\
-                              ...1ffffffffffffffffff1...\
-                              ....9ddddddffffdddddda....\
-                              ...........cffd...........\
-                              ...........cffd...........\
-                              ...........cffd...........\
-                              ...........cffd...........\
-                              ...........cffd...........\
-                              ...........dffe...........\
-                              ...........9ffa...........\
-                              ............11............\
-                              ..........................\
-                              ..........................\
-                              .........................."
-                                .as_slice(),
-                            b"\
-                              ..........................\
-                              ..........................\
-                              ..........................\
-                              ..........................\
-                              .......cfd4....4dfc.......\
-                              ......4fcaea..aeacf4......\
-                              ......7e...8bb8...e7......\
-                              ......5c....dd....c5......\
-                              ......2d...9669...d2......\
-                              .......e..58..85..e.......\
-                              .......941b.44.b149.......\
-                              .......2aa3dffd3aa2.......\
-                              ........b94ffff49b........\
-                              ........b94ffff49b........\
-                              .......2aa3dffd3aa2.......\
-                              .......941b.44.b149.......\
-                              .......e..58..85..e.......\
-                              ......2d...9669...d2......\
-                              ......5c....dd....c5......\
-                              ......7e...8bb8...e7......\
-                              ......4fcaea..aeacf4......\
-                              .......cfd4....4dfc.......\
-                              ..........................\
-                              ..........................\
-                              ..........................\
-                              .........................."
-                                .as_slice(),
-                            b"\
-                              ..........................\
-                              ..........................\
-                              .........799aa997.........\
-                              .........ffffffff1........\
-                              .........4affffa4.........\
-                              ..........6ffff6..........\
-                              ..........7ffff7..........\
-                              ..........7ffff7..........\
-                              ..........7ffff7..........\
-                              ..........6ffff6..........\
-                              ..........affffa..........\
-                              .........5ffffff5.........\
-                              ........1effffffe1........\
-                              ........cffffffffc........\
-                              .......188888888881.......\
-                              .......1..........1.......\
-                              ......bffffffffffffb......\
-                              .....7ffffeffd5bffff7.....\
-                              ....3ffff618fb.8fffff3....\
-                              ....cffff..3ffdfeffffc....\
-                              ....effffa5cfff5.dfffe....\
-                              ....dffffffffff4.cfffd....\
-                              ....3effffffffffffffe3....\
-                              .....2444444444444442.....\
-                              ..........................\
-                              .........................."
-                                .as_slice(),
-                            b"\
-                              ..........................\
-                              ..........................\
-                              ..........................\
-                              ..........555555..........\
-                              .........affffffb.........\
-                              .........ff7557ff1........\
-                              ........1fd....cf1........\
-                              .........fd....cf.........\
-                              ....36666fe6666ef66664....\
-                              ...7ffffffffffffffffff8...\
-                              ...efffffffffffffffffff1..\
-                              ..1efffffffffffffffffff1..\
-                              ..1ffffffffffffffffffff1..\
-                              ..1efeffffffffffffffefe1..\
-                              ..........1efff2..........\
-                              ...abbbbbbbffffcbbbbbbb1..\
-                              ..1ffffffffffffffffffff1..\
-                              ..1efffffffffffffffffff1..\
-                              ..1efffffffffffffffffff1..\
-                              ..1ffffffffffffffffffff1..\
-                              ...dffffffffffffffffffe...\
-                              ...4dffffffffffffffffd4...\
-                              .....1111111111111111.....\
-                              ..........................\
-                              ..........................\
-                              .........................."
-                                .as_slice(),
-                            b"\
-                              ..........................\
-                              ............11............\
-                              ...........beeb...........\
-                              ...........dffd...........\
-                              .....3b2...effe...2b3.....\
-                              ....3efe428ffff824efe3....\
-                              ....cffffffffffffffffc....\
-                              ....2ffffffffffffffff2....\
-                              .....4ffffffffffffff4.....\
-                              .....1ffffffbbffffff1.....\
-                              .....9ffffc2..2cffff9.....\
-                              ..bddfffff1....1fffffedb1.\
-                              .1fffffffb......bfffffff1.\
-                              .1fffffffb......bfffffff1.\
-                              ..bddfffff1....1fffffedb1.\
-                              .....9ffffc2..2cffff9.....\
-                              .....1ffffffbbffffff1.....\
-                              .....4ffffffffffffff4.....\
-                              ....2ffffffffffffffff2....\
-                              ....cffffffffffffffffc....\
-                              ....3efe428ffff824efe3....\
-                              .....3b2...effe...2b3.....\
-                              ...........dffd...........\
-                              ...........cffc...........\
-                              ...........1111...........\
-                              .........................."
-                                .as_slice(),
-                            b"\
-                              ..........................\
-                              ..........................\
-                              .........52.44.151........\
-                              ........4f9.ef.7f5........\
-                              ........4f8.ee.7f5........\
-                              ........4f8.ef.7f5........\
-                              .......6bfd9ff9cfc7.......\
-                              ......6ffffffffffff7......\
-                              ...444cffffffffffffc4441..\
-                              ..6ffffffa554455affffff7..\
-                              ..2888dff4......3ffd8882..\
-                              ......9ff5.dffe.4ffa......\
-                              ..4eeefff4.ffff.3fffeee5..\
-                              ..4eeffff4.ffff.3ffffef5..\
-                              ......9ff5.effe.4ffa......\
-                              ..1777cff4......3ffd7772..\
-                              ..6ffffffa4433449ffffff7..\
-                              ..1555cffffffffffffd5551..\
-                              ......6ffffffffffff7......\
-                              .......7cfdaffadfc7.......\
-                              ........4f8.ef.7f5........\
-                              ........4f8.ee.7f5........\
-                              ........4f9.ef.7f5........\
-                              ........162.55.261........\
-                              ..........................\
-                              .........................."
-                                .as_slice(),
-                            b"\
-                              ..........................\
-                              ..........................\
-                              ..........................\
-                              ..........................\
-                              ...5bddddcddcccccccccb5...\
-                              ..4ff8be7f9afffffffffff5..\
-                              ..9ff15b.d24fffffffffffa..\
-                              ..affffffffffffffffffffa..\
-                              ..9f933333333333333339fa..\
-                              ..9f2................1fa..\
-                              ..9f3.6e5............2fb..\
-                              ..9f3.6ff7...........2fb..\
-                              ..9f3..5ff9..........2fb..\
-                              ..9f3...3dfc.........2fb..\
-                              ..9f3...2dfc.........2fb..\
-                              ..9f3..4ffa..........2fb..\
-                              ..9f3.6ff8..2cdddd4..2fb..\
-                              ..9f3.6e5...2deeee5..2fb..\
-                              ..9f2................1fb..\
-                              ..9f7................6fa..\
-                              ..4ffeeeeeeeeeeeeeeeeff5..\
-                              ...6cddddddddddddddddc6...\
-                              ..........................\
-                              ..........................\
-                              ..........................\
-                              .........................."
-                                .as_slice(),
-                            b"\
-                              ..........................\
-                              ..........................\
-                              ..........................\
-                              ....233333333333333332....\
-                              ..1bffffffffffffffffffc1..\
-                              ..7ff36b1d35fffffffffff9..\
-                              ..aff69d5e78fffffffffffb..\
-                              ..9ffeededeedddddddddffa..\
-                              ..9f5................4fa..\
-                              ..9f2................1fb..\
-                              ..9f3................2fb..\
-                              ..9f3.........3......2fb..\
-                              ..9f3.........7c.....2fb..\
-                              ..9f3.........6fb....2fb..\
-                              ..9f3.........7ffc...2fb..\
-                              ..9f3.........7fffc1.2fa..\
-                              ..9f2.........7ffffd11fb..\
-                              ..9f722222222.6fffffd15a..\
-                              ..4ffffffffff45ffffffe2...\
-                              ...4aaaaaaaab26ffffdbca...\
-                              ..............7ffdfc......\
-                              ..............7f71ff4.....\
-                              ..............78..8fc.....\
-                              ..................1ff3....\
-                              ...................53.....\
-                              .........................."
-                                .as_slice(),
-                            b"\
-                              ..........................\
-                              ..........................\
-                              ..........................\
-                              ....5563..........2655....\
-                              ...5fffd..........cfff6...\
-                              ...6fffd..........cfff7...\
-                              ...6ffffbbbbbbbbbbefff7...\
-                              ...3ddffffffffffffffdd3...\
-                              ......bf1..1111..1fc......\
-                              ......bf..........fc......\
-                              ......bf...4bb4...fc......\
-                              ......bf1.4ffff4..fc......\
-                              ......bf1.bffffb..fc......\
-                              ......bf1.bffffb..fc......\
-                              ......bf1.4ffff4..fc......\
-                              ......bf...4bb4...fc......\
-                              ......bf..........fc......\
-                              ......bf1.........fc......\
-                              ...2ccefffffffffffffcc3...\
-                              ...6ffffccccccccccffff7...\
-                              ...6fffd..........cfff7...\
-                              ...5fffd..........cfff6...\
-                              ....6673..........3666....\
-                              ..........................\
-                              ..........................\
-                              .........................."
-                                .as_slice(),
-                            b"\
-                              ..........................\
-                              ..........................\
-                              ............23............\
-                              ..........18ff91..........\
-                              .........6effffe6.........\
-                              .......4cffffffffc4.......\
-                              .....2affffffffffffa2.....\
-                              ....7ffffffffffffffff8....\
-                              ....2affffffffffffffb3....\
-                              ...11.4cffffffffffd4.11...\
-                              ...4f8..6effffffe7..8f4...\
-                              ...4ffd5..9ffff91.5dff4...\
-                              ...4ffffc3.2bc3.3cffff4...\
-                              ...4ffffffa1..1affffff4...\
-                              ...4ffffffff11ffffffff4...\
-                              ...4ffffffff22ffffffff4...\
-                              ...4ffffffff11ffffffff4...\
-                              ...4ffffffff11ffffffff4...\
-                              ...2cfffffff11fffffffc2...\
-                              .....6efffff11fffffe6.....\
-                              ......19ffff11ffff91......\
-                              ........3bff11ffb3........\
-                              ..........5d22d5..........\
-                              ..........................\
-                              ..........................\
-                              .........................."
-                                .as_slice(),
-                            b"\
-                              ..........................\
-                              ..........................\
-                              ..........................\
-                              ..........................\
-                              ...9cccccca1..............\
-                              ..5ffffffff6..............\
-                              ..6ffffffff6..............\
-                              ..5ffffffffc9a999999994...\
-                              ..5ffffffffffffffffffff3..\
-                              ..6ffffffffffffffffffff7..\
-                              ..3888888888888888888883..\
-                              ..1323333333333333333231..\
-                              ..6ffffffffffffffffffff7..\
-                              ..5ffffffffffffffffffff6..\
-                              ..6ffffffffffffffffffff7..\
-                              ..6ffffffffffffffffffff7..\
-                              ..6ffffffffffffffffffff7..\
-                              ..6ffffffffffffffffffff7..\
-                              ..5ffffffffffffffffffff6..\
-                              ..6ffffffffffffffffffff7..\
-                              ..4ffffffffffffffffffff4..\
-                              ...7dddddddddddddddddd8...\
-                              ..........................\
-                              ..........................\
-                              ..........................\
-                              .........................."
-                                .as_slice(),
-                            b"\
-                              ..........................\
-                              ..........................\
-                              ..........................\
-                              ..........................\
-                              ...2cffffffffffffffffc3...\
-                              ...cfecdccccccccccdcdfd...\
-                              ...fe................df1..\
-                              ...fc................bf1..\
-                              ...fd..........274...cf1..\
-                              ...fc.........1eff4..bf1..\
-                              ...fc.........5fff9..bf1..\
-                              ...fc.........1dfe3..bf1..\
-                              ...fc.....6....142...bf1..\
-                              ...fc....4f8.........bf1..\
-                              ...fc...1eff4..41....bf1..\
-                              ...fc...afffe.4fc....bf1..\
-                              ...fc..5fffffceffa...bf1..\
-                              ...fd..effffffffff8..cf1..\
-                              ...fc.bffffffffffff8.bf1..\
-                              ...fd166666666666666.cf1..\
-                              ...cfdaaaaaaaaaaaaaadfd...\
-                              ...3cffffffffffffffffd3...\
-                              .....1111111111111111.....\
-                              ..........................\
-                              ..........................\
-                              .........................."
+                              ....39dffffffffffffd93....\
+                              ...9d73............37d9...\
+                              ..b9..................9b..\
+                              .99....................99.\
+                              3d......................d3\
+                              97......................79\
+                              d3......................3d\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              f........................f\
+                              d3......................3d\
+                              97......................79\
+                              3d......................d3\
+                              .99....................99.\
+                              ..b9..................9b..\
+                              ...9d73............37d9...\
+                              ....39dffffffffffffd93...."
                                 .as_slice(),
                             b"ffffffffffffffffffffffffff"
-                              .as_slice(),
+                                .as_slice(),
                             b"\
-                              ....39dffffffffffffd93....\
-                              ...9ffffffffffffffffff9...\
-                              ..bffffffffffffffffffffb..\
-                              .9ffffffffffffffffffffff9.\
-                              3ffffffffffffffffffffffff3\
-                              9ffffffffffffffffffffffff9\
-                              dffffffffffffffffffffffffd\
-                              ffffffffffffffffffffffffff\
-                              ffffffffffffffffffffffffff\
-                              ffffffffffffffffffffffffff\
-                              ffffffffffffffffffffffffff\
-                              ffffffffffffffffffffffffff\
-                              ffffffffffffffffffffffffff\
-                              ffffffffffffffffffffffffff\
-                              ffffffffffffffffffffffffff\
-                              ffffffffffffffffffffffffff\
-                              ffffffffffffffffffffffffff\
-                              ffffffffffffffffffffffffff\
-                              ffffffffffffffffffffffffff\
-                              dffffffffffffffffffffffffd\
-                              9ffffffffffffffffffffffff9\
-                              3ffffffffffffffffffffffff3\
-                              .9ffffffffffffffffffffff9.\
-                              ..bffffffffffffffffffffb..\
-                              ...9ffffffffffffffffff9...\
-                              ....39dffffffffffffd93...."
-                              .as_slice(),
+                              ..........................\
+                              ..........................\
+                              .........27abba72.........\
+                              .......3bffffffffb3.......\
+                              ......8fffda889dfff8......\
+                              .....affc4......4cffa.....\
+                              ....8ff8..........8ff8....\
+                              ...3ff8............8ff3...\
+                              ...bfc..............bfb...\
+                              ..2ff4..............3ff2..\
+                              ..7fd........2664....cf7..\
+                              ..afa.......8ffffc2..9fa..\
+                              ..bf8......8ffffffd1.7fb..\
+                              ..bf8.....2ffffffff7.7fb..\
+                              ..af9.....6ffffffffb.9fa..\
+                              ..7fd.....6ffffffffc.cf7..\
+                              ..2ff4....4ffffffff93ff2..\
+                              ...bfc.....cfffffff3bfb...\
+                              ...3ff8....2dfffff67ff3...\
+                              ....8ff8....17bc937ff8....\
+                              .....affb3......3bffa.....\
+                              ......8fffc9779cfff8......\
+                              .......3bffffffffb3.......\
+                              .........27abba72.........\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
                             b"\
-                              ....39dffffffffffffd93....\
-                              ...9d73............37d9...\
-                              ..b9..................9b..\
-                              .99....................99.\
-                              3d......................d3\
-                              97......................79\
-                              d3......................3d\
-                              f........................f\
-                              f........................f\
-                              f........................f\
-                              f........................f\
-                              f........................f\
-                              f........................f\
-                              f........................f\
-                              f........................f\
-                              f........................f\
-                              f........................f\
-                              f........................f\
-                              f........................f\
-                              d3......................3d\
-                              97......................79\
-                              3d......................d3\
-                              .99....................99.\
-                              ..b9..................9b..\
-                              ...9d73............37d9...\
-                              ....39dffffffffffffd93...."
-                              .as_slice(),
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ............88............\
+                              ..........1bffb1..........\
+                              .........2cfddfd2.........\
+                              ........3efc11bfe4........\
+                              .......5efa1...aff5.......\
+                              ......7ff8......8ff7......\
+                              .....9ff6........5ff9.....\
+                              ...1bfe4..........4efb1...\
+                              ..3dffc............cffd3..\
+                              ..9fdfc............cfdf9..\
+                              ..163fc............cf361..\
+                              ....3fc...566665...cf3....\
+                              ....3fc..5ffffff5..cf3....\
+                              ....3fc..7fd99df7..cf3....\
+                              ....3fc..7f8..8f7..cf3....\
+                              ....3fc..7f8..8f7..cf3....\
+                              ....3fc..7f8..8f7..cf3....\
+                              ....3fd338fa33af833df3....\
+                              ....3ffffffffffffffff3....\
+                              .....acccccccccccccca.....\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........231.............\
+                              ........2bfffa1...........\
+                              .......1efedffc...........\
+                              .......8fc1.2ef5..........\
+                              ..4eeeeff6...8ffeeee4.....\
+                              ..7ffffff4...4ffffff7.....\
+                              ..7f91111.........8f7.....\
+                              ..7f8.............8f7.....\
+                              ..7f8.............9ffa1...\
+                              ..7fb1............4cffc...\
+                              ..6ffe3.............2ef5..\
+                              ...6cfb..............8f9..\
+                              ....2ff..............8f9..\
+                              ....4fe.............2ef5..\
+                              ..2cff8...........4cffc...\
+                              ..7ff9............9ffa1...\
+                              ..7f9.............8f7.....\
+                              ..7f8.............8f7.....\
+                              ..7fffffffffffffffff7.....\
+                              ..4fffffffffffffffff4.....\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              .........33333333.........\
+                              ........8ffffffff8........\
+                              ........4dfeccefd4........\
+                              .........3fc..cf3.........\
+                              .........3fc..cf3.........\
+                              .........3fc..cf3.........\
+                              .........3fc..cf3.........\
+                              .........3fc..cf3.........\
+                              .........9fa..af9.........\
+                              ........4ff2..2ff4........\
+                              ........df7....7fd........\
+                              .......8fc......cf8.......\
+                              ......3ffa888888aff3......\
+                              ......cffffffffffffc......\
+                              .....7fd5555555555df7.....\
+                              ....2ef4..........4fe2....\
+                              ....bfa............afb....\
+                              ...2ff1............1ff2...\
+                              ....efcbbbbbbbbbbbbcfe....\
+                              ....8ffffffffffffffff8....\
+                              .....3444444444444443.....\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ............22............\
+                              ...........4ee4...........\
+                              ..........5ffff5..........\
+                              .........3ef99fe3.........\
+                              .........cfa..afc.........\
+                              ........4fe1331ef4........\
+                              ........af9cffc9fa........\
+                              ........efbfbbfbff........\
+                              .......3fecf1.fcef3.......\
+                              .......5fbaf98fabf5.......\
+                              .......6fa2effe29f6.......\
+                              .......af9.1661.9fb.......\
+                              ......5ff9......9ff6......\
+                              .....2eff9......9ffe2.....\
+                              .....bfefa333333afdfc.....\
+                              ....7fd7ffffffffff7df7....\
+                              ....bf7cfeccccccefc6fc....\
+                              ....bfffd3......3dfffc....\
+                              ....bffa1.bc1.cc.1affc....\
+                              ....af7...df87fd...7fa....\
+                              .....2....4ffff5....2.....\
+                              ...........9ffa...........\
+                              ...........1de2...........\
+                              ............11............\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ....5999995....5999995....\
+                              ...5fffffff5..5fffffff5...\
+                              ...9fa6669fa..9fa6669fa...\
+                              ...9f6...5fa..9f6...5fa...\
+                              ...9f6...5fa..9fb888bfa...\
+                              ...9f6...5fa..3effffff4...\
+                              ...9f6...5fa...2677762....\
+                              ...9f6...5fa..............\
+                              ...8fdbbbdf9..............\
+                              ...2dfffffe2...7ccccc8....\
+                              ....1444441...6fffffff7...\
+                              ..............9f83337fa...\
+                              ..............9f6...5fa...\
+                              ....7ccccc8...9f6...5fa...\
+                              ...6fffffff7..9f6...5fa...\
+                              ...9f83337fa..9f6...5fa...\
+                              ...9f6...5fa..9f6...5fa...\
+                              ...9f95558fa..9f95558fa...\
+                              ...5fffffff6..5fffffff6...\
+                              ....5aaaaa6....5aaaaa6....\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ............77............\
+                              ...........3ff3...........\
+                              ...........2ff4...........\
+                              ...........2ff4...........\
+                              ...........2ff4...........\
+                              ...........2ff4...........\
+                              ...........2ff4...........\
+                              ...........2ff4...........\
+                              ....32222224ff52222223....\
+                              ...7ffffffffffffffffff7...\
+                              ...7ffffffffffffffffff7...\
+                              ....34444445ff74444443....\
+                              ...........2ff4...........\
+                              ...........2ff4...........\
+                              ...........2ff4...........\
+                              ...........2ff4...........\
+                              ...........2ff4...........\
+                              ...........2ff4...........\
+                              ...........3ff3...........\
+                              ............77............\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ............22............\
+                              ..........17ee81..........\
+                              ........17effffe71........\
+                              .......6dffa32affe6.......\
+                              .....5dffb3....3bffd6.....\
+                              ...5dffc4........4bffd5...\
+                              ..8ffe4............4eff8..\
+                              ..4dffb3..........3bffd4..\
+                              ....6dffa3......2affe6....\
+                              .....17effa2..29ffe71.....\
+                              ..392..17eff99ffe81..293..\
+                              ..9fe81..18effe81..18ef9..\
+                              ..19ffe81..19a2..18eff91..\
+                              ....29ffe71....17eff92....\
+                              ...3..2affe71.6effa2..3...\
+                              ..8fb3..3affddffb3..3bf8..\
+                              ..4effa2..3bffb4..2affe4..\
+                              ...17eff92..34..29ffe71...\
+                              .....18eff91..18ffe81.....\
+                              .......18efe88eff81.......\
+                              .........19ffff92.........\
+                              ...........2992...........\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ....289999999999999982....\
+                              ...2effffffffffffffffe3...\
+                              ...afb66666666666666afb...\
+                              ...cf3..............2fd...\
+                              ...cf3.19a3.........2fd...\
+                              ...cf3.9ffe.........2fd...\
+                              ...cf3.afff1........2fd...\
+                              ...cf3.3ef8.........2fd...\
+                              ...cf3...22.........2fd...\
+                              ...cf3..1cf5........2fd...\
+                              ...cf3.1cfff5..5d7..2fd...\
+                              ...cf31cfc8ff55fff7.2fd...\
+                              ...cf4cfc1.7ffffaff72fd...\
+                              ...cfefc1...7ff8.5ff9fd...\
+                              ...cffc1.....56...5fffd...\
+                              ...aff6555555555555affb...\
+                              ...3efffffffffffffffff7...\
+                              ....29aaaaaaaaaaaaaa93....\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              .........55.55.55.........\
+                              .........ee.ee.ee.........\
+                              .........de.de.de.........\
+                              .........de.de.de.........\
+                              .........de.de.de.........\
+                              .......19ffcffcff91.......\
+                              .......9ffffffffffa.......\
+                              ..5edddff53333335ffddde5..\
+                              ..5eeeeff3.566512ffeeee5..\
+                              .......cf35ffff62fd.......\
+                              ..5edddff36ffff72ffddde5..\
+                              ..5eeeeff36ffff72ffeeee5..\
+                              .......cf35ffff62fd.......\
+                              ..5edddff31677612ffddde5..\
+                              ..5eeeeff52222224ffeeee5..\
+                              .......9ffffffffffa.......\
+                              .......1affdffdffa1.......\
+                              .........de.de.de.........\
+                              .........de.de.de.........\
+                              .........de.de.de.........\
+                              .........ee.ee.ee.........\
+                              .........55.55.55.........\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ....3acccccccccccccca4....\
+                              ...4ffffffffffffffffff5...\
+                              ...cf9333333333333338fd...\
+                              ...ff................ef1..\
+                              ...ff................ef1..\
+                              ...ff.2b5............ef1..\
+                              ...ff.5ff8...........ef1..\
+                              ...ff..6ffb1.........ef1..\
+                              ...ff...3efd2........ef1..\
+                              ...ff....9ff4........ef1..\
+                              ...ff..1bff6.........ef1..\
+                              ...ff.2dfd3.16666661.ef1..\
+                              ...ff.5fb1..9ffffff9.ef1..\
+                              ...ff..3....39999993.ef1..\
+                              ...ff................ef1..\
+                              ...cf8222222222222227fd...\
+                              ...4ffffffffffffffffff5...\
+                              ....4bddddddddddddddb4....\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ....3acccccccccccccca4....\
+                              ...4ffffffffffffffffff5...\
+                              ...cf9333333333333338fd...\
+                              ...ff................ef1..\
+                              ...ff5555555555555555ef1..\
+                              ..7ffffffffffffffffffff8..\
+                              ..2ff8888fd8888888888ff3..\
+                              ...ff...2fa..........ef1..\
+                              ...ff...2fa..........ef1..\
+                              ...ff...2fa..........ef1..\
+                              ...ff...2fa..........ef1..\
+                              ...ff...2fa..........ef1..\
+                              ...ff...2fa..........ef1..\
+                              ...ff...2fa..........ef1..\
+                              ...ff...2fa..........ef1..\
+                              ...cf8224fb2222222227fd...\
+                              ...4ffffffffffffffffff5...\
+                              ....4bdddfedddddddddb4....\
+                              .........31...............\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              .......1342...............\
+                              .....2affffc5.............\
+                              ....4effcceff8............\
+                              ...2efa2...6ff7...........\
+                              ...afa......5fe1..........\
+                              ..1ff2.......bf6..........\
+                              ..3fc........7f9..........\
+                              ..4fc........6f9..........\
+                              ..2fe........9f7..........\
+                              ...cf6.......331..........\
+                              ...5ff5......699999994....\
+                              ....8ffb76936fffffffff3...\
+                              .....7effff39fa66666bf7...\
+                              ......1699719f6.....8f7...\
+                              ............9f6.....8f7...\
+                              ............9f6.....8f7...\
+                              ............9f6.....8f7...\
+                              ............9f6.....8f7...\
+                              ............9fb88888cf6...\
+                              ............4ffffffffe2...\
+                              .............377777762....\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ............67............\
+                              ..........5dffd5..........\
+                              ........3bffccffb3........\
+                              ......2affd6..5dffa2......\
+                              ....18efe71....17eff81....\
+                              ...6eff91........19ffe6...\
+                              ...cffa1..........1affc...\
+                              ...cfffe6........6efffc...\
+                              ...cf5bffd5....4cffb5fc...\
+                              ...cf3.4cffb33bffc4.3fc...\
+                              ...cf3...6dffffe6...3fc...\
+                              ...cf3....18ff81....3fc...\
+                              ...cf3......ef1.....3fc...\
+                              ...cf3......ef1.....3fc...\
+                              ...cf3......ef1.....3fc...\
+                              ...cfb3.....ef1....2bfc...\
+                              ...6eff91...ef1..19ffe6...\
+                              ....18efe71.ef117eff81....\
+                              ......2affd6ef6dffa2......\
+                              ........3bffffffb3........\
+                              ..........5dffd5..........\
+                              ............67............\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ............1763..........\
+                              .......272..9fffe5........\
+                              ......7efd1.ef9df9........\
+                              .....affdfddfc.7f8..1.....\
+                              ....1ff51efff7.9fc49fa....\
+                              .....9fa.362...4efffff7...\
+                              .....4ff1.......19fa5fe2..\
+                              ..598cf9...1441...1.1df7..\
+                              ..efffe1..7effe7...3efd2..\
+                              .3fd794..7ffbbff7..6fd1...\
+                              .6f9....1ef4..4fe1.2fd....\
+                              .7ffc7..4fb....bf4..ffe91.\
+                              .19eff..4fb....bf4..7cff7.\
+                              ....df2.1ef4..4fe1....9f6.\
+                              ...1df6..7ffbbff7..497df3.\
+                              ..2dfe3...7effe7..1efffe..\
+                              ..7fd1.1...1441...9fc895..\
+                              ..2ef5af91.......1ff4.....\
+                              ...7fffffe4...263.af9.....\
+                              ....af94cf9.7fffe15ff1....\
+                              .....1..8f7.cfddfdffa.....\
+                              ........9fd9fe.1dfe7......\
+                              ........5efff9..272.......\
+                              ..........3671............\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ........1.................\
+                              .......5fa1...............\
+                              .......8ffe6..............\
+                              .......8ffffb2............\
+                              .......8fb7fff7...........\
+                              .......8fa.2bffc3.........\
+                              .......8fa...6eff91.......\
+                              .......8fa....1affd5......\
+                              .......8fa......4dffa2....\
+                              .......8fa.......18fff2...\
+                              .......8fa........7fff2...\
+                              .......8fa......4dffb2....\
+                              .......8fa....19ffe6......\
+                              .......8fa...5effa1.......\
+                              .......8fa.2affd4.........\
+                              .......8fa6eff81..........\
+                              .......8ffffc3............\
+                              .......8ffe7..............\
+                              .......5fb2...............\
+                              ........1.................\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ............44............\
+                              ...........3ff3...........\
+                              ...........2ff4...........\
+                              ...........2ff4...........\
+                              .......62..2ff4..26.......\
+                              ......9fc..2ff4..cf9......\
+                              .....7ff7..2ff4..7ff7.....\
+                              ....2ff8...2ff4...8ff2....\
+                              ....9fc....2ff4....cf9....\
+                              ....ef5....2ff4....5fe....\
+                              ...3ff1....3ff4....1ff3...\
+                              ...4fd......aa......df4...\
+                              ...4fe..............ef4...\
+                              ...2ff1............1ff2...\
+                              ....ef5............5fe....\
+                              ....9fb............bf9....\
+                              ....2ef7..........7fe2....\
+                              .....7ff8........8ff7.....\
+                              ......9ffc51..15cff9......\
+                              .......7ffffddffff7.......\
+                              ........29effffe92........\
+                              ...........2442...........\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ....7888881...............\
+                              ...9ffffffc1..............\
+                              ..5fe7777dfb33333331......\
+                              ..7f8....2dffffffffe4.....\
+                              ..7f8.....3bccccccdff3....\
+                              ..7f8..............af7....\
+                              ..7f8.2666666666666bfa64..\
+                              ..7f8.dfffffffffffffffff..\
+                              ..7f84fe9999999999999cfc..\
+                              ..7f8af7.............cf6..\
+                              ..7faff2............3fe...\
+                              ..7fffa.............af8...\
+                              ..7fff4............1ff2...\
+                              ..7ffd.............7fb....\
+                              ..7ff7.............df5....\
+                              ..7ffa999999999999afd.....\
+                              ..6fffffffffffffffff7.....\
+                              ...66666666666666666......\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ...3eeeeee4...............\
+                              ..3effffffe3..............\
+                              ..9fb11119fd3333333332....\
+                              ..9f6.....bfffffffffff5...\
+                              ..9f6.....1bcccccccccff4..\
+                              ..9f6................9f9..\
+                              ..9f6................6f9..\
+                              ..9f6................6f9..\
+                              ..9f6................6f9..\
+                              ..9f6................6f9..\
+                              ..9f6................6f9..\
+                              ..9f6................6f9..\
+                              ..9f6................6f9..\
+                              ..9f7................7f9..\
+                              ..7ffa99999999999999aff7..\
+                              ...8ffffffffffffffffff8...\
+                              ....566666666666666665....\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ......2677777776..........\
+                              .....3efffffffffa.........\
+                              ....2efb888888cffa........\
+                              ....6fc.......8fffa.......\
+                              ....6f9.......8f9efa......\
+                              ....6f9.......8fa8ffa.....\
+                              ....6f9.......8ffffff6....\
+                              ....6f9.......29999df6....\
+                              ....6f9............9f6....\
+                              ....6f9............9f6....\
+                              ....6f9............9f6....\
+                              ....6f9............9f6....\
+                              ....6f9....52......9f6....\
+                              ....6f9...5fd2.61..9f6....\
+                              ....6f9..3fefdbfa..9f6....\
+                              ....6f9.2ee35ffef6.9f6....\
+                              ....6f9.cf5..661ee29f6....\
+                              ....6f9.b7......4c29f6....\
+                              ....6fc............cf6....\
+                              ....2efb8888888888bfe2....\
+                              .....3effffffffffffe3.....\
+                              ......26777777777762......\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ............11............\
+                              ...........2ee2...........\
+                              ..........2dffd2..........\
+                              .........2dffffd2.........\
+                              ........2dfeffefd2........\
+                              .......2dfe4ff4dfd2.......\
+                              ......2dfd21ff22dfd2......\
+                              .....2dfd2.1ff2.2dfd3.....\
+                              .....7fd2..1ff2..2df8.....\
+                              .....183...1ff2...381.....\
+                              ...........1ff2...........\
+                              ...........1ff2...........\
+                              ...........1ff2...........\
+                              ...........1ff2...........\
+                              ...........1ff2...........\
+                              ...........1ff2...........\
+                              ...........1ff2...........\
+                              ...........1ff2...........\
+                              ...........1ff1...........\
+                              ............66............\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
                         ]
                         .map(|art: &[u8]| {
                             images.add(bevy::image::Image::new(
@@ -844,13 +1018,13 @@ fn main() {
                             ))
                         }),
                     );
-                    st.0 = redb::ReadableDatabase::begin_read(&*DB)
+                    st.0 = redb::ReadableDatabase::begin_read(&db)
                         .unwrap()
                         .open_table(redb::TableDefinition::<&str, &[u8]>::new("fs"))
                         .into_iter()
                         .flat_map(|table| {
                             table
-                                .range("/projects/".."/projects0")
+                                .range("/projects/"..="/projects/\u{10ffff}")
                                 .unwrap()
                                 .flatten()
                                 .filter(|(key, _)| key.value().ends_with("/meta"))
@@ -922,8 +1096,18 @@ fn main() {
                     ma.5 = true;
                 }
                 pt.3.resize(34 + 2 * st.0.len(), [0.0; 4]);
-                Some(((&mut *ma, &mut *fo, &mut *st, &mut *pt, &mut *ic), window.width(), window.height()))
-                    .map(|(l, w, h)| (l, w, h, (w * 0.22).clamp(200.0, 280.0).min(w * 0.5)))
+                Some((
+                    (
+                        std::ops::DerefMut::deref_mut(ma),
+                        std::ops::DerefMut::deref_mut(fo),
+                        std::ops::DerefMut::deref_mut(st),
+                        std::ops::DerefMut::deref_mut(pt),
+                        std::ops::DerefMut::deref_mut(ic),
+                    ),
+                    window.width(),
+                    window.height(),
+                ))
+                    .map(|(l, w, h)| (l, w, h, (w * 0.22).clamp(240.0, 304.0).min(w * 0.5)))
                     .map(|(l, w, h, side)| (l, w, h, side, ((w - side - 68.0) / 396.0).clamp(1.0, 8.0) as usize))
                     .map(|(l, w, h, side, cols)| {
                         (
@@ -1031,11 +1215,11 @@ fn main() {
                             });
                             bt.clear();
                             Some((sprites.iter_mut(), texts.iter_mut()))
-                                .into_iter()
-                                .for_each(|(mut sit, mut tit)| {
+                                .iter_mut()
+                                .for_each(|(sit, tit)| {
                                     Some((
                                         |r: bevy::math::Rect, z: f32, c: bevy::color::Color, i: usize| {
-                                            sit.next().into_iter().for_each(|(mut s, mut t, mut v)| {
+                                            sit.next().iter_mut().for_each(|(s, t, v)| {
                                                 if s.color != c {
                                                     s.color = c;
                                                 }
@@ -1045,7 +1229,7 @@ fn main() {
                                                 if s.custom_size != Some(r.size()) {
                                                     s.custom_size = Some(r.size());
                                                 }
-                                                Some(if i > 15 {
+                                                Some(if i < 2 {
                                                     bevy::sprite::SpriteImageMode::Sliced(bevy::sprite::TextureSlicer {
                                                         border: bevy::sprite::BorderRect::all(9.0),
                                                         center_scale_mode: bevy::sprite::SliceScaleMode::Stretch,
@@ -1062,13 +1246,11 @@ fn main() {
                                                     .filter(|p| t.translation != *p)
                                                     .into_iter()
                                                     .for_each(|p| t.translation = p);
-                                                if *v != bevy::camera::visibility::Visibility::Inherited {
-                                                    *v = bevy::camera::visibility::Visibility::Inherited;
-                                                }
+                                                bevy::ecs::change_detection::DetectChangesMut::set_if_neq(v, bevy::camera::visibility::Visibility::Inherited);
                                             });
                                         },
                                         |x: f32, y: f32, an: usize, label: &str, size: f32, z: f32, c: bevy::color::Color| {
-                                            tit.next().into_iter().for_each(|(mut tx, mut tf, mut tc, mut ta, mut t, mut v)| {
+                                            tit.next().iter_mut().for_each(|(tx, tf, tc, ta, t, v)| {
                                                 if tx.0 != label {
                                                     tx.0.clear();
                                                     tx.0.push_str(label);
@@ -1084,16 +1266,14 @@ fn main() {
                                                     bevy::sprite::Anchor::TOP_LEFT,
                                                     bevy::sprite::Anchor::CENTER,
                                                 ][an])
-                                                .filter(|a| *ta != *a)
+                                                .filter(|a| **ta != *a)
                                                 .into_iter()
-                                                .for_each(|a| *ta = a);
+                                                .for_each(|a| **ta = a);
                                                 Some(bevy::math::Vec3::new(x - w / 2.0, h / 2.0 - y, z))
                                                     .filter(|p| t.translation != *p)
                                                     .into_iter()
                                                     .for_each(|p| t.translation = p);
-                                                if *v != bevy::camera::visibility::Visibility::Inherited {
-                                                    *v = bevy::camera::visibility::Visibility::Inherited;
-                                                }
+                                                bevy::ecs::change_detection::DetectChangesMut::set_if_neq(v, bevy::camera::visibility::Visibility::Inherited);
                                             });
                                         },
                                         |v: f32, a: f32| bevy::color::Color::srgba(v, v, v, a),
@@ -1105,66 +1285,66 @@ fn main() {
                                             )
                                         },
                                     ))
-                                    .into_iter()
-                                    .for_each(|(mut spr, mut txt, gr, rc, cs)| {
+                                    .iter_mut()
+                                    .for_each(|(spr, txt, gr, rc, cs)| {
                                         if !*hud {
-                                            spr(rc(0.0, 0.0, side, h), 2.0, gr(0.059, 1.0), 15);
-                                            spr(rc(side - 1.0, 0.0, side, h), 3.0, gr(0.118, 1.0), 15);
-                                            spr(rc(0.0, 60.0, side - 1.0, 61.0), 3.0, gr(0.118, 1.0), 15);
-                                            spr(cs(30.0, 32.0, 18.0, 18.0), 6.0, gr(0.93, 1.0), if *view == 2 { 5 } else { 4 });
+                                            spr(rc(24.0, 24.0, side - 4.0, (h - 24.0).max(48.0)), 1.0, gr(0.071, 1.0), 0);
+                                            spr(rc(24.0, 24.0, side - 4.0, (h - 24.0).max(48.0)), 1.1, gr(0.133, 1.0), 1);
+                                            spr(rc(40.0, 84.0, side - 20.0, 85.0), 3.0, gr(0.133, 1.0), 2);
+                                            spr(cs(54.0, 56.0, 18.0, 18.0), 6.0, gr(0.93, 1.0), if *view == 2 { 6 } else { 3 });
                                             txt(
-                                                48.0,
-                                                22.0,
+                                                72.0,
+                                                46.0,
                                                 1,
-                                                if *view == 2 { "Laboratory" } else { TITLE },
-                                                if *view == 2 { 15.0 } else { ((side - 56.0) / (0.6 * TITLE.len() as f32)).clamp(9.0, 15.0) },
+                                                if *view == 2 { "Laboratory" } else { title },
+                                                if *view == 2 { 15.0 } else { ((side - 88.0) / (0.6 * title.len() as f32)).clamp(9.0, 15.0) },
                                                 6.0,
                                                 gr(0.93, 1.0),
                                             );
                                             if *view < 2 {
                                                 for (k, (r, label)) in [
-                                                    (rc(20.0, 78.0, (side - 20.0).max(21.0), 130.0), "Home"),
-                                                    (rc(20.0, 138.0, (side - 20.0).max(21.0), 190.0), "Extension Registry"),
+                                                    (rc(36.0, 100.0, side - 16.0, 152.0), "Home"),
+                                                    (rc(36.0, 160.0, side - 16.0, 212.0), "Extension Registry"),
                                                 ]
                                                 .into_iter()
                                                 .enumerate()
                                                 {
                                                     bt.push((r, k, (*view as usize == k) as u8 as f32, 5.0, !*modal && !*picker, 1.0));
                                                     spr(
-                                                        cs(48.0, r.center().y, 20.0, 20.0 * 22.0 / 26.0),
+                                                        cs(64.0, r.center().y, 20.0, 20.0),
                                                         6.0,
                                                         gr(0.6 + 0.33 * anim[k][0].max(anim[k][3]), 1.0),
-                                                        k,
+                                                        4 + k,
                                                     );
-                                                    txt(68.0, r.center().y, 0, label, 15.0, 6.5, gr(0.6 + 0.33 * anim[k][0].max(anim[k][3]), 1.0));
+                                                    txt(84.0, r.center().y, 0, label, 15.0, 6.5, gr(0.6 + 0.33 * anim[k][0].max(anim[k][3]), 1.0));
                                                 }
                                             } else if *view == 2 {
-                                                bt.push((rc(20.0, 78.0, (side - 20.0).max(21.0), 130.0), 3, 0.0, 5.0, !*modal && !*picker, 1.0));
-                                                spr(cs(48.0, 104.0, 18.0, 18.0), 6.0, gr(0.7 + 0.23 * anim[3][0], 1.0), 3);
-                                                txt(68.0, 104.0, 0, "Create project", 15.0, 6.5, gr(0.7 + 0.23 * anim[3][0], 1.0));
+                                                bt.push((rc(36.0, 100.0, side - 16.0, 152.0), 3, 0.0, 5.0, !*modal && !*picker, 1.0));
+                                                spr(cs(64.0, 126.0, 18.0, 18.0), 6.0, gr(0.7 + 0.23 * anim[3][0], 1.0), 9);
+                                                txt(84.0, 126.0, 0, "Create project", 15.0, 6.5, gr(0.7 + 0.23 * anim[3][0], 1.0));
                                             } else {
-                                                spr(rc(20.0, 78.0, side - 20.0, 130.0), 3.5, gr(0.059, 1.0), 16);
-                                                spr(rc(20.0, 78.0, side - 20.0, 130.0), 3.6, gr(0.133, 1.0), 17);
+                                                spr(rc(36.0, 100.0, side - 16.0, 152.0), 3.5, gr(0.043, 1.0), 0);
+                                                spr(rc(36.0, 100.0, side - 16.0, 152.0), 3.6, gr(0.133, 1.0), 1);
                                             }
                                             if *view > 0 {
                                                 for a in [fades[0]] {
-                                                    spr(rc(side + 20.0, 24.0, (w - 24.0).max(side + 60.0), (h - 24.0).max(48.0)), 1.0, gr(0.071, a), 16);
-                                                    spr(rc(side + 20.0, 24.0, (w - 24.0).max(side + 60.0), (h - 24.0).max(48.0)), 1.1, gr(0.133, a), 17);
+                                                    spr(rc(side + 20.0, 24.0, (w - 24.0).max(side + 60.0), (h - 24.0).max(48.0)), 1.0, gr(0.071, a), 0);
+                                                    spr(rc(side + 20.0, 24.0, (w - 24.0).max(side + 60.0), (h - 24.0).max(48.0)), 1.1, gr(0.133, a), 1);
                                                     if *view == 1 {
                                                         for cd in [rc(side + 44.0, 48.0, xr, 192.0)] {
-                                                            spr(cd, 1.6, gr(0.102, a), 16);
-                                                            spr(cd, 1.7, gr(0.157, a), 17);
-                                                            spr(rc(cd.min.x + 20.0, cd.min.y + 64.0, cd.max.x - 20.0, cd.min.y + 65.0), 1.8, gr(0.157, a), 15);
-                                                            spr(cs(cd.min.x + 35.0, cd.min.y + 32.0, 26.0, 26.0), 6.0, gr(0.93, a), 5);
+                                                            spr(cd, 1.6, gr(0.102, a), 0);
+                                                            spr(cd, 1.7, gr(0.157, a), 1);
+                                                            spr(rc(cd.min.x + 20.0, cd.min.y + 64.0, cd.max.x - 20.0, cd.min.y + 65.0), 1.8, gr(0.157, a), 2);
+                                                            spr(cs(cd.min.x + 35.0, cd.min.y + 32.0, 26.0, 26.0), 6.0, gr(0.93, a), 6);
                                                             txt(cd.min.x + 62.0, cd.min.y + 32.0, 0, "Laboratory", 18.0, 6.5, gr(0.93, a));
                                                             for lr in [rc(cd.max.x - 128.0, cd.max.y - 52.0, cd.max.x - 16.0, cd.max.y - 16.0)] {
                                                                 bt.push((lr, 2, 0.0, 5.0, !*modal && !*picker, a));
-                                                                spr(cs(lr.min.x + 22.0, lr.center().y, 18.0, 18.0), 6.0, gr(0.93, a), 2);
+                                                                spr(cs(lr.min.x + 22.0, lr.center().y, 18.0, 18.0), 6.0, gr(0.93, a), 7);
                                                                 txt(lr.min.x + 40.0, lr.center().y, 0, "Launch", 14.0, 6.5, gr(0.93, a));
                                                             }
                                                         }
                                                     } else {
-                                                        spr(cs(side + 55.0, 56.0, 26.0, 26.0), 6.0, gr(0.93, a), if *view == 2 { 6 } else { 8 });
+                                                        spr(cs(side + 55.0, 56.0, 26.0, 26.0), 6.0, gr(0.93, a), if *view == 2 { 8 } else { 12 });
                                                         txt(
                                                             side + 82.0,
                                                             56.0,
@@ -1174,15 +1354,15 @@ fn main() {
                                                             6.5,
                                                             gr(0.93, a),
                                                         );
-                                                        spr(rc(side + 40.0, 88.0, (w - 44.0).max(side + 41.0), 89.0), 1.8, gr(0.133, a), 15);
+                                                        spr(rc(side + 40.0, 88.0, (w - 44.0).max(side + 41.0), 89.0), 1.8, gr(0.133, a), 2);
                                                         if *view == 2 {
                                                             for (i, pr) in store.iter().enumerate().skip(*lscroll * cols).take(rows * cols) {
                                                                 for pc in [(side + 40.0 + (i % cols) as f32 * 396.0, 108.0 + (i / cols - *lscroll) as f32 * 160.0)]
                                                                     .map(|(x, y)| rc(x, y, x + 380.0, y + 144.0))
                                                                 {
-                                                                    spr(pc, 2.0, gr(0.102, a), 16);
-                                                                    spr(pc, 2.1, gr(0.157, a), 17);
-                                                                    spr(rc(pc.min.x + 20.0, pc.min.y + 64.0, pc.max.x - 20.0, pc.min.y + 65.0), 2.2, gr(0.157, a), 15);
+                                                                    spr(pc, 2.0, gr(0.102, a), 0);
+                                                                    spr(pc, 2.1, gr(0.157, a), 1);
+                                                                    spr(rc(pc.min.x + 20.0, pc.min.y + 64.0, pc.max.x - 20.0, pc.min.y + 65.0), 2.2, gr(0.157, a), 2);
                                                                     match pr.1 {
                                                                         Some((index, size)) => spr(
                                                                             cs(pc.min.x + 35.0, pc.min.y + 32.0, size.x * 26.0, size.y * 26.0),
@@ -1190,7 +1370,7 @@ fn main() {
                                                                             gr(1.0, a),
                                                                             index,
                                                                         ),
-                                                                        None => spr(cs(pc.min.x + 35.0, pc.min.y + 32.0, 22.0, 22.0), 6.0, gr(0.93, a), 4),
+                                                                        None => spr(cs(pc.min.x + 35.0, pc.min.y + 32.0, 22.0, 22.0), 6.0, gr(0.93, a), if pr.2 < 3 { 11 + pr.2 as usize } else { 14 + pr.3 as usize }),
                                                                     }
                                                                     txt(pc.min.x + 62.0, pc.min.y + 32.0, 0, pr.0.as_str(), 18.0, 6.5, gr(0.93, a));
                                                                     for (k, lr) in [
@@ -1213,7 +1393,7 @@ fn main() {
                                                                                 cs(if k == 0 { lr.center().x } else { lr.min.x + 22.0 }, lr.center().y, 18.0, 18.0),
                                                                                 6.0,
                                                                                 gr(0.93, a * (0.35 + 0.65 * ready as u8 as f32)),
-                                                                                if k == 0 { 7 } else { 2 },
+                                                                                if k == 0 { 17 } else { 18 },
                                                                             );
                                                                             if k == 1 {
                                                                                 txt(
@@ -1231,8 +1411,8 @@ fn main() {
                                                                 }
                                                             }
                                                         } else {
-                                                            spr(cv, 1.6, gr(0.043, a), 16);
-                                                            spr(cv, 1.7, gr(0.118, a), 17);
+                                                            spr(cv, 1.6, gr(0.043, a), 0);
+                                                            spr(cv, 1.7, gr(0.118, a), 1);
                                                             if store[*ed].5.is_none() {
                                                                 txt(cv.center().x, cv.center().y, 2, "Drag the Boot image block here", 14.0, 6.5, gr(0.38, a));
                                                             }
@@ -1242,31 +1422,31 @@ fn main() {
                                             }
                                             if *view == 3 {
                                                 *brect = match (*drag, store[*ed].5, window.cursor_position()) {
-                                                    (Some(off), _, Some(c)) => rc(c.x - off.x, c.y - off.y, c.x - off.x + side - 40.0, c.y - off.y + 52.0),
+                                                    (Some(off), _, Some(c)) => rc(c.x - off.x, c.y - off.y, c.x - off.x + side - 52.0, c.y - off.y + 52.0),
                                                     (Some(_), _, None) => *brect,
                                                     (None, Some(at), _) => {
-                                                        rc(cv.min.x + at.x, cv.min.y + at.y, cv.min.x + at.x + side - 40.0, cv.min.y + at.y + 52.0)
+                                                        rc(cv.min.x + at.x, cv.min.y + at.y, cv.min.x + at.x + side - 52.0, cv.min.y + at.y + 52.0)
                                                     }
-                                                    (None, None, _) => rc(20.0, 78.0, side - 20.0, 130.0),
+                                                    (None, None, _) => rc(36.0, 100.0, side - 16.0, 152.0),
                                                 };
                                                 for hv in [window.cursor_position().is_some_and(|c| brect.contains(c)) as u8 as f32] {
-                                                    spr(*brect, 8.0, gr(0.122 + 0.05 * hv, fades[0]), 16);
-                                                    spr(*brect, 8.05, gr(0.2 + 0.2 * hv, fades[0]), 17);
-                                                    spr(cs(brect.min.x + 26.0, brect.center().y, 22.0, 22.0), 8.2, gr(0.93, fades[0]), 8);
+                                                    spr(*brect, 8.0, gr(0.122 + 0.05 * hv, fades[0]), 0);
+                                                    spr(*brect, 8.05, gr(0.2 + 0.2 * hv, fades[0]), 1);
+                                                    spr(cs(brect.min.x + 26.0, brect.center().y, 22.0, 22.0), 8.2, gr(0.93, fades[0]), 19);
                                                     txt(brect.min.x + 54.0, brect.center().y, 0, "Boot image", 15.0, 8.3, gr(0.93, fades[0]));
                                                 }
                                             }
                                             if *modal {
                                                 for a in [fades[1]] {
-                                                    spr(rc(0.0, 0.0, w, h), 20.0, bevy::color::Color::srgba(0.0, 0.0, 0.0, 0.62 * a), 15);
-                                                    spr(mrect.inflate(18.0), 20.4, gr(0.0, 0.16 * a), 16);
-                                                    spr(mrect.inflate(9.0), 20.7, gr(0.0, 0.24 * a), 16);
-                                                    spr(mrect, 21.0, gr(0.078, a), 16);
-                                                    spr(mrect, 21.5, gr(0.176, a), 17);
-                                                    spr(cs(mrect.min.x + 35.0, mrect.min.y + 32.0, 26.0, 26.0), 23.0, gr(0.93, a), 3);
+                                                    spr(rc(0.0, 0.0, w, h), 20.0, bevy::color::Color::srgba(0.0, 0.0, 0.0, 0.62 * a), 2);
+                                                    spr(mrect.inflate(18.0), 20.4, gr(0.0, 0.16 * a), 0);
+                                                    spr(mrect.inflate(9.0), 20.7, gr(0.0, 0.24 * a), 0);
+                                                    spr(mrect, 21.0, gr(0.078, a), 0);
+                                                    spr(mrect, 21.5, gr(0.176, a), 1);
+                                                    spr(cs(mrect.min.x + 35.0, mrect.min.y + 32.0, 26.0, 26.0), 23.0, gr(0.93, a), 10);
                                                     txt(mrect.min.x + 62.0, mrect.min.y + 32.0, 0, "Create project", 18.0, 23.0, gr(0.93, a));
                                                     for dy in [64.0, 416.0] {
-                                                        spr(rc(mrect.min.x + 20.0, mrect.min.y + dy, mrect.max.x - 20.0, mrect.min.y + dy + 1.0), 23.0, gr(0.157, a), 15);
+                                                        spr(rc(mrect.min.x + 20.0, mrect.min.y + dy, mrect.max.x - 20.0, mrect.min.y + dy + 1.0), 23.0, gr(0.157, a), 2);
                                                     }
                                                     for (dy, label) in [(80.0, "ICON"), (176.0, "NAME"), (244.0, "TYPE")] {
                                                         txt(mrect.min.x + 24.0, mrect.min.y + dy, 1, label, 11.0, 23.0, gr(0.42, a));
@@ -1280,7 +1460,7 @@ fn main() {
                                                                 gr(1.0, a),
                                                                 index,
                                                             ),
-                                                            None => spr(cs(ir.center().x, ir.center().y, 28.0, 28.0), 25.0, gr(0.5 + 0.3 * anim[4][0], a), 14),
+                                                            None => spr(cs(ir.center().x, ir.center().y, 28.0, 28.0), 25.0, gr(0.5 + 0.3 * anim[4][0], a), 11),
                                                         }
                                                         txt(
                                                             ir.max.x + 16.0,
@@ -1293,8 +1473,8 @@ fn main() {
                                                         );
                                                     }
                                                     for fr in [rc(mrect.min.x + 24.0, mrect.min.y + 196.0, mrect.max.x - 24.0, mrect.min.y + 232.0)] {
-                                                        spr(fr, 23.0, gr(0.039, a), 16);
-                                                        spr(fr, 23.2, gr(if *picker { 0.2 } else { 0.5 }, a), 17);
+                                                        spr(fr, 23.0, gr(0.039, a), 0);
+                                                        spr(fr, 23.2, gr(if *picker { 0.2 } else { 0.5 }, a), 1);
                                                         txt(
                                                             fr.min.x + 12.0,
                                                             fr.center().y,
@@ -1314,11 +1494,11 @@ fn main() {
                                                                 ),
                                                                 24.6,
                                                                 gr(0.93, a),
-                                                                15,
+                                                                2,
                                                             );
                                                         }
                                                     }
-                                                    for (k, (index, label)) in [(8, "Operating System"), (9, "Command Line Interface"), (10, "Graphical User Interface")]
+                                                    for (k, (index, label)) in [(12, "Operating System"), (13, "Command Line Interface"), (14, "Graphical User Interface")]
                                                         .into_iter()
                                                         .enumerate()
                                                     {
@@ -1347,7 +1527,7 @@ fn main() {
                                                         }
                                                     }
                                                     if *kind == 3 {
-                                                        for (k, (index, label)) in [(11, "2D"), (12, "3D")].into_iter().enumerate() {
+                                                        for (k, (index, label)) in [(15, "2D"), (16, "3D")].into_iter().enumerate() {
                                                             for dr in [rc(
                                                                 mrect.min.x + 24.0 + k as f32 * 132.0,
                                                                 mrect.min.y + 432.0,
@@ -1392,14 +1572,14 @@ fn main() {
                                             }
                                             if *picker {
                                                 for a in [fades[2]] {
-                                                    spr(rc(0.0, 0.0, w, h), 30.0, bevy::color::Color::srgba(0.0, 0.0, 0.0, 0.5 * a), 15);
-                                                    spr(prect.inflate(18.0), 30.4, gr(0.0, 0.16 * a), 16);
-                                                    spr(prect.inflate(9.0), 30.7, gr(0.0, 0.24 * a), 16);
-                                                    spr(prect, 31.0, gr(0.078, a), 16);
-                                                    spr(prect, 31.5, gr(0.176, a), 17);
-                                                    spr(cs(prect.min.x + 35.0, prect.min.y + 32.0, 26.0, 26.0), 33.0, gr(0.93, a), 13);
+                                                    spr(rc(0.0, 0.0, w, h), 30.0, bevy::color::Color::srgba(0.0, 0.0, 0.0, 0.5 * a), 2);
+                                                    spr(prect.inflate(18.0), 30.4, gr(0.0, 0.16 * a), 0);
+                                                    spr(prect.inflate(9.0), 30.7, gr(0.0, 0.24 * a), 0);
+                                                    spr(prect, 31.0, gr(0.078, a), 0);
+                                                    spr(prect, 31.5, gr(0.176, a), 1);
+                                                    spr(cs(prect.min.x + 35.0, prect.min.y + 32.0, 26.0, 26.0), 33.0, gr(0.93, a), 20);
                                                     txt(prect.min.x + 62.0, prect.min.y + 32.0, 0, "Choose PNG icon", 18.0, 33.0, gr(0.93, a));
-                                                    spr(rc(prect.min.x + 20.0, prect.min.y + 64.0, prect.max.x - 20.0, prect.min.y + 65.0), 33.0, gr(0.157, a), 15);
+                                                    spr(rc(prect.min.x + 20.0, prect.min.y + 64.0, prect.max.x - 20.0, prect.min.y + 65.0), 33.0, gr(0.157, a), 2);
                                                     for path in [dir.to_string_lossy()] {
                                                         txt(
                                                             prect.min.x + 24.0,
@@ -1424,7 +1604,7 @@ fn main() {
                                                                 ),
                                                             )] {
                                                                 bt.push((rr, 16 + k, 0.0, 33.0, true, a));
-                                                                spr(cs(rr.min.x + 22.0, rr.center().y, 16.0, 16.0), 34.0, gr(0.6 + 0.33 * anim[16 + k][0].max(anim[16 + k][1]), a), if folder { 13 } else { 14 });
+                                                                spr(cs(rr.min.x + 22.0, rr.center().y, 16.0, 16.0), 34.0, gr(0.6 + 0.33 * anim[16 + k][0].max(anim[16 + k][1]), a), if *pscroll + k == 0 { 23 } else if folder { 21 } else { 22 });
                                                                 txt(
                                                                     rr.min.x + 40.0,
                                                                     rr.center().y,
@@ -1456,26 +1636,26 @@ fn main() {
                                                                     ((0.012 + 0.014 * hv + 0.026 * sl) * (1.0 - pr) + 0.07 * pr) * ga
                                                                 },
                                                             ),
-                                                            16,
+                                                            0,
                                                         );
-                                                        spr(*r, *z + 0.01, gr(1.0, (0.02 + 0.03 * hv + 0.02 * sl) * ga), 17);
+                                                        spr(*r, *z + 0.01, gr(1.0, (0.02 + 0.03 * hv + 0.02 * sl) * ga), 1);
                                                     }
                                                     if fc > 0.0 {
-                                                        spr(r.inflate(2.0), *z + 0.02, gr(0.55, fc * al), 17);
+                                                        spr(r.inflate(2.0), *z + 0.02, gr(0.55, fc * al), 1);
                                                     }
                                                 }
                                             }
                                         }
                                     });
-                                    sit.for_each(|(_, _, mut v)| {
-                                        if *v != bevy::camera::visibility::Visibility::Hidden {
-                                            *v = bevy::camera::visibility::Visibility::Hidden;
-                                        }
+                                    sit.for_each(|(_, _, v)| {
+                                        Some(v).iter_mut().for_each(|v| {
+                                            bevy::ecs::change_detection::DetectChangesMut::set_if_neq(v, bevy::camera::visibility::Visibility::Hidden);
+                                        });
                                     });
-                                    tit.for_each(|(.., mut v)| {
-                                        if *v != bevy::camera::visibility::Visibility::Hidden {
-                                            *v = bevy::camera::visibility::Visibility::Hidden;
-                                        }
+                                    tit.for_each(|(.., v)| {
+                                        Some(v).iter_mut().for_each(|v| {
+                                            bevy::ecs::change_detection::DetectChangesMut::set_if_neq(v, bevy::camera::visibility::Visibility::Hidden);
+                                        });
                                     });
                                 });
                             *hover = window
@@ -1557,10 +1737,10 @@ fn main() {
                                             .unwrap()
                                             .as_nanos() as u64]
                                         {
-                                            Some(DB.begin_write().unwrap()).into_iter().for_each(|tx| {
+                                            Some(db.begin_write().unwrap()).into_iter().for_each(|tx| {
                                                 Some(tx.open_table(redb::TableDefinition::<&str, &[u8]>::new("fs")).unwrap())
-                                                    .into_iter()
-                                                    .for_each(|mut table| {
+                                                    .iter_mut()
+                                                    .for_each(|table| {
                                                         table
                                                             .insert(
                                                                 format!("/projects/{id:016x}/meta").as_str(),
@@ -1611,7 +1791,7 @@ fn main() {
                                                     *view = 3;
                                                 } else if store[project].5.is_some() {
                                                     for (kernel, image) in
-                                                        [(DIR.join("kernel"), DIR.join(format!("{:016x}.img", store[project].4)))]
+                                                        [(home.join("kernel"), home.join(format!("{:016x}.img", store[project].4)))]
                                                     {
                                                         std::fs::write(&kernel, include_bytes!(env!("CARGO_BIN_FILE_KERNEL_kernel"))).unwrap();
                                                         bootloader::DiskImageBuilder::new(kernel).create_bios_image(&image).unwrap();
@@ -1664,10 +1844,10 @@ fn main() {
                                     ))
                                     .filter(|_| cv.contains(c));
                                     for key in [format!("/projects/{:016x}/block", store[*ed].4)] {
-                                        Some(DB.begin_write().unwrap()).into_iter().for_each(|tx| {
+                                        Some(db.begin_write().unwrap()).into_iter().for_each(|tx| {
                                             Some(tx.open_table(redb::TableDefinition::<&str, &[u8]>::new("fs")).unwrap())
-                                                .into_iter()
-                                                .for_each(|mut table| {
+                                                .iter_mut()
+                                                .for_each(|table| {
                                                     match store[*ed].5 {
                                                         Some(at) => table
                                                             .insert(key.as_str(), [at.x.to_le_bytes(), at.y.to_le_bytes()].concat().as_slice())
@@ -1754,7 +1934,9 @@ fn main() {
                             *moving = false;
                         },
                     );
+                    });
             },
         )
         .run();
+    });
 }

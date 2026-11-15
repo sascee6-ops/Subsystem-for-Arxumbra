@@ -4,7 +4,7 @@ on:
 permissions: {}
 jobs:
   AArch64-Linux:
-    name: AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
+    name: AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 120
     steps:
@@ -31,17 +31,17 @@ jobs:
           --config 'profile.dev.panic="unwind"' \
           --config 'target.aarch64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic"]' \
           --target aarch64-unknown-linux-gnu --bin subsystem-for-arxumbra
-        mkdir -p dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
-        cp target/aarch64-unknown-linux-gnu/debug/subsystem-for-arxumbra dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
-        tar -czf dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0.tar.gz -C dist AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
+        mkdir -p dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
+        cp target/aarch64-unknown-linux-gnu/debug/subsystem-for-arxumbra dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
+        tar -czf dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz -C dist AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
-        name: AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
-        path: dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0.tar.gz
+        name: AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
+        path: dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz
         if-no-files-found: error
         retention-days: 14
   x86_64-Linux:
-    name: x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
+    name: x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
@@ -68,17 +68,17 @@ jobs:
           --config 'profile.dev.panic="unwind"' \
           --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic"]' \
           --target x86_64-unknown-linux-gnu --bin subsystem-for-arxumbra
-        mkdir -p dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
-        cp target/x86_64-unknown-linux-gnu/debug/subsystem-for-arxumbra dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
-        tar -czf dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0.tar.gz -C dist x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
+        mkdir -p dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
+        cp target/x86_64-unknown-linux-gnu/debug/subsystem-for-arxumbra dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
+        tar -czf dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz -C dist x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
-        name: x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
-        path: dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0.tar.gz
+        name: x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
+        path: dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz
         if-no-files-found: error
         retention-days: 14
   AArch64-macOS:
-    name: AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
+    name: AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
     runs-on: macos-15
     timeout-minutes: 120
     steps:
@@ -103,17 +103,17 @@ jobs:
           --config 'profile.dev.panic="unwind"' \
           --config 'target.aarch64-apple-darwin.rustflags=["-C","target-cpu=generic"]' \
           --target aarch64-apple-darwin --bin subsystem-for-arxumbra
-        mkdir -p dist/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
-        cp target/aarch64-apple-darwin/debug/subsystem-for-arxumbra dist/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
-        tar -czf dist/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0.tar.gz -C dist AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
+        mkdir -p dist/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
+        cp target/aarch64-apple-darwin/debug/subsystem-for-arxumbra dist/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
+        tar -czf dist/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz -C dist AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
-        name: AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
-        path: dist/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0.tar.gz
+        name: AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
+        path: dist/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz
         if-no-files-found: error
         retention-days: 14
   x86_64-macOS:
-    name: x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
+    name: x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
     runs-on: macos-15-intel
     timeout-minutes: 120
     steps:
@@ -138,17 +138,17 @@ jobs:
           --config 'profile.dev.panic="unwind"' \
           --config 'target.x86_64-apple-darwin.rustflags=["-C","target-cpu=generic"]' \
           --target x86_64-apple-darwin --bin subsystem-for-arxumbra
-        mkdir -p dist/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
-        cp target/x86_64-apple-darwin/debug/subsystem-for-arxumbra dist/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
-        tar -czf dist/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0.tar.gz -C dist x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
+        mkdir -p dist/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
+        cp target/x86_64-apple-darwin/debug/subsystem-for-arxumbra dist/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
+        tar -czf dist/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz -C dist x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
-        name: x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
-        path: dist/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0.tar.gz
+        name: x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
+        path: dist/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz
         if-no-files-found: error
         retention-days: 14
   AArch64-Windows:
-    name: AArch64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
+    name: AArch64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
     runs-on: windows-11-arm
     timeout-minutes: 120
     steps:
@@ -174,15 +174,15 @@ jobs:
           --config 'target.aarch64-pc-windows-msvc.rustflags=["-C","target-cpu=generic"]' \
           --target aarch64-pc-windows-msvc --bin subsystem-for-arxumbra
         mkdir dist
-        cp target/aarch64-pc-windows-msvc/debug/subsystem-for-arxumbra.exe dist/AArch64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0.exe
+        cp target/aarch64-pc-windows-msvc/debug/subsystem-for-arxumbra.exe dist/AArch64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.exe
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
-        name: AArch64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
-        path: dist/AArch64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0.exe
+        name: AArch64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
+        path: dist/AArch64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.exe
         if-no-files-found: error
         retention-days: 14
   x86_64-Windows:
-    name: x86_64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
+    name: x86_64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
     runs-on: windows-2025
     timeout-minutes: 120
     steps:
@@ -208,10 +208,10 @@ jobs:
           --config 'target.x86_64-pc-windows-msvc.rustflags=["-C","target-cpu=generic"]' \
           --target x86_64-pc-windows-msvc --bin subsystem-for-arxumbra
         mkdir dist
-        cp target/x86_64-pc-windows-msvc/debug/subsystem-for-arxumbra.exe dist/x86_64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0.exe
+        cp target/x86_64-pc-windows-msvc/debug/subsystem-for-arxumbra.exe dist/x86_64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.exe
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
-        name: x86_64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0
-        path: dist/x86_64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s0.exe
+        name: x86_64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
+        path: dist/x86_64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.exe
         if-no-files-found: error
         retention-days: 14

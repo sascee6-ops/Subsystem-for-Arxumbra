@@ -3,8 +3,10 @@
 
 bootloader_api::entry_point!(kernel);
 
-fn kernel(info: &'static mut bootloader_api::BootInfo) -> ! {
-    info.framebuffer.as_mut().unwrap().buffer_mut().fill(255);
+fn kernel(info: impl core::ops::DerefMut<Target = bootloader_api::BootInfo>) -> ! {
+    Some(info).iter_mut().for_each(|info| {
+        info.framebuffer.as_mut().unwrap().buffer_mut().fill(255);
+    });
     loop {
         x86_64::instructions::hlt();
     }

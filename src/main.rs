@@ -21,7 +21,6 @@ fn main() {
     .map(|home| {
         (
             redb::Database::create(home.join("projects.redb")).unwrap(),
-            home,
             if cfg!(target_os = "linux") {
                 "Linux-Subsystem-for-Arxumbra"
             } else if cfg!(target_os = "macos") {
@@ -31,7 +30,7 @@ fn main() {
             },
         )
     })
-    .for_each(|(db, home, title)| {
+    .for_each(|(db, title)| {
     bevy::app::App::new()
         .add_plugins((
             bevy::app::TaskPoolPlugin {
@@ -339,6 +338,13 @@ fn main() {
                 Vec<[f32; 4]>,
                 [f32; 3],
                 Vec<(bevy::math::Rect, usize, f32, f32, bool, f32)>,
+                Option<(
+                    std::sync::Arc<[std::sync::atomic::AtomicU32]>,
+                    std::sync::Arc<std::sync::atomic::AtomicU32>,
+                    std::sync::Arc<std::sync::atomic::AtomicBool>,
+                    std::thread::Thread,
+                    u32,
+                )>,
             )>,
              ic: bevy::ecs::system::Local<Vec<bevy::asset::Handle<bevy::image::Image>>>| {
                 Some((kb, wheel, images, commands, sprites, texts, winit, ma, fo, st, pt, ic))
@@ -1018,6 +1024,13 @@ fn main() {
                             ))
                         }),
                     );
+                    ic.push(images.add(bevy::image::Image::new(
+                        bevy::render::render_resource::Extent3d { width: 1280, height: 720, depth_or_array_layers: 1 },
+                        bevy::render::render_resource::TextureDimension::D2,
+                        [0, 0, 0, 255].repeat(1280 * 720),
+                        bevy::render::render_resource::TextureFormat::Rgba8UnormSrgb,
+                        bevy::asset::RenderAssetUsages::MAIN_WORLD | bevy::asset::RenderAssetUsages::RENDER_WORLD,
+                    )));
                     st.0 = redb::ReadableDatabase::begin_read(&db)
                         .unwrap()
                         .open_table(redb::TableDefinition::<&str, &[u8]>::new("fs"))
@@ -1141,7 +1154,7 @@ fn main() {
                                 (view, hud, modal, picker, esc, moving, ed, drag, brect),
                                 (name, icon, kind, dim, dir, entries, pscroll, dirty, wacc, pending),
                                 (store, lscroll, jobs),
-                                (hover, focus, press, anim, fades, bt),
+                                (hover, focus, press, anim, fades, bt, machine),
                                 icons,
                             ),
                             w,
@@ -1322,7 +1335,7 @@ fn main() {
                                                 bt.push((rc(36.0, 100.0, side - 16.0, 152.0), 3, 0.0, 5.0, !*modal && !*picker, 1.0));
                                                 spr(cs(64.0, 126.0, 18.0, 18.0), 6.0, gr(0.7 + 0.23 * anim[3][0], 1.0), 9);
                                                 txt(84.0, 126.0, 0, "Create project", 15.0, 6.5, gr(0.7 + 0.23 * anim[3][0], 1.0));
-                                            } else {
+                                            } else if *view == 3 {
                                                 spr(rc(36.0, 100.0, side - 16.0, 152.0), 3.5, gr(0.043, 1.0), 0);
                                                 spr(rc(36.0, 100.0, side - 16.0, 152.0), 3.6, gr(0.133, 1.0), 1);
                                             }
@@ -1415,6 +1428,22 @@ fn main() {
                                                             spr(cv, 1.7, gr(0.118, a), 1);
                                                             if store[*ed].5.is_none() {
                                                                 txt(cv.center().x, cv.center().y, 2, "Drag the Boot image block here", 14.0, 6.5, gr(0.38, a));
+                                                            }
+                                                            if *view == 4 {
+                                                                for k in [((cv.width() - 24.0) / 1280.0).min((cv.height() - 60.0) / 720.0)] {
+                                                                    spr(
+                                                                        rc(
+                                                                            cv.center().x - 640.0 * k,
+                                                                            cv.min.y + 12.0 + (cv.height() - 60.0) / 2.0 - 360.0 * k,
+                                                                            cv.center().x + 640.0 * k,
+                                                                            cv.min.y + 12.0 + (cv.height() - 60.0) / 2.0 + 360.0 * k,
+                                                                        ),
+                                                                        1.8,
+                                                                        gr(1.0, a),
+                                                                        24,
+                                                                    );
+                                                                }
+                                                                txt(cv.center().x, cv.max.y - 24.0, 2, "Hold Esc for 5 seconds to power off", 12.0, 6.5, gr(0.38, a));
                                                             }
                                                         }
                                                     }
@@ -1790,21 +1819,35 @@ fn main() {
                                                     *ed = project;
                                                     *view = 3;
                                                 } else if store[project].5.is_some() {
-                                                    for (kernel, image) in
-                                                        [(home.join("kernel"), home.join(format!("{:016x}.img", store[project].4)))]
-                                                    {
-                                                        std::fs::write(&kernel, include_bytes!(env!("CARGO_BIN_FILE_KERNEL_kernel"))).unwrap();
-                                                        bootloader::DiskImageBuilder::new(kernel).create_bios_image(&image).unwrap();
-                                                        std::process::Command::new("qemu-system-x86_64")
-                                                            .args([
-                                                                "-no-reboot",
-                                                                "-name",
-                                                                store[project].0.replace(',', ",,").as_str(),
-                                                                "-drive",
-                                                                format!("format=raw,snapshot=on,file={}", image.display()).as_str(),
-                                                            ])
-                                                            .spawn()
-                                                            .ok();
+                                                    *ed = project;
+                                                    *view = 4;
+                                                    for (pixels, generation, on) in [(
+                                                        (0..1280usize * 720)
+                                                            .map(|_| std::sync::atomic::AtomicU32::new(0xFF00_0000))
+                                                            .collect::<std::sync::Arc<[std::sync::atomic::AtomicU32]>>(),
+                                                        std::sync::Arc::new(std::sync::atomic::AtomicU32::new(0)),
+                                                        std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true)),
+                                                    )] {
+                                                        *machine = Some((
+                                                            pixels.clone(),
+                                                            generation.clone(),
+                                                            on.clone(),
+                                                            std::thread::spawn(move || {
+                                                                kernel::boot(
+                                                                    &pixels,
+                                                                    || {
+                                                                        generation.fetch_add(1, std::sync::atomic::Ordering::Release);
+                                                                    },
+                                                                    || {
+                                                                        std::thread::park();
+                                                                        on.load(std::sync::atomic::Ordering::Acquire)
+                                                                    },
+                                                                );
+                                                            })
+                                                            .thread()
+                                                            .clone(),
+                                                            0,
+                                                        ));
                                                     }
                                                 }
                                             }
@@ -1890,11 +1933,30 @@ fn main() {
                                 *esc + dt
                             };
                             if *view > 1 && *esc >= 5.0 {
-                                *view -= 1;
+                                *view = (*view - 1).min(2);
+                                machine.take().into_iter().for_each(|(_, _, on, thread, _)| {
+                                    on.store(false, std::sync::atomic::Ordering::Release);
+                                    thread.unpark();
+                                });
                                 *modal = false;
                                 *picker = false;
                                 *esc = -1.0;
                             }
+                            machine.iter_mut().for_each(|(pixels, generation, _, _, seen)| {
+                                Some(generation.load(std::sync::atomic::Ordering::Acquire))
+                                    .filter(|g| g != seen)
+                                    .into_iter()
+                                    .for_each(|g| {
+                                        *seen = g;
+                                        images.get_mut(&icons[24]).iter_mut().for_each(|image| {
+                                            image.data.iter_mut().for_each(|data| {
+                                                data.chunks_exact_mut(4).zip(pixels.iter()).for_each(|(rgba, pixel)| {
+                                                    rgba.copy_from_slice(&pixel.load(std::sync::atomic::Ordering::Relaxed).to_le_bytes())
+                                                });
+                                            });
+                                        });
+                                    });
+                            });
                             if *view < 2 && *esc >= 7.0 {
                                 commands.write_message(bevy::app::AppExit::Success);
                             }

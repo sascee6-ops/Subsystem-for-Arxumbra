@@ -16,8 +16,8 @@ jobs:
         git init -q .
         git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
         git checkout -q FETCH_HEAD
-        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --component rust-src --component llvm-tools-preview --target aarch64-unknown-linux-gnu --target x86_64-unknown-none --no-self-update
-        cargo +nightly-2026-11-06 -Zbindeps build --locked --release --quiet \
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target aarch64-unknown-linux-gnu --no-self-update
+        cargo +nightly-2026-11-06 build --locked --release --quiet \
           --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \
@@ -53,8 +53,8 @@ jobs:
         git init -q .
         git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
         git checkout -q FETCH_HEAD
-        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --component rust-src --component llvm-tools-preview --target x86_64-unknown-linux-gnu --target x86_64-unknown-none --no-self-update
-        cargo +nightly-2026-11-06 -Zbindeps build --locked --release --quiet \
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target x86_64-unknown-linux-gnu --no-self-update
+        cargo +nightly-2026-11-06 build --locked --release --quiet \
           --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \
@@ -88,8 +88,8 @@ jobs:
         git init -q .
         git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
         git checkout -q FETCH_HEAD
-        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --component rust-src --component llvm-tools-preview --target aarch64-apple-darwin --target x86_64-unknown-none --no-self-update
-        cargo +nightly-2026-11-06 -Zbindeps build --locked --release --quiet \
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target aarch64-apple-darwin --no-self-update
+        cargo +nightly-2026-11-06 build --locked --release --quiet \
           --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \
@@ -123,8 +123,8 @@ jobs:
         git init -q .
         git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
         git checkout -q FETCH_HEAD
-        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --component rust-src --component llvm-tools-preview --target x86_64-apple-darwin --target x86_64-unknown-none --no-self-update
-        cargo +nightly-2026-11-06 -Zbindeps build --locked --release --quiet \
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target x86_64-apple-darwin --no-self-update
+        cargo +nightly-2026-11-06 build --locked --release --quiet \
           --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \
@@ -158,8 +158,8 @@ jobs:
         git init -q .
         git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
         git checkout -q FETCH_HEAD
-        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --component rust-src --component llvm-tools-preview --target aarch64-pc-windows-msvc --target x86_64-unknown-none --no-self-update
-        cargo +nightly-2026-11-06 -Zbindeps build --locked --release --quiet \
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target aarch64-pc-windows-msvc --no-self-update
+        cargo +nightly-2026-11-06 build --locked --release --quiet \
           --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \
@@ -192,8 +192,8 @@ jobs:
         git init -q .
         git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
         git checkout -q FETCH_HEAD
-        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --component rust-src --component llvm-tools-preview --target x86_64-pc-windows-msvc --target x86_64-unknown-none --no-self-update
-        cargo +nightly-2026-11-06 -Zbindeps build --locked --release --quiet \
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target x86_64-pc-windows-msvc --no-self-update
+        cargo +nightly-2026-11-06 build --locked --release --quiet \
           --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \

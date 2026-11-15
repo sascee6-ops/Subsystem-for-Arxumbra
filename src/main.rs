@@ -326,7 +326,7 @@ fn main() {
                     u8,
                     u8,
                     u64,
-                    Option<bevy::math::Vec2>,
+                    bevy::math::Vec2,
                 )>,
                 usize,
                 Vec<(usize, Vec<u8>)>,
@@ -1024,13 +1024,7 @@ fn main() {
                             ))
                         }),
                     );
-                    ic.push(images.add(bevy::image::Image::new(
-                        bevy::render::render_resource::Extent3d { width: 1280, height: 720, depth_or_array_layers: 1 },
-                        bevy::render::render_resource::TextureDimension::D2,
-                        [0, 0, 0, 255].repeat(1280 * 720),
-                        bevy::render::render_resource::TextureFormat::Rgba8UnormSrgb,
-                        bevy::asset::RenderAssetUsages::MAIN_WORLD | bevy::asset::RenderAssetUsages::RENDER_WORLD,
-                    )));
+                    Some(ic[2].clone()).into_iter().for_each(|screen| ic.push(screen));
                     st.0 = redb::ReadableDatabase::begin_read(&db)
                         .unwrap()
                         .open_table(redb::TableDefinition::<&str, &[u8]>::new("fs"))
@@ -1054,7 +1048,7 @@ fn main() {
                                         table
                                             .get(format!("{}block", &key.value()[..27]).as_str())
                                             .unwrap()
-                                            .map(|at| {
+                                            .map_or(bevy::math::Vec2::new(12.0, 12.0), |at| {
                                                 bevy::math::Vec2::new(
                                                     f32::from_le_bytes(at.value()[..4].try_into().unwrap()),
                                                     f32::from_le_bytes(at.value()[4..8].try_into().unwrap()),
@@ -1300,7 +1294,7 @@ fn main() {
                                     ))
                                     .iter_mut()
                                     .for_each(|(spr, txt, gr, rc, cs)| {
-                                        if !*hud {
+                                        if !*hud && *view < 4 {
                                             spr(rc(24.0, 24.0, side - 4.0, (h - 24.0).max(48.0)), 1.0, gr(0.071, 1.0), 0);
                                             spr(rc(24.0, 24.0, side - 4.0, (h - 24.0).max(48.0)), 1.1, gr(0.133, 1.0), 1);
                                             spr(rc(40.0, 84.0, side - 20.0, 85.0), 3.0, gr(0.133, 1.0), 2);
@@ -1335,9 +1329,6 @@ fn main() {
                                                 bt.push((rc(36.0, 100.0, side - 16.0, 152.0), 3, 0.0, 5.0, !*modal && !*picker, 1.0));
                                                 spr(cs(64.0, 126.0, 18.0, 18.0), 6.0, gr(0.7 + 0.23 * anim[3][0], 1.0), 9);
                                                 txt(84.0, 126.0, 0, "Create project", 15.0, 6.5, gr(0.7 + 0.23 * anim[3][0], 1.0));
-                                            } else if *view == 3 {
-                                                spr(rc(36.0, 100.0, side - 16.0, 152.0), 3.5, gr(0.043, 1.0), 0);
-                                                spr(rc(36.0, 100.0, side - 16.0, 152.0), 3.6, gr(0.133, 1.0), 1);
                                             }
                                             if *view > 0 {
                                                 for a in [fades[0]] {
@@ -1357,7 +1348,13 @@ fn main() {
                                                             }
                                                         }
                                                     } else {
-                                                        spr(cs(side + 55.0, 56.0, 26.0, 26.0), 6.0, gr(0.93, a), if *view == 2 { 8 } else { 12 });
+                                                        spr(cs(side + 55.0, 56.0, 26.0, 26.0), 6.0, gr(0.93, a), if *view == 2 {
+ 8
+ } else if store[*ed].2 < 3 {
+ 11 + store[*ed].2 as usize
+ } else {
+ 14 + store[*ed].3 as usize
+ });
                                                         txt(
                                                             side + 82.0,
                                                             56.0,
@@ -1393,32 +1390,15 @@ fn main() {
                                                                     .into_iter()
                                                                     .enumerate()
                                                                     {
-                                                                        for ready in [k == 0 || pr.2 != 1 || pr.5.is_some()] {
-                                                                            bt.push((
-                                                                                lr,
-                                                                                32 + 2 * i + k,
-                                                                                0.0,
-                                                                                5.0,
-                                                                                !*modal && !*picker && ready,
-                                                                                a * (0.4 + 0.6 * ready as u8 as f32),
-                                                                            ));
-                                                                            spr(
-                                                                                cs(if k == 0 { lr.center().x } else { lr.min.x + 22.0 }, lr.center().y, 18.0, 18.0),
-                                                                                6.0,
-                                                                                gr(0.93, a * (0.35 + 0.65 * ready as u8 as f32)),
-                                                                                if k == 0 { 17 } else { 18 },
-                                                                            );
-                                                                            if k == 1 {
-                                                                                txt(
-                                                                                    lr.min.x + 40.0,
-                                                                                    lr.center().y,
-                                                                                    0,
-                                                                                    "Launch",
-                                                                                    14.0,
-                                                                                    6.5,
-                                                                                    gr(0.93, a * (0.35 + 0.65 * ready as u8 as f32)),
-                                                                                );
-                                                                            }
+                                                                        bt.push((lr, 32 + 2 * i + k, 0.0, 5.0, !*modal && !*picker, a));
+                                                                        spr(
+                                                                            cs(if k == 0 { lr.center().x } else { lr.min.x + 22.0 }, lr.center().y, 18.0, 18.0),
+                                                                            6.0,
+                                                                            gr(0.93, a),
+                                                                            if k == 0 { 17 } else { 18 },
+                                                                        );
+                                                                        if k == 1 {
+                                                                            txt(lr.min.x + 40.0, lr.center().y, 0, "Launch", 14.0, 6.5, gr(0.93, a));
                                                                         }
                                                                     }
                                                                 }
@@ -1426,43 +1406,26 @@ fn main() {
                                                         } else {
                                                             spr(cv, 1.6, gr(0.043, a), 0);
                                                             spr(cv, 1.7, gr(0.118, a), 1);
-                                                            if store[*ed].5.is_none() {
-                                                                txt(cv.center().x, cv.center().y, 2, "Drag the Boot image block here", 14.0, 6.5, gr(0.38, a));
-                                                            }
-                                                            if *view == 4 {
-                                                                for k in [((cv.width() - 24.0) / 1280.0).min((cv.height() - 60.0) / 720.0)] {
-                                                                    spr(
-                                                                        rc(
-                                                                            cv.center().x - 640.0 * k,
-                                                                            cv.min.y + 12.0 + (cv.height() - 60.0) / 2.0 - 360.0 * k,
-                                                                            cv.center().x + 640.0 * k,
-                                                                            cv.min.y + 12.0 + (cv.height() - 60.0) / 2.0 + 360.0 * k,
-                                                                        ),
-                                                                        1.8,
-                                                                        gr(1.0, a),
-                                                                        24,
-                                                                    );
-                                                                }
-                                                                txt(cv.center().x, cv.max.y - 24.0, 2, "Hold Esc for 5 seconds to power off", 12.0, 6.5, gr(0.38, a));
-                                                            }
                                                         }
                                                     }
                                                 }
                                             }
                                             if *view == 3 {
-                                                *brect = match (*drag, store[*ed].5, window.cursor_position()) {
-                                                    (Some(off), _, Some(c)) => rc(c.x - off.x, c.y - off.y, c.x - off.x + side - 52.0, c.y - off.y + 52.0),
-                                                    (Some(_), _, None) => *brect,
-                                                    (None, Some(at), _) => {
-                                                        rc(cv.min.x + at.x, cv.min.y + at.y, cv.min.x + at.x + side - 52.0, cv.min.y + at.y + 52.0)
-                                                    }
-                                                    (None, None, _) => rc(36.0, 100.0, side - 16.0, 152.0),
+                                                *brect = match (*drag, window.cursor_position()) {
+                                                    (Some(off), Some(c)) => rc(c.x - off.x, c.y - off.y, c.x - off.x + 208.0, c.y - off.y + 52.0),
+                                                    (Some(_), None) => *brect,
+                                                    (None, _) => rc(
+                                                        cv.min.x + store[*ed].5.x,
+                                                        cv.min.y + store[*ed].5.y,
+                                                        cv.min.x + store[*ed].5.x + 208.0,
+                                                        cv.min.y + store[*ed].5.y + 52.0,
+                                                    ),
                                                 };
                                                 for hv in [window.cursor_position().is_some_and(|c| brect.contains(c)) as u8 as f32] {
                                                     spr(*brect, 8.0, gr(0.122 + 0.05 * hv, fades[0]), 0);
                                                     spr(*brect, 8.05, gr(0.2 + 0.2 * hv, fades[0]), 1);
                                                     spr(cs(brect.min.x + 26.0, brect.center().y, 22.0, 22.0), 8.2, gr(0.93, fades[0]), 19);
-                                                    txt(brect.min.x + 54.0, brect.center().y, 0, "Boot image", 15.0, 8.3, gr(0.93, fades[0]));
+                                                    txt(brect.min.x + 54.0, brect.center().y, 0, "Bootstrapped", 15.0, 8.3, gr(0.93, fades[0]));
                                                 }
                                             }
                                             if *modal {
@@ -1675,6 +1638,9 @@ fn main() {
                                                 }
                                             }
                                         }
+                                        if *view == 4 {
+                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 24);
+                                        }
                                     });
                                     sit.for_each(|(_, _, v)| {
                                         Some(v).iter_mut().for_each(|v| {
@@ -1785,7 +1751,7 @@ fn main() {
                                                 tx.commit().unwrap();
                                             });
                                             pending.clear();
-                                            store.push((std::mem::take(name), icon.take(), *kind, *dim, id, None));
+                                            store.push((std::mem::take(name), icon.take(), *kind, *dim, id, bevy::math::Vec2::new(12.0, 12.0)));
                                         }
                                         *kind = 0;
                                         *dim = 0;
@@ -1814,20 +1780,31 @@ fn main() {
                                     }
                                     Some(i @ 32..) => {
                                         for (project, gear) in [((i - 32) / 2, i % 2 == 0)] {
-                                            if store[project].2 == 1 {
-                                                if gear {
-                                                    *ed = project;
-                                                    *view = 3;
-                                                } else if store[project].5.is_some() {
-                                                    *ed = project;
-                                                    *view = 4;
+                                            *ed = project;
+                                            if gear {
+                                                *view = 3;
+                                            } else {
+                                                *view = 4;
+                                                for (width, height) in [(w as usize, h as usize)] {
                                                     for (pixels, generation, on) in [(
-                                                        (0..1280usize * 720)
-                                                            .map(|_| std::sync::atomic::AtomicU32::new(0xFF00_0000))
+                                                        (0..width * height)
+                                                            .map(|_| std::sync::atomic::AtomicU32::new(0))
                                                             .collect::<std::sync::Arc<[std::sync::atomic::AtomicU32]>>(),
                                                         std::sync::Arc::new(std::sync::atomic::AtomicU32::new(0)),
                                                         std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true)),
                                                     )] {
+                                                        icons[24] = images.add(bevy::image::Image::new(
+                                                            bevy::render::render_resource::Extent3d {
+                                                                width: width as u32,
+                                                                height: height as u32,
+                                                                depth_or_array_layers: 1,
+                                                            },
+                                                            bevy::render::render_resource::TextureDimension::D2,
+                                                            [0, 0, 0, 255].repeat(width * height),
+                                                            bevy::render::render_resource::TextureFormat::Rgba8UnormSrgb,
+                                                            bevy::asset::RenderAssetUsages::MAIN_WORLD
+                                                                | bevy::asset::RenderAssetUsages::RENDER_WORLD,
+                                                        ));
                                                         *machine = Some((
                                                             pixels.clone(),
                                                             generation.clone(),
@@ -1835,6 +1812,7 @@ fn main() {
                                                             std::thread::spawn(move || {
                                                                 kernel::boot(
                                                                     &pixels,
+                                                                    width,
                                                                     || {
                                                                         generation.fetch_add(1, std::sync::atomic::Ordering::Release);
                                                                     },
@@ -1881,22 +1859,15 @@ fn main() {
                             }
                             drag.filter(|_| mup).into_iter().for_each(|off| {
                                 window.cursor_position().into_iter().for_each(|c| {
-                                    store[*ed].5 = Some((c - off - cv.min).clamp(
-                                        bevy::math::Vec2::ZERO,
-                                        (cv.size() - brect.size()).max(bevy::math::Vec2::ZERO),
-                                    ))
-                                    .filter(|_| cv.contains(c));
+                                    store[*ed].5 = (c - off - cv.min).clamp(bevy::math::Vec2::ZERO, (cv.size() - brect.size()).max(bevy::math::Vec2::ZERO));
                                     for key in [format!("/projects/{:016x}/block", store[*ed].4)] {
                                         Some(db.begin_write().unwrap()).into_iter().for_each(|tx| {
                                             Some(tx.open_table(redb::TableDefinition::<&str, &[u8]>::new("fs")).unwrap())
                                                 .iter_mut()
                                                 .for_each(|table| {
-                                                    match store[*ed].5 {
-                                                        Some(at) => table
-                                                            .insert(key.as_str(), [at.x.to_le_bytes(), at.y.to_le_bytes()].concat().as_slice())
-                                                            .unwrap(),
-                                                        None => table.remove(key.as_str()).unwrap(),
-                                                    };
+                                                    table
+.insert(key.as_str(), [store[*ed].5.x.to_le_bytes(), store[*ed].5.y.to_le_bytes()].concat().as_slice())
+.unwrap();
                                                 });
                                             tx.commit().unwrap();
                                         });
@@ -1937,6 +1908,7 @@ fn main() {
                                 machine.take().into_iter().for_each(|(_, _, on, thread, _)| {
                                     on.store(false, std::sync::atomic::Ordering::Release);
                                     thread.unpark();
+                                    icons[24] = icons[2].clone();
                                 });
                                 *modal = false;
                                 *picker = false;

@@ -1420,26 +1420,33 @@ fn main() {
                                             }
                                             if *view == 3 {
                                                 *brect = match (*drag, window.cursor_position()) {
-                                                    (Some(off), Some(c)) => rc(c.x - off.x, c.y - off.y, c.x - off.x + 232.0, c.y - off.y + 60.0),
+                                                    (Some(off), Some(c)) => rc(c.x - off.x, c.y - off.y, c.x - off.x + 264.0, c.y - off.y + 52.0),
                                                     (Some(_), None) => *brect,
-                                                    (None, _) => rc(
-                                                        cv.min.x + store[*ed].5.x,
-                                                        cv.min.y + store[*ed].5.y,
-                                                        cv.min.x + store[*ed].5.x + 232.0,
-                                                        cv.min.y + store[*ed].5.y + 60.0,
+                                                    (None, _) => (|p: bevy::math::Vec2| rc(p.x, p.y, p.x + 264.0, p.y + 52.0))(
+                                                        cv.min
+                                                            + store[*ed].5.clamp(
+                                                                bevy::math::Vec2::ZERO,
+                                                                (cv.size() - bevy::math::Vec2::new(312.0, 124.0)).max(bevy::math::Vec2::ZERO),
+                                                            ),
                                                     ),
                                                 };
-                                                for hv in [window.cursor_position().is_some_and(|c| brect.contains(c)) as u8 as f32] {
-                                                    spr(brect.inflate(3.0), 7.9, gr(1.0, (0.01 + 0.02 * hv) * fades[0]), 0);
-                                                    spr(*brect, 8.0, gr(0.102 + 0.04 * hv, fades[0]), 0);
-                                                    spr(*brect, 8.05, gr(0.2 + 0.2 * hv, fades[0]), 1);
-                                                    for tile in [rc(brect.min.x + 12.0, brect.min.y + 12.0, brect.min.x + 48.0, brect.min.y + 48.0)] {
-                                                        spr(tile, 8.1, gr(0.157 + 0.03 * hv, fades[0]), 0);
-                                                        spr(tile, 8.15, gr(0.26, fades[0]), 1);
-                                                        spr(cs(tile.center().x, tile.center().y, 20.0, 20.0), 8.2, gr(0.93, fades[0]), 19);
+                                                spr(rc(brect.min.x + 25.0, brect.max.y, brect.min.x + 27.0, brect.max.y + 47.0), 7.8, gr(0.26, fades[0]), 2);
+                                                spr(rc(brect.min.x + 25.0, brect.max.y + 45.0, brect.min.x + 48.0, brect.max.y + 47.0), 7.8, gr(0.26, fades[0]), 2);
+                                                for (r, glyph, title) in [
+                                                    (*brect, 19, "Bootstrapped"),
+                                                    (rc(brect.min.x + 48.0, brect.max.y + 20.0, brect.min.x + 312.0, brect.max.y + 72.0), 13, "Command Line Interface"),
+                                                ] {
+                                                    for hv in [window.cursor_position().is_some_and(|c| r.contains(c)) as u8 as f32] {
+                                                        spr(r.inflate(3.0), 7.9, gr(1.0, (0.01 + 0.02 * hv) * fades[0]), 0);
+                                                        spr(r, 8.0, gr(0.102 + 0.04 * hv, fades[0]), 0);
+                                                        spr(r, 8.05, gr(0.2 + 0.2 * hv, fades[0]), 1);
+                                                        for tile in [rc(r.min.x + 10.0, r.min.y + 10.0, r.min.x + 42.0, r.min.y + 42.0)] {
+                                                            spr(tile, 8.1, gr(0.157 + 0.03 * hv, fades[0]), 0);
+                                                            spr(tile, 8.15, gr(0.26, fades[0]), 1);
+                                                            spr(cs(tile.center().x, tile.center().y, 18.0, 18.0), 8.2, gr(0.93, fades[0]), glyph);
+                                                        }
+                                                        txt(r.min.x + 54.0, r.center().y, 0, title, 15.0, 8.3, gr(0.93, fades[0]));
                                                     }
-                                                    txt(brect.min.x + 60.0, brect.center().y - 9.0, 0, "Bootstrapped", 15.0, 8.3, gr(0.93, fades[0]));
-                                                    txt(brect.min.x + 60.0, brect.center().y + 11.0, 0, "Boot image", 11.0, 8.3, gr(0.42, fades[0]));
                                                 }
                                             }
                                             if *modal {
@@ -1873,7 +1880,7 @@ fn main() {
                             }
                             drag.filter(|_| mup).into_iter().for_each(|off| {
                                 window.cursor_position().into_iter().for_each(|c| {
-                                    store[*ed].5 = (c - off - cv.min).clamp(bevy::math::Vec2::ZERO, (cv.size() - brect.size()).max(bevy::math::Vec2::ZERO));
+                                    store[*ed].5 = (c - off - cv.min).clamp(bevy::math::Vec2::ZERO, (cv.size() - bevy::math::Vec2::new(312.0, 124.0)).max(bevy::math::Vec2::ZERO));
                                     for key in [format!("/projects/{:016x}/block", store[*ed].4)] {
                                         Some(db.begin_write().unwrap()).into_iter().for_each(|tx| {
                                             Some(tx.open_table(redb::TableDefinition::<&str, &[u8]>::new("fs")).unwrap())

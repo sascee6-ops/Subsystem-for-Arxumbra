@@ -1000,6 +1000,34 @@ fn main() {
                               ..........................\
                               .........................."
                                 .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ...18cccccccccccccccc91...\
+                              ...cffffffffffffffffffd1..\
+                              ..4fd4333333333333333df5..\
+                              ..6f9.24.15..51.42.338f7..\
+                              ..6f9.af28f55f82fb.ee8f7..\
+                              ..6f9.37.281182.74.668f7..\
+                              ..6f9.37..........74.8f7..\
+                              ..6f9.af2........2fb.8f7..\
+                              ..6f9.24.13333331.42.8f7..\
+                              ..6f9....affffffa....8f7..\
+                              ..6f9....49999994....8f7..\
+                              ..4fd3222222222222222cf5..\
+                              ...cffffffffffffffffffd1..\
+                              ...19dddddddddddddddda2...\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
                         ]
                         .map(|art: &[u8]| {
                             images.add(bevy::image::Image::new(
@@ -1048,7 +1076,7 @@ fn main() {
                                         table
                                             .get(format!("{}block", &key.value()[..27]).as_str())
                                             .unwrap()
-                                            .map_or(bevy::math::Vec2::new(12.0, 12.0), |at| {
+                                            .map_or(bevy::math::Vec2::new(40.0, 16.0), |at| {
                                                 bevy::math::Vec2::new(
                                                     f32::from_le_bytes(at.value()[..4].try_into().unwrap()),
                                                     f32::from_le_bytes(at.value()[4..8].try_into().unwrap()),
@@ -1420,32 +1448,44 @@ fn main() {
                                             }
                                             if *view == 3 {
                                                 *brect = match (*drag, window.cursor_position()) {
-                                                    (Some(off), Some(c)) => rc(c.x - off.x, c.y - off.y, c.x - off.x + 264.0, c.y - off.y + 52.0),
+                                                    (Some(off), Some(c)) => rc(c.x - off.x, c.y - off.y, c.x - off.x + 288.0, c.y - off.y + 52.0),
                                                     (Some(_), None) => *brect,
-                                                    (None, _) => (|p: bevy::math::Vec2| rc(p.x, p.y, p.x + 264.0, p.y + 52.0))(
+                                                    (None, _) => (|p: bevy::math::Vec2| rc(p.x, p.y, p.x + 288.0, p.y + 52.0))(
                                                         cv.min
                                                             + store[*ed].5.clamp(
-                                                                bevy::math::Vec2::ZERO,
-                                                                (cv.size() - bevy::math::Vec2::new(312.0, 124.0)).max(bevy::math::Vec2::ZERO),
+                                                                bevy::math::Vec2::new(30.0, 0.0),
+                                                                (cv.size() - bevy::math::Vec2::new(288.0, 268.0)).max(bevy::math::Vec2::new(30.0, 0.0)),
                                                             ),
                                                     ),
                                                 };
-                                                spr(rc(brect.min.x + 25.0, brect.max.y, brect.min.x + 27.0, brect.max.y + 47.0), 7.8, gr(0.26, fades[0]), 2);
-                                                spr(rc(brect.min.x + 25.0, brect.max.y + 45.0, brect.min.x + 48.0, brect.max.y + 47.0), 7.8, gr(0.26, fades[0]), 2);
-                                                for (r, glyph, title) in [
-                                                    (*brect, 19, "Bootstrapped"),
-                                                    (rc(brect.min.x + 48.0, brect.max.y + 20.0, brect.min.x + 312.0, brect.max.y + 72.0), 13, "Command Line Interface"),
-                                                ] {
-                                                    for hv in [window.cursor_position().is_some_and(|c| r.contains(c)) as u8 as f32] {
-                                                        spr(r.inflate(3.0), 7.9, gr(1.0, (0.01 + 0.02 * hv) * fades[0]), 0);
-                                                        spr(r, 8.0, gr(0.102 + 0.04 * hv, fades[0]), 0);
-                                                        spr(r, 8.05, gr(0.2 + 0.2 * hv, fades[0]), 1);
-                                                        for tile in [rc(r.min.x + 10.0, r.min.y + 10.0, r.min.x + 42.0, r.min.y + 42.0)] {
-                                                            spr(tile, 8.1, gr(0.157 + 0.03 * hv, fades[0]), 0);
-                                                            spr(tile, 8.15, gr(0.26, fades[0]), 1);
-                                                            spr(cs(tile.center().x, tile.center().y, 18.0, 18.0), 8.2, gr(0.93, fades[0]), glyph);
+                                                spr(
+                                                    rc(brect.min.x - 19.0, brect.center().y - 1.0, brect.min.x - 17.0, brect.center().y + 217.0),
+                                                    7.8,
+                                                    gr(0.26, fades[0]),
+                                                    2,
+                                                );
+                                                for (i, (glyph, title)) in [
+                                                    (19, "Bootstrapped"),
+                                                    (13, "Command Line Interface"),
+                                                    (14, "Graphical User Interface"),
+                                                    (24, "Keyboard"),
+                                                ]
+                                                .into_iter()
+                                                .enumerate()
+                                                {
+                                                    for r in [rc(brect.min.x, brect.min.y + 72.0 * i as f32, brect.max.x, brect.min.y + 72.0 * i as f32 + 52.0)] {
+                                                        spr(rc(r.min.x - 19.0, r.center().y - 1.0, r.min.x, r.center().y + 1.0), 7.8, gr(0.26, fades[0]), 2);
+                                                        for hv in [window.cursor_position().is_some_and(|c| r.contains(c)) as u8 as f32] {
+                                                            spr(r.inflate(3.0), 7.9, gr(1.0, (0.01 + 0.02 * hv) * fades[0]), 0);
+                                                            spr(r, 8.0, gr(0.102 + 0.04 * hv, fades[0]), 0);
+                                                            spr(r, 8.05, gr(0.2 + 0.2 * hv, fades[0]), 1);
+                                                            for tile in [rc(r.min.x + 10.0, r.min.y + 10.0, r.min.x + 42.0, r.min.y + 42.0)] {
+                                                                spr(tile, 8.1, gr(0.157 + 0.03 * hv, fades[0]), 0);
+                                                                spr(tile, 8.15, gr(0.26, fades[0]), 1);
+                                                                spr(cs(tile.center().x, tile.center().y, 18.0, 18.0), 8.2, gr(0.93, fades[0]), glyph);
+                                                            }
+                                                            txt(r.min.x + 54.0, r.center().y, 0, title, 15.0, 8.3, gr(0.93, fades[0]));
                                                         }
-                                                        txt(r.min.x + 54.0, r.center().y, 0, title, 15.0, 8.3, gr(0.93, fades[0]));
                                                     }
                                                 }
                                             }
@@ -1660,7 +1700,7 @@ fn main() {
                                             }
                                         }
                                         if *view == 4 {
-                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 24);
+                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 25);
                                         }
                                     });
                                     sit.for_each(|(_, _, v)| {
@@ -1772,7 +1812,7 @@ fn main() {
                                                 tx.commit().unwrap();
                                             });
                                             pending.clear();
-                                            store.push((std::mem::take(name), icon.take(), *kind, *dim, id, bevy::math::Vec2::new(12.0, 12.0)));
+                                            store.push((std::mem::take(name), icon.take(), *kind, *dim, id, bevy::math::Vec2::new(40.0, 16.0)));
                                         }
                                         *kind = 0;
                                         *dim = 0;
@@ -1814,7 +1854,7 @@ fn main() {
                                                         std::sync::Arc::new(std::sync::atomic::AtomicU32::new(0)),
                                                         std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true)),
                                                     )] {
-                                                        icons[24] = images.add(bevy::image::Image::new(
+                                                        icons[25] = images.add(bevy::image::Image::new(
                                                             bevy::render::render_resource::Extent3d {
                                                                 width: width as u32,
                                                                 height: height as u32,
@@ -1880,7 +1920,7 @@ fn main() {
                             }
                             drag.filter(|_| mup).into_iter().for_each(|off| {
                                 window.cursor_position().into_iter().for_each(|c| {
-                                    store[*ed].5 = (c - off - cv.min).clamp(bevy::math::Vec2::ZERO, (cv.size() - bevy::math::Vec2::new(312.0, 124.0)).max(bevy::math::Vec2::ZERO));
+                                    store[*ed].5 = (c - off - cv.min).clamp(bevy::math::Vec2::new(30.0, 0.0), (cv.size() - bevy::math::Vec2::new(288.0, 268.0)).max(bevy::math::Vec2::new(30.0, 0.0)));
                                     for key in [format!("/projects/{:016x}/block", store[*ed].4)] {
                                         Some(db.begin_write().unwrap()).into_iter().for_each(|tx| {
                                             Some(tx.open_table(redb::TableDefinition::<&str, &[u8]>::new("fs")).unwrap())
@@ -1929,7 +1969,7 @@ fn main() {
                                 machine.take().into_iter().for_each(|(_, _, on, thread, _)| {
                                     on.store(false, std::sync::atomic::Ordering::Release);
                                     thread.unpark();
-                                    icons[24] = icons[2].clone();
+                                    icons[25] = icons[2].clone();
                                 });
                                 *modal = false;
                                 *picker = false;
@@ -1941,7 +1981,7 @@ fn main() {
                                     .into_iter()
                                     .for_each(|g| {
                                         *seen = g;
-                                        images.get_mut(&icons[24]).iter_mut().for_each(|image| {
+                                        images.get_mut(&icons[25]).iter_mut().for_each(|image| {
                                             image.data.iter_mut().for_each(|data| {
                                                 data.chunks_exact_mut(4).zip(pixels.iter()).for_each(|(rgba, pixel)| {
                                                     rgba.copy_from_slice(&pixel.load(std::sync::atomic::Ordering::Relaxed).to_le_bytes())

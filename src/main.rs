@@ -1298,16 +1298,30 @@ fn main() {
                                             spr(rc(24.0, 24.0, side - 4.0, (h - 24.0).max(48.0)), 1.0, gr(0.071, 1.0), 0);
                                             spr(rc(24.0, 24.0, side - 4.0, (h - 24.0).max(48.0)), 1.1, gr(0.133, 1.0), 1);
                                             spr(rc(40.0, 84.0, side - 20.0, 85.0), 3.0, gr(0.133, 1.0), 2);
-                                            spr(cs(54.0, 56.0, 18.0, 18.0), 6.0, gr(0.93, 1.0), if *view == 2 { 6 } else { 3 });
-                                            txt(
-                                                72.0,
-                                                46.0,
-                                                1,
-                                                if *view == 2 { "Laboratory" } else { title },
-                                                if *view == 2 { 15.0 } else { ((side - 88.0) / (0.6 * title.len() as f32)).clamp(9.0, 15.0) },
-                                                6.0,
-                                                gr(0.93, 1.0),
-                                            );
+                                            for (index, scale, tint, label) in [match (*view, store.get(*ed)) {
+                                                (3, Some(pr)) => match pr.1 {
+                                                    Some((index, size)) => (index, size, 1.0, pr.0.as_str()),
+                                                    None => (
+                                                        if pr.2 < 3 { 11 + pr.2 as usize } else { 14 + pr.3 as usize },
+                                                        bevy::math::Vec2::ONE,
+                                                        0.93,
+                                                        pr.0.as_str(),
+                                                    ),
+                                                },
+                                                (2, _) => (6, bevy::math::Vec2::ONE, 0.93, "Laboratory"),
+                                                _ => (3, bevy::math::Vec2::ONE, 0.93, title),
+                                            }] {
+                                                spr(cs(54.0, 56.0, scale.x * 18.0, scale.y * 18.0), 6.0, gr(tint, 1.0), index);
+                                                txt(
+                                                    72.0,
+                                                    46.0,
+                                                    1,
+                                                    label,
+                                                    ((side - 88.0) / (0.6 * label.chars().count() as f32)).clamp(9.0, 15.0),
+                                                    6.0,
+                                                    gr(0.93, 1.0),
+                                                );
+                                            }
                                             if *view < 2 {
                                                 for (k, (r, label)) in [
                                                     (rc(36.0, 100.0, side - 16.0, 152.0), "Home"),
@@ -1348,18 +1362,12 @@ fn main() {
                                                             }
                                                         }
                                                     } else {
-                                                        spr(cs(side + 55.0, 56.0, 26.0, 26.0), 6.0, gr(0.93, a), if *view == 2 {
- 8
- } else if store[*ed].2 < 3 {
- 11 + store[*ed].2 as usize
- } else {
- 14 + store[*ed].3 as usize
- });
+                                                        spr(cs(side + 55.0, 56.0, 26.0, 26.0), 6.0, gr(0.93, a), if *view == 2 { 8 } else { 17 });
                                                         txt(
                                                             side + 82.0,
                                                             56.0,
                                                             0,
-                                                            if *view == 2 { "Workspace" } else { store[*ed].0.as_str() },
+                                                            if *view == 2 { "Workspace" } else { "Settings" },
                                                             18.0,
                                                             6.5,
                                                             gr(0.93, a),
@@ -1412,20 +1420,26 @@ fn main() {
                                             }
                                             if *view == 3 {
                                                 *brect = match (*drag, window.cursor_position()) {
-                                                    (Some(off), Some(c)) => rc(c.x - off.x, c.y - off.y, c.x - off.x + 208.0, c.y - off.y + 52.0),
+                                                    (Some(off), Some(c)) => rc(c.x - off.x, c.y - off.y, c.x - off.x + 232.0, c.y - off.y + 60.0),
                                                     (Some(_), None) => *brect,
                                                     (None, _) => rc(
                                                         cv.min.x + store[*ed].5.x,
                                                         cv.min.y + store[*ed].5.y,
-                                                        cv.min.x + store[*ed].5.x + 208.0,
-                                                        cv.min.y + store[*ed].5.y + 52.0,
+                                                        cv.min.x + store[*ed].5.x + 232.0,
+                                                        cv.min.y + store[*ed].5.y + 60.0,
                                                     ),
                                                 };
                                                 for hv in [window.cursor_position().is_some_and(|c| brect.contains(c)) as u8 as f32] {
-                                                    spr(*brect, 8.0, gr(0.122 + 0.05 * hv, fades[0]), 0);
+                                                    spr(brect.inflate(3.0), 7.9, gr(1.0, (0.01 + 0.02 * hv) * fades[0]), 0);
+                                                    spr(*brect, 8.0, gr(0.102 + 0.04 * hv, fades[0]), 0);
                                                     spr(*brect, 8.05, gr(0.2 + 0.2 * hv, fades[0]), 1);
-                                                    spr(cs(brect.min.x + 26.0, brect.center().y, 22.0, 22.0), 8.2, gr(0.93, fades[0]), 19);
-                                                    txt(brect.min.x + 54.0, brect.center().y, 0, "Bootstrapped", 15.0, 8.3, gr(0.93, fades[0]));
+                                                    for tile in [rc(brect.min.x + 12.0, brect.min.y + 12.0, brect.min.x + 48.0, brect.min.y + 48.0)] {
+                                                        spr(tile, 8.1, gr(0.157 + 0.03 * hv, fades[0]), 0);
+                                                        spr(tile, 8.15, gr(0.26, fades[0]), 1);
+                                                        spr(cs(tile.center().x, tile.center().y, 20.0, 20.0), 8.2, gr(0.93, fades[0]), 19);
+                                                    }
+                                                    txt(brect.min.x + 60.0, brect.center().y - 9.0, 0, "Bootstrapped", 15.0, 8.3, gr(0.93, fades[0]));
+                                                    txt(brect.min.x + 60.0, brect.center().y + 11.0, 0, "Boot image", 11.0, 8.3, gr(0.42, fades[0]));
                                                 }
                                             }
                                             if *modal {

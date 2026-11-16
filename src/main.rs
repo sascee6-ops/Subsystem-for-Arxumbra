@@ -1454,27 +1454,34 @@ fn main() {
                                                         cv.min
                                                             + store[*ed].5.clamp(
                                                                 bevy::math::Vec2::new(30.0, 0.0),
-                                                                (cv.size() - bevy::math::Vec2::new(288.0, 268.0)).max(bevy::math::Vec2::new(30.0, 0.0)),
+                                                                (cv.size() - bevy::math::Vec2::new(372.0, 268.0)).max(bevy::math::Vec2::new(30.0, 0.0)),
                                                             ),
                                                     ),
                                                 };
-                                                spr(
-                                                    rc(brect.min.x - 19.0, brect.center().y - 1.0, brect.min.x - 17.0, brect.center().y + 217.0),
-                                                    7.8,
-                                                    gr(0.26, fades[0]),
-                                                    2,
-                                                );
                                                 for (i, (glyph, title)) in [
                                                     (19, "Bootstrapped"),
-                                                    (13, "Command Line Interface"),
                                                     (14, "Graphical User Interface"),
+                                                    (13, "Command Line Interface"),
                                                     (24, "Keyboard"),
                                                 ]
                                                 .into_iter()
                                                 .enumerate()
                                                 {
-                                                    for r in [rc(brect.min.x, brect.min.y + 72.0 * i as f32, brect.max.x, brect.min.y + 72.0 * i as f32 + 52.0)] {
-                                                        spr(rc(r.min.x - 19.0, r.center().y - 1.0, r.min.x, r.center().y + 1.0), 7.8, gr(0.26, fades[0]), 2);
+                                                    for r in [rc(
+                                                        brect.min.x + 28.0 * i as f32,
+                                                        brect.min.y + 72.0 * i as f32,
+                                                        brect.max.x + 28.0 * i as f32,
+                                                        brect.min.y + 72.0 * i as f32 + 52.0,
+                                                    )] {
+                                                        spr(
+                                                            rc(r.min.x - 16.0 - 28.0 * (i > 0) as u8 as f32, r.center().y - 1.0, r.min.x, r.center().y + 1.0),
+                                                            7.8,
+                                                            gr(0.26, fades[0]),
+                                                            2,
+                                                        );
+                                                        if i < 3 {
+                                                            spr(rc(r.min.x - 17.0, r.center().y - 1.0, r.min.x - 15.0, r.center().y + 73.0), 7.8, gr(0.26, fades[0]), 2);
+                                                        }
                                                         for hv in [window.cursor_position().is_some_and(|c| r.contains(c)) as u8 as f32] {
                                                             spr(r.inflate(3.0), 7.9, gr(1.0, (0.01 + 0.02 * hv) * fades[0]), 0);
                                                             spr(r, 8.0, gr(0.102 + 0.04 * hv, fades[0]), 0);
@@ -1920,7 +1927,7 @@ fn main() {
                             }
                             drag.filter(|_| mup).into_iter().for_each(|off| {
                                 window.cursor_position().into_iter().for_each(|c| {
-                                    store[*ed].5 = (c - off - cv.min).clamp(bevy::math::Vec2::new(30.0, 0.0), (cv.size() - bevy::math::Vec2::new(288.0, 268.0)).max(bevy::math::Vec2::new(30.0, 0.0)));
+                                    store[*ed].5 = (c - off - cv.min).clamp(bevy::math::Vec2::new(30.0, 0.0), (cv.size() - bevy::math::Vec2::new(372.0, 268.0)).max(bevy::math::Vec2::new(30.0, 0.0)));
                                     for key in [format!("/projects/{:016x}/block", store[*ed].4)] {
                                         Some(db.begin_write().unwrap()).into_iter().for_each(|tx| {
                                             Some(tx.open_table(redb::TableDefinition::<&str, &[u8]>::new("fs")).unwrap())

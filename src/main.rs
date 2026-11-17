@@ -1459,14 +1459,16 @@ fn main() {
                                                 }
                                             }
                                             if *view == 3 {
-                                                for (i, (glyph, title)) in [
-                                                    (19, "Bootstrapped"),
-                                                    (14, "Graphical User Interface"),
-                                                    (13, "Command Line Interface"),
-                                                    (24, "Keyboard"),
+                                                for (i, (glyph, title, count)) in [
+                                                    (19, "Bootstrapped", 0b1110),
+                                                    (14, "Graphical User Interface", 0b1010),
+                                                    (13, "Command Line Interface", 0b0110),
+                                                    (24, "Keyboard", 0b1110),
                                                 ]
                                                 .into_iter()
+                                                .filter(|(_, _, shown)| shown >> store.get(*ed).map_or(0, |pr| pr.2) & 1 == 1)
                                                 .enumerate()
+                                                .map(|(i, (glyph, title, _))| (i, (glyph, title, 3 + (store.get(*ed).map_or(0, |pr| pr.2) == 1) as usize)))
                                                 {
                                                     for r in [rc(
                                                         cv.min.x + 40.0 + 28.0 * i as f32,
@@ -1480,7 +1482,7 @@ fn main() {
                                                             gr(0.26, fades[0]),
                                                             2,
                                                         );
-                                                        if i < 3 {
+                                                        if i + 1 < count {
                                                             spr(rc(r.min.x - 17.0, r.center().y - 1.0, r.min.x - 15.0, r.center().y + 73.0), 7.8, gr(0.26, fades[0]), 2);
                                                         }
                                                         spr(r.inflate(3.0), 7.9, gr(1.0, 0.01 * fades[0]), 0);

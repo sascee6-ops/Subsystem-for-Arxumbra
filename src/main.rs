@@ -1130,7 +1130,8 @@ fn main() {
                     window.width(),
                     window.height(),
                 ))
-                    .map(|(l, w, h)| (l, w, h, (w * 0.22).clamp(240.0, 304.0).min(w * 0.5)))
+                    .map(|(l, w, h)| (l.0.0 == 3, l, w, h))
+                    .map(|(tight, l, w, h)| (l, w, h, if tight { 4.0 } else { (w * 0.22).clamp(240.0, 304.0).min(w * 0.5) }))
                     .map(|(l, w, h, side)| (l, w, h, side, ((w - side - 68.0) / 396.0).clamp(1.0, 8.0) as usize))
                     .map(|(l, w, h, side, cols)| {
                         (
@@ -1311,32 +1312,13 @@ fn main() {
                                     .iter_mut()
                                     .for_each(|(spr, txt, gr, rc, cs)| {
                                         if !*hud && *view < 4 {
+                                          if *view != 3 {
                                             spr(rc(24.0, 24.0, side - 4.0, (h - 24.0).max(48.0)), 1.0, gr(0.071, 1.0), 0);
                                             spr(rc(24.0, 24.0, side - 4.0, (h - 24.0).max(48.0)), 1.1, gr(0.133, 1.0), 1);
                                             spr(rc(40.0, 84.0, side - 20.0, 85.0), 3.0, gr(0.133, 1.0), 2);
-                                            for (index, scale, tint, label) in [match (*view, store.get(*ed)) {
-                                                (3, Some(pr)) => match pr.1 {
-                                                    Some((index, size)) => (index, size, 1.0, pr.0.as_str()),
-                                                    None => (
-                                                        if pr.2 < 3 { 11 + pr.2 as usize } else { 14 + pr.3 as usize },
-                                                        bevy::math::Vec2::ONE,
-                                                        0.93,
-                                                        pr.0.as_str(),
-                                                    ),
-                                                },
-                                                (2, _) => (6, bevy::math::Vec2::ONE, 0.93, "Laboratory"),
-                                                _ => (3, bevy::math::Vec2::ONE, 0.93, title),
-                                            }] {
-                                                spr(cs(54.0, 56.0, scale.x * 18.0, scale.y * 18.0), 6.0, gr(tint, 1.0), index);
-                                                txt(
-                                                    72.0,
-                                                    46.0,
-                                                    1,
-                                                    label,
-                                                    ((side - 88.0) / (0.6 * label.chars().count() as f32)).clamp(9.0, 15.0),
-                                                    6.0,
-                                                    gr(0.93, 1.0),
-                                                );
+                                            for (index, label) in [if *view == 2 { (6, "Laboratory") } else { (3, title) }] {
+                                                spr(cs(54.0, 56.0, 18.0, 18.0), 6.0, gr(0.93, 1.0), index);
+                                                txt(72.0, 46.0, 1, label, ((side - 88.0) / (0.6 * label.chars().count() as f32)).clamp(9.0, 15.0), 6.0, gr(0.93, 1.0));
                                             }
                                             if *view < 2 {
                                                 for (k, (r, label)) in [
@@ -1361,6 +1343,7 @@ fn main() {
                                                 spr(cs(64.0, 126.0, 18.0, 18.0), 6.0, gr(0.7 + 0.23 * anim[3][0], 1.0), 9);
                                                 txt(84.0, 126.0, 0, "Create project", 15.0, 6.5, gr(0.7 + 0.23 * anim[3][0], 1.0));
                                             }
+                                          }
                                             if *view > 0 {
                                                 for a in [fades[0]] {
                                                     spr(rc(side + 20.0, 24.0, (w - 24.0).max(side + 60.0), (h - 24.0).max(48.0)), 1.0, gr(0.071, a), 0);
@@ -1390,6 +1373,17 @@ fn main() {
                                                             store.get(*ed).map_or(String::new(), |pr| kinds[if pr.2 < 3 { pr.2 as usize - 1 } else { 1 + pr.3 as usize }].to_string())
                                                         }] {
                                                             txt(w - 44.0 - 7.8 * tag.len() as f32, 56.0, 0, tag.as_str(), 13.0, 6.5, gr(0.42, a));
+                                                            for pr in store.get(*ed).into_iter().filter(|_| *view == 3) {
+                                                                for (index, scale, tint) in [match pr.1 {
+                                                                    Some((index, size)) => (index, size, 1.0),
+                                                                    None => (if pr.2 < 3 { 11 + pr.2 as usize } else { 14 + pr.3 as usize }, bevy::math::Vec2::ONE, 0.93),
+                                                                }] {
+                                                                    for nx in [w - 68.0 - 7.8 * tag.len() as f32 - 9.0 * pr.0.chars().count() as f32] {
+                                                                        spr(cs(nx - 18.0, 56.0, scale.x * 18.0, scale.y * 18.0), 6.0, gr(tint, a), index);
+                                                                        txt(nx, 56.0, 0, pr.0.as_str(), 15.0, 6.5, gr(0.93, a));
+                                                                    }
+                                                                }
+                                                            }
                                                         }
                                                         txt(
                                                             side + 82.0,

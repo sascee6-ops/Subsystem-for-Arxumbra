@@ -304,8 +304,6 @@ fn main() {
                 f32,
                 bool,
                 usize,
-                Option<bevy::math::Vec2>,
-                bevy::math::Rect,
             )>,
              fo: bevy::ecs::system::Local<(
                 String,
@@ -326,7 +324,6 @@ fn main() {
                     u8,
                     u8,
                     u64,
-                    bevy::math::Vec2,
                 )>,
                 usize,
                 Vec<(usize, Vec<u8>)>,
@@ -1073,23 +1070,14 @@ fn main() {
                                         value.value()[0],
                                         value.value()[1],
                                         u64::from_str_radix(&key.value()[10..26], 16).unwrap(),
-                                        table
-                                            .get(format!("{}block", &key.value()[..27]).as_str())
-                                            .unwrap()
-                                            .map_or(bevy::math::Vec2::new(40.0, 16.0), |at| {
-                                                bevy::math::Vec2::new(
-                                                    f32::from_le_bytes(at.value()[..4].try_into().unwrap()),
-                                                    f32::from_le_bytes(at.value()[4..8].try_into().unwrap()),
-                                                )
-                                            }),
                                     )
                                 })
                                 .collect::<Vec<_>>()
                         })
                         .enumerate()
-                        .map(|(row, (name, png, kind, dim, id, at))| {
+                        .map(|(row, (name, png, kind, dim, id))| {
                             st.2.extend(png.map(|bytes| (row, bytes)));
-                            (name, None, kind, dim, id, at)
+                            (name, None, kind, dim, id)
                         })
                         .collect();
                     commands.spawn_batch((0..272).map(|_| {
@@ -1173,7 +1161,7 @@ fn main() {
                     .for_each(
                         |(
                             (
-                                (view, hud, modal, picker, esc, moving, ed, drag, brect),
+                                (view, hud, modal, picker, esc, moving, ed),
                                 (name, icon, kind, dim, dir, entries, pscroll, dirty, wacc, pending),
                                 (store, lscroll, jobs),
                                 (hover, focus, press, anim, fades, bt, machine),
@@ -1366,6 +1354,7 @@ fn main() {
                                                         4 + k,
                                                     );
                                                     txt(84.0, r.center().y, 0, label, 15.0, 6.5, gr(0.6 + 0.33 * anim[k][0].max(anim[k][3]), 1.0));
+                                                    spr(rc(40.0, r.min.y + 15.0, 43.0, r.max.y - 15.0), 6.0, gr(0.93, anim[k][3]), 2);
                                                 }
                                             } else if *view == 2 {
                                                 bt.push((rc(36.0, 100.0, side - 16.0, 152.0), 3, 0.0, 5.0, !*modal && !*picker, 1.0));
@@ -1378,8 +1367,11 @@ fn main() {
                                                     spr(rc(side + 20.0, 24.0, (w - 24.0).max(side + 60.0), (h - 24.0).max(48.0)), 1.1, gr(0.133, a), 1);
                                                     if *view == 1 {
                                                         for cd in [rc(side + 44.0, 48.0, xr, 192.0)] {
-                                                            spr(cd, 1.6, gr(0.102, a), 0);
-                                                            spr(cd, 1.7, gr(0.157, a), 1);
+                                                            for hv in [window.cursor_position().is_some_and(|c| cd.contains(c) && !*modal && !*picker) as u8 as f32] {
+                                                                spr(cd, 1.6, gr(0.102 + 0.012 * hv, a), 0);
+                                                                spr(cd, 1.7, gr(0.157 + 0.06 * hv, a), 1);
+                                                            }
+                                                            txt(cd.min.x + 22.0, cd.max.y - 34.0, 0, "OS, CLI and GUI projects", 10.0, 6.5, gr(0.42, a));
                                                             spr(rc(cd.min.x + 20.0, cd.min.y + 64.0, cd.max.x - 20.0, cd.min.y + 65.0), 1.8, gr(0.157, a), 2);
                                                             spr(cs(cd.min.x + 35.0, cd.min.y + 32.0, 26.0, 26.0), 6.0, gr(0.93, a), 6);
                                                             txt(cd.min.x + 62.0, cd.min.y + 32.0, 0, "Laboratory", 18.0, 6.5, gr(0.93, a));
@@ -1390,7 +1382,15 @@ fn main() {
                                                             }
                                                         }
                                                     } else {
+                                                      for kinds in [["Operating System", "Command Line Interface", "Graphical User Interface 2D", "Graphical User Interface 3D"]] {
                                                         spr(cs(side + 55.0, 56.0, 26.0, 26.0), 6.0, gr(0.93, a), if *view == 2 { 8 } else { 17 });
+                                                        for tag in [if *view == 2 {
+                                                            format!("{} projects", store.len())
+                                                        } else {
+                                                            store.get(*ed).map_or(String::new(), |pr| kinds[if pr.2 < 3 { pr.2 as usize - 1 } else { 1 + pr.3 as usize }].to_string())
+                                                        }] {
+                                                            txt(w - 44.0 - 7.8 * tag.len() as f32, 56.0, 0, tag.as_str(), 13.0, 6.5, gr(0.42, a));
+                                                        }
                                                         txt(
                                                             side + 82.0,
                                                             56.0,
@@ -1406,8 +1406,10 @@ fn main() {
                                                                 for pc in [(side + 40.0 + (i % cols) as f32 * 396.0, 108.0 + (i / cols - *lscroll) as f32 * 160.0)]
                                                                     .map(|(x, y)| rc(x, y, x + 380.0, y + 144.0))
                                                                 {
-                                                                    spr(pc, 2.0, gr(0.102, a), 0);
-                                                                    spr(pc, 2.1, gr(0.157, a), 1);
+                                                                    for hv in [window.cursor_position().is_some_and(|c| pc.contains(c) && !*modal && !*picker) as u8 as f32] {
+                                                                        spr(pc, 2.0, gr(0.102 + 0.012 * hv, a), 0);
+                                                                        spr(pc, 2.1, gr(0.157 + 0.06 * hv, a), 1);
+                                                                    }
                                                                     spr(rc(pc.min.x + 20.0, pc.min.y + 64.0, pc.max.x - 20.0, pc.min.y + 65.0), 2.2, gr(0.157, a), 2);
                                                                     match pr.1 {
                                                                         Some((index, size)) => spr(
@@ -1419,6 +1421,15 @@ fn main() {
                                                                         None => spr(cs(pc.min.x + 35.0, pc.min.y + 32.0, 22.0, 22.0), 6.0, gr(0.93, a), if pr.2 < 3 { 11 + pr.2 as usize } else { 14 + pr.3 as usize }),
                                                                     }
                                                                     txt(pc.min.x + 62.0, pc.min.y + 32.0, 0, pr.0.as_str(), 18.0, 6.5, gr(0.93, a));
+                                                                    txt(
+                                                                        pc.min.x + 22.0,
+                                                                        pc.max.y - 34.0,
+                                                                        0,
+                                                                        kinds[if pr.2 < 3 { pr.2 as usize - 1 } else { 1 + pr.3 as usize }],
+                                                                        10.0,
+                                                                        6.5,
+                                                                        gr(0.42, a),
+                                                                    );
                                                                     for (k, lr) in [
                                                                         rc(pc.max.x - 172.0, pc.max.y - 52.0, pc.max.x - 136.0, pc.max.y - 16.0),
                                                                         rc(pc.max.x - 128.0, pc.max.y - 52.0, pc.max.x - 16.0, pc.max.y - 16.0),
@@ -1443,21 +1454,11 @@ fn main() {
                                                             spr(cv, 1.6, gr(0.043, a), 0);
                                                             spr(cv, 1.7, gr(0.118, a), 1);
                                                         }
+                                                      }
                                                     }
                                                 }
                                             }
                                             if *view == 3 {
-                                                *brect = match (*drag, window.cursor_position()) {
-                                                    (Some(off), Some(c)) => rc(c.x - off.x, c.y - off.y, c.x - off.x + 288.0, c.y - off.y + 52.0),
-                                                    (Some(_), None) => *brect,
-                                                    (None, _) => (|p: bevy::math::Vec2| rc(p.x, p.y, p.x + 288.0, p.y + 52.0))(
-                                                        cv.min
-                                                            + store[*ed].5.clamp(
-                                                                bevy::math::Vec2::new(30.0, 0.0),
-                                                                (cv.size() - bevy::math::Vec2::new(372.0, 268.0)).max(bevy::math::Vec2::new(30.0, 0.0)),
-                                                            ),
-                                                    ),
-                                                };
                                                 for (i, (glyph, title)) in [
                                                     (19, "Bootstrapped"),
                                                     (14, "Graphical User Interface"),
@@ -1468,10 +1469,10 @@ fn main() {
                                                 .enumerate()
                                                 {
                                                     for r in [rc(
-                                                        brect.min.x + 28.0 * i as f32,
-                                                        brect.min.y + 72.0 * i as f32,
-                                                        brect.max.x + 28.0 * i as f32,
-                                                        brect.min.y + 72.0 * i as f32 + 52.0,
+                                                        cv.min.x + 40.0 + 28.0 * i as f32,
+                                                        cv.min.y + 16.0 + 72.0 * i as f32,
+                                                        cv.min.x + 328.0 + 28.0 * i as f32,
+                                                        cv.min.y + 68.0 + 72.0 * i as f32,
                                                     )] {
                                                         spr(
                                                             rc(r.min.x - 16.0 - 28.0 * (i > 0) as u8 as f32, r.center().y - 1.0, r.min.x, r.center().y + 1.0),
@@ -1482,17 +1483,15 @@ fn main() {
                                                         if i < 3 {
                                                             spr(rc(r.min.x - 17.0, r.center().y - 1.0, r.min.x - 15.0, r.center().y + 73.0), 7.8, gr(0.26, fades[0]), 2);
                                                         }
-                                                        for hv in [window.cursor_position().is_some_and(|c| r.contains(c)) as u8 as f32] {
-                                                            spr(r.inflate(3.0), 7.9, gr(1.0, (0.01 + 0.02 * hv) * fades[0]), 0);
-                                                            spr(r, 8.0, gr(0.102 + 0.04 * hv, fades[0]), 0);
-                                                            spr(r, 8.05, gr(0.2 + 0.2 * hv, fades[0]), 1);
-                                                            for tile in [rc(r.min.x + 10.0, r.min.y + 10.0, r.min.x + 42.0, r.min.y + 42.0)] {
-                                                                spr(tile, 8.1, gr(0.157 + 0.03 * hv, fades[0]), 0);
-                                                                spr(tile, 8.15, gr(0.26, fades[0]), 1);
-                                                                spr(cs(tile.center().x, tile.center().y, 18.0, 18.0), 8.2, gr(0.93, fades[0]), glyph);
-                                                            }
-                                                            txt(r.min.x + 54.0, r.center().y, 0, title, 15.0, 8.3, gr(0.93, fades[0]));
+                                                        spr(r.inflate(3.0), 7.9, gr(1.0, 0.01 * fades[0]), 0);
+                                                        spr(r, 8.0, gr(0.102, fades[0]), 0);
+                                                        spr(r, 8.05, gr(0.2, fades[0]), 1);
+                                                        for tile in [rc(r.min.x + 10.0, r.min.y + 10.0, r.min.x + 42.0, r.min.y + 42.0)] {
+                                                            spr(tile, 8.1, gr(0.157, fades[0]), 0);
+                                                            spr(tile, 8.15, gr(0.26, fades[0]), 1);
+                                                            spr(cs(tile.center().x, tile.center().y, 18.0, 18.0), 8.2, gr(0.93, fades[0]), glyph);
                                                         }
+                                                        txt(r.min.x + 54.0, r.center().y, 0, title, 15.0, 8.3, gr(0.93, fades[0]));
                                                     }
                                                 }
                                             }
@@ -1819,7 +1818,7 @@ fn main() {
                                                 tx.commit().unwrap();
                                             });
                                             pending.clear();
-                                            store.push((std::mem::take(name), icon.take(), *kind, *dim, id, bevy::math::Vec2::new(40.0, 16.0)));
+                                            store.push((std::mem::take(name), icon.take(), *kind, *dim, id));
                                         }
                                         *kind = 0;
                                         *dim = 0;
@@ -1925,31 +1924,6 @@ fn main() {
                                 entries.sort_by_cached_key(|e| (!e.1, e.0.to_lowercase()));
                                 *moving = true;
                             }
-                            drag.filter(|_| mup).into_iter().for_each(|off| {
-                                window.cursor_position().into_iter().for_each(|c| {
-                                    store[*ed].5 = (c - off - cv.min).clamp(bevy::math::Vec2::new(30.0, 0.0), (cv.size() - bevy::math::Vec2::new(372.0, 268.0)).max(bevy::math::Vec2::new(30.0, 0.0)));
-                                    for key in [format!("/projects/{:016x}/block", store[*ed].4)] {
-                                        Some(db.begin_write().unwrap()).into_iter().for_each(|tx| {
-                                            Some(tx.open_table(redb::TableDefinition::<&str, &[u8]>::new("fs")).unwrap())
-                                                .iter_mut()
-                                                .for_each(|table| {
-                                                    table
-.insert(key.as_str(), [store[*ed].5.x.to_le_bytes(), store[*ed].5.y.to_le_bytes()].concat().as_slice())
-.unwrap();
-                                                });
-                                            tx.commit().unwrap();
-                                        });
-                                    }
-                                });
-                            });
-                            *drag = if mdn && *view == 3 {
-                                window.cursor_position().filter(|c| brect.contains(*c)).map(|c| c - brect.min)
-                            } else if mup {
-                                None
-                            } else {
-                                *drag
-                            };
-                            *moving |= drag.is_some();
                             Some(wacc.trunc())
                                 .filter(|steps| *steps != 0.0)
                                 .into_iter()

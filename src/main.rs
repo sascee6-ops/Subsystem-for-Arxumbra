@@ -1848,7 +1848,7 @@ fn main() {
                                                 *view = 3;
                                             } else {
                                                 *view = 4;
-                                                for (width, height) in [(w as usize, h as usize)] {
+                                                for (width, height, cli) in [(w as usize, h as usize, store[project].2 == 2)] {
                                                     for (pixels, generation, on) in [(
                                                         (0..width * height)
                                                             .map(|_| std::sync::atomic::AtomicU32::new(0))
@@ -1873,17 +1873,31 @@ fn main() {
                                                             generation.clone(),
                                                             on.clone(),
                                                             std::thread::spawn(move || {
-                                                                kernel::boot(
-                                                                    &pixels,
-                                                                    width,
-                                                                    || {
-                                                                        generation.fetch_add(1, std::sync::atomic::Ordering::Release);
-                                                                    },
-                                                                    || {
-                                                                        std::thread::park();
-                                                                        on.load(std::sync::atomic::Ordering::Acquire)
-                                                                    },
-                                                                );
+                                                                if cli {
+                                                                    kernel::cli(
+                                                                        &pixels,
+                                                                        width,
+                                                                        || {
+                                                                            generation.fetch_add(1, std::sync::atomic::Ordering::Release);
+                                                                        },
+                                                                        || {
+                                                                            std::thread::park_timeout(std::time::Duration::from_millis(530));
+                                                                            on.load(std::sync::atomic::Ordering::Acquire)
+                                                                        },
+                                                                    );
+                                                                } else {
+                                                                    kernel::boot(
+                                                                        &pixels,
+                                                                        width,
+                                                                        || {
+                                                                            generation.fetch_add(1, std::sync::atomic::Ordering::Release);
+                                                                        },
+                                                                        || {
+                                                                            std::thread::park();
+                                                                            on.load(std::sync::atomic::Ordering::Acquire)
+                                                                        },
+                                                                    );
+                                                                }
                                                             })
                                                             .thread()
                                                             .clone(),
@@ -1998,7 +2012,7 @@ fn main() {
                             Some(if *moving || *esc != 0.0 || press.is_some() {
                                 bevy::winit::UpdateMode::Continuous
                             } else {
-                                bevy::winit::UpdateMode::reactive_low_power(std::time::Duration::from_secs(60))
+                                bevy::winit::UpdateMode::reactive_low_power(std::time::Duration::from_millis(if machine.is_some() { 50 } else { 60_000 }))
                             })
                             .filter(|mode| winit.focused_mode != *mode)
                             .into_iter()

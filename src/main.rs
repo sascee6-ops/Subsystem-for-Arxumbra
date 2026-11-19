@@ -329,6 +329,7 @@ fn main() {
                 )>,
                 usize,
                 Vec<(usize, Vec<u8>)>,
+                (std::path::PathBuf, Vec<(String, bool, u64)>, usize, usize, bool),
             )>,
              pt: bevy::ecs::system::Local<(
                 Option<usize>,
@@ -1084,6 +1085,34 @@ fn main() {
                               ..........................\
                               .........................."
                                 .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..2788872..5888888888872..\
+                              ..bfffffb.1ffffffffffffb..\
+                              ..5bdfcb5..9baaaaaaaaab5..\
+                              ....8f5...................\
+                              ....8f5...................\
+                              ....8f5...................\
+                              ....8f5...................\
+                              ....8f85553.688888888872..\
+                              ....8ffffff5fffffffffffb..\
+                              ....8fa88871aaaaaaaaaab5..\
+                              ....8f5...................\
+                              ....8f5...................\
+                              ....8f5...................\
+                              ....8f5...................\
+                              ....8f85553.688888871.....\
+                              ....7ffffff5ffffffff8.....\
+                              ....28888871aaaaaaab3.....\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
                         ]
                         .map(|art: &[u8]| {
                             images.add(bevy::image::Image::new(
@@ -1217,7 +1246,11 @@ fn main() {
                                 bevy::math::Vec2::new(560.0, 440.0),
                             ),
                             bevy::math::Rect::new(side + 40.0, 108.0, (w - 44.0).max(side + 41.0), (h - 44.0).max(109.0)),
-                            (cols, (((h - 136.0) / 160.0).max(1.0) as usize).min(16 / cols)),
+                            (
+                                cols,
+                                (((h - 136.0) / 160.0).max(1.0) as usize).min(16 / cols),
+                                (((h - 172.0) / 32.0).max(1.0) as usize).min(28),
+                            ),
                             (
                                 mouse.just_pressed(bevy::input::mouse::MouseButton::Left),
                                 mouse.just_released(bevy::input::mouse::MouseButton::Left),
@@ -1231,7 +1264,7 @@ fn main() {
                             (
                                 (view, hud, modal, picker, esc, moving, ed, edit),
                                 (name, icon, kind, dim, dir, entries, pscroll, dirty, wacc, pending),
-                                (store, lscroll, jobs),
+                                (store, lscroll, jobs, (xdir, xlist, xscroll, xsel, xdirty)),
                                 (hover, focus, press, anim, fades, bt, machine),
                                 icons,
                             ),
@@ -1243,7 +1276,7 @@ fn main() {
                             mrect,
                             prect,
                             cv,
-                            (cols, rows),
+                            (cols, rows, vis),
                             (mdn, mup, mhd),
                         )| {
                             *hud ^= keys.just_pressed(bevy::input::keyboard::KeyCode::F1);
@@ -1428,12 +1461,16 @@ fn main() {
                                     ))
                                     .iter_mut()
                                     .for_each(|(spr, txt, gr, rc, cs)| {
-                                        if !*hud && *view < 4 {
+                                        if !*hud && (*view < 4 || *view == 5) {
                                           if *view != 3 {
                                             spr(rc(24.0, 24.0, side - 4.0, (h - 24.0).max(48.0)), 1.0, gr(0.071, 1.0), 0);
                                             spr(rc(24.0, 24.0, side - 4.0, (h - 24.0).max(48.0)), 1.1, gr(0.133, 1.0), 1);
                                             spr(rc(40.0, 84.0, side - 20.0, 85.0), 3.0, gr(0.133, 1.0), 2);
-                                            for (index, label) in [if *view == 2 { (6, "Laboratory") } else { (3, title) }] {
+                                            for (index, label) in [match *view {
+                    2 => (6, "Laboratory"),
+                    5 => (27, "Explorer"),
+                    _ => (3, title),
+                }] {
                                                 spr(cs(54.0, 56.0, 18.0, 18.0), 6.0, gr(0.93, 1.0), index);
                                                 txt(72.0, 46.0, 1, label, ((side - 88.0) / (0.6 * label.chars().count() as f32)).clamp(9.0, 15.0), 6.0, gr(0.93, 1.0));
                                             }
@@ -1459,6 +1496,18 @@ fn main() {
                                                 bt.push((rc(36.0, 100.0, side - 16.0, 152.0), 3, 0.0, 5.0, !*modal && !*picker, 1.0));
                                                 spr(cs(64.0, 126.0, 18.0, 18.0), 6.0, gr(0.7 + 0.23 * anim[3][0], 1.0), 9);
                                                 txt(84.0, 126.0, 0, "Create project", 15.0, 6.5, gr(0.7 + 0.23 * anim[3][0], 1.0));
+                                            } else if *view == 5 {
+                                                for (k, (r, label, index)) in [
+                                                    (rc(36.0, 100.0, side - 16.0, 152.0), "Up", 23),
+                                                    (rc(36.0, 160.0, side - 16.0, 212.0), "Home", 4),
+                                                ]
+                                                .into_iter()
+                                                .enumerate()
+                                                {
+                                                    bt.push((r, 14 + k, 0.0, 5.0, true, 1.0));
+                                                    spr(cs(64.0, r.center().y, 18.0, 18.0), 6.0, gr(0.7 + 0.23 * anim[14 + k][0], 1.0), index);
+                                                    txt(84.0, r.center().y, 0, label, 15.0, 6.5, gr(0.7 + 0.23 * anim[14 + k][0], 1.0));
+                                                }
                                             }
                                           }
                                             if *view > 0 {
@@ -1466,19 +1515,78 @@ fn main() {
                                                     spr(rc(side + 20.0, 24.0, (w - 24.0).max(side + 60.0), (h - 24.0).max(48.0)), 1.0, gr(0.071, a), 0);
                                                     spr(rc(side + 20.0, 24.0, (w - 24.0).max(side + 60.0), (h - 24.0).max(48.0)), 1.1, gr(0.133, a), 1);
                                                     if *view == 1 {
-                                                        for cd in [rc(side + 44.0, 48.0, xr, 192.0)] {
+                                                        for (cd, icon, title, caption, id) in [
+                (rc(side + 44.0, 48.0, xr, 192.0), 6, "Laboratory", "OS, CLI and GUI projects", 2),
+                (rc(side + 44.0, 208.0, xr, 352.0), 27, "Explorer", "Files and folders", 13),
+            ] {
                                                             for hv in [window.cursor_position().is_some_and(|c| cd.contains(c) && !*modal && !*picker) as u8 as f32] {
                                                                 spr(cd, 1.6, gr(0.102 + 0.012 * hv, a), 0);
                                                                 spr(cd, 1.7, gr(0.157 + 0.06 * hv, a), 1);
                                                             }
-                                                            txt(cd.min.x + 22.0, cd.max.y - 34.0, 0, "OS, CLI and GUI projects", 10.0, 6.5, gr(0.42, a));
+                                                            txt(cd.min.x + 22.0, cd.max.y - 34.0, 0, caption, 10.0, 6.5, gr(0.42, a));
                                                             spr(rc(cd.min.x + 20.0, cd.min.y + 64.0, cd.max.x - 20.0, cd.min.y + 65.0), 1.8, gr(0.157, a), 2);
-                                                            spr(cs(cd.min.x + 35.0, cd.min.y + 32.0, 26.0, 26.0), 6.0, gr(0.93, a), 6);
-                                                            txt(cd.min.x + 62.0, cd.min.y + 32.0, 0, "Laboratory", 18.0, 6.5, gr(0.93, a));
+                                                            spr(cs(cd.min.x + 35.0, cd.min.y + 32.0, 26.0, 26.0), 6.0, gr(0.93, a), icon);
+                                                            txt(cd.min.x + 62.0, cd.min.y + 32.0, 0, title, 18.0, 6.5, gr(0.93, a));
                                                             for lr in [rc(cd.max.x - 128.0, cd.max.y - 52.0, cd.max.x - 16.0, cd.max.y - 16.0)] {
-                                                                bt.push((lr, 2, 0.0, 5.0, !*modal && !*picker, a));
+                                                                bt.push((lr, id, 0.0, 5.0, !*modal && !*picker, a));
                                                                 spr(cs(lr.min.x + 22.0, lr.center().y, 18.0, 18.0), 6.0, gr(0.93, a), 7);
                                                                 txt(lr.min.x + 40.0, lr.center().y, 0, "Launch", 14.0, 6.5, gr(0.93, a));
+                                                            }
+                                                        }
+                                                    } else if *view == 5 {
+                                                        spr(cs(side + 55.0, 56.0, 26.0, 26.0), 6.0, gr(0.93, a), 27);
+                                                        txt(side + 82.0, 56.0, 0, "Explorer", 18.0, 6.5, gr(0.93, a));
+                                                        for tag in [format!("{} items", xlist.len())] {
+                                                            txt(w - 44.0 - 7.8 * tag.len() as f32, 56.0, 0, tag.as_str(), 13.0, 6.5, gr(0.42, a));
+                                                        }
+                                                        spr(rc(side + 40.0, 88.0, (w - 44.0).max(side + 41.0), 89.0), 1.8, gr(0.133, a), 2);
+                                                        for path in [xdir.to_string_lossy()] {
+                                                            txt(
+                                                                side + 44.0,
+                                                                108.0,
+                                                                1,
+                                                                &path[path.char_indices().rev().nth(95).map_or(0, |c| c.0)..],
+                                                                12.0,
+                                                                6.5,
+                                                                gr(0.42, a),
+                                                            );
+                                                        }
+                                                        for (k, (name, folder, size)) in xlist.iter().skip(*xscroll).take(vis).enumerate() {
+                                                            for (rr, on) in [(
+                                                                rc(side + 40.0, 132.0 + k as f32 * 32.0, (w - 44.0).max(side + 41.0), 160.0 + k as f32 * 32.0),
+                                                                (*xsel == *xscroll + k + 1) as u8 as f32,
+                                                            )] {
+                                                                spr(
+                                                                    rr,
+                                                                    2.0,
+                                                                    gr(1.0, a * (0.03 * window.cursor_position().is_some_and(|c| rr.contains(c)) as u8 as f32 + 0.05 * on)),
+                                                                    2,
+                                                                );
+                                                                spr(rc(rr.min.x, rr.min.y + 4.0, rr.min.x + 3.0, rr.max.y - 4.0), 2.1, gr(0.93, a * on), 2);
+                                                                spr(
+                                                                    cs(rr.min.x + 24.0, rr.center().y, 16.0, 16.0),
+                                                                    6.0,
+                                                                    gr(if *folder { 0.93 } else { 0.6 }, a),
+                                                                    if *folder { 21 } else { 22 },
+                                                                );
+                                                                txt(
+                                                                    rr.min.x + 46.0,
+                                                                    rr.center().y,
+                                                                    0,
+                                                                    &name[..name.char_indices().nth(60).map_or(name.len(), |c| c.0)],
+                                                                    14.0,
+                                                                    6.5,
+                                                                    gr(if *folder { 0.93 } else { 0.7 }, a),
+                                                                );
+                                                                for label in [[(1_u64 << 30, "GB"), (1 << 20, "MB"), (1 << 10, "KB")]
+                                                                    .iter()
+                                                                    .find(|(unit, _)| *size >= *unit)
+                                                                    .map_or(format!("{size} B"), |(unit, tag)| format!("{:.1} {tag}", *size as f64 / *unit as f64))]
+                                                                    .into_iter()
+                                                                    .filter(|_| !*folder)
+                                                                {
+                                                                    txt(rr.max.x - 20.0 - 7.2 * label.len() as f32, rr.center().y, 0, label.as_str(), 12.0, 6.5, gr(0.42, a));
+                                                                }
                                                             }
                                                         }
                                                     } else {
@@ -1927,7 +2035,7 @@ fn main() {
                                             }
                                         }
                                         if *view == 4 {
-                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 27);
+                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 28);
                                         }
                                     });
                                     sit.for_each(|(_, _, v)| {
@@ -1997,6 +2105,27 @@ fn main() {
                                     *modal &= *picker;
                                     *picker = false;
                                 }
+                                window
+                                    .cursor_position()
+                                    .filter(|c| {
+                                        mdn && *view == 5
+                                            && c.x > side + 40.0
+                                            && c.x < w - 44.0
+                                            && c.y >= 132.0
+                                            && (c.y - 132.0) / 32.0 < vis as f32
+                                    })
+                                    .map(|c| *xscroll + ((c.y - 132.0) / 32.0) as usize)
+                                    .filter(|row| *row < xlist.len())
+                                    .into_iter()
+                                    .for_each(|row| {
+                                        *xsel = row + 1;
+                                        if xlist[row].1 {
+                                            xdir.push(&xlist[row].0);
+                                            *xdirty = true;
+                                            *xscroll = 0;
+                                            *xsel = 0;
+                                        }
+                                    });
                                 *edit = match act {
                                     Some(i @ 11..=12) if i != *edit as usize => i as u8,
                                     _ => {
@@ -2013,6 +2142,23 @@ fn main() {
                                 match act {
                                     Some(i @ 0..=2) => *view = i as u8,
                                     Some(3) => *modal = true,
+                                    Some(i @ (13 | 15)) => {
+                                        *view = 5;
+                                        *xdirty = true;
+                                        *xscroll = 0;
+                                        *xsel = 0;
+                                        if i == 15 || xdir.as_os_str().is_empty() {
+                                            *xdir = std::env::var_os("HOME")
+                                                .or_else(|| std::env::var_os("USERPROFILE"))
+                                                .map_or(".".into(), Into::into);
+                                        }
+                                    }
+                                    Some(14) => {
+                                        xdir.pop();
+                                        *xdirty = true;
+                                        *xscroll = 0;
+                                        *xsel = 0;
+                                    }
                                     Some(4) => {
                                         *picker = true;
                                         *dirty = true;
@@ -2097,7 +2243,7 @@ fn main() {
                                                         std::sync::mpsc::channel::<u8>(),
                                                         store[project].5.clone(),
                                                     )] {
-                                                        icons[27] = images.add(bevy::image::Image::new(
+                                                        icons[28] = images.add(bevy::image::Image::new(
                                                             bevy::render::render_resource::Extent3d {
                                                                 width: width as u32,
                                                                 height: height as u32,
@@ -2156,6 +2302,18 @@ fn main() {
                                     _ => {}
                                 }
                             });
+                            if *xdirty {
+                                *xdirty = false;
+                                *xlist = std::fs::read_dir(&*xdir)
+                                    .into_iter()
+                                    .flatten()
+                                    .flatten()
+                                    .filter(|e| !e.file_name().to_string_lossy().starts_with('.'))
+                                    .map(|e| (e.file_name().to_string_lossy().into_owned(), e.path().is_dir(), e.metadata().map_or(0, |m| m.len())))
+                                    .collect();
+                                xlist.sort_by_cached_key(|e| (!e.1, e.0.to_lowercase()));
+                                *moving = true;
+                            }
                             if *dirty {
                                 *dirty = false;
                                 *entries = std::fs::read_dir(&*dir)
@@ -2191,6 +2349,8 @@ fn main() {
                                     } else if *view == 2 && !*modal {
                                         *lscroll = ((*lscroll as f32 - steps).max(0.0) as usize)
                                             .min(store.len().div_ceil(cols).saturating_sub(rows));
+                                    } else if *view == 5 {
+                                        *xscroll = ((*xscroll as f32 - steps).max(0.0) as usize).min(xlist.len().saturating_sub(vis));
                                     }
                                 });
                             *esc = if !keys.pressed(bevy::input::keyboard::KeyCode::Escape) {
@@ -2201,11 +2361,14 @@ fn main() {
                                 *esc + dt
                             };
                             if *view > 1 && *esc >= 5.0 {
-                                *view = (*view - 1).min(2);
+                                *view = match *view {
+                                    5 => 1,
+                                    v => (v - 1).min(2),
+                                };
                                 machine.take().into_iter().for_each(|(_, _, on, thread, _, _)| {
                                     on.store(false, std::sync::atomic::Ordering::Release);
                                     thread.unpark();
-                                    icons[27] = icons[2].clone();
+                                    icons[28] = icons[2].clone();
                                 });
                                 *modal = false;
                                 *picker = false;
@@ -2217,7 +2380,7 @@ fn main() {
                                     .into_iter()
                                     .for_each(|g| {
                                         *seen = g;
-                                        images.get_mut(&icons[27]).iter_mut().for_each(|image| {
+                                        images.get_mut(&icons[28]).iter_mut().for_each(|image| {
                                             image.data.iter_mut().for_each(|data| {
                                                 data.chunks_exact_mut(4).zip(pixels.iter()).for_each(|(rgba, pixel)| {
                                                     rgba.copy_from_slice(&pixel.load(std::sync::atomic::Ordering::Relaxed).to_le_bytes())

@@ -341,6 +341,7 @@ fn main() {
                     std::sync::Arc<std::sync::atomic::AtomicBool>,
                     std::thread::Thread,
                     u32,
+                    std::sync::mpsc::Sender<u8>,
                 )>,
             )>,
              ic: bevy::ecs::system::Local<Vec<bevy::asset::Handle<bevy::image::Image>>>| {
@@ -1191,6 +1192,27 @@ fn main() {
                                 })
                                 .sum::<f32>();
                             for e in kb.read() {
+                                if e.state.is_pressed() && *view == 4 {
+                                    machine
+                                        .iter()
+                                        .filter(|_| store.get(*ed).is_some_and(|pr| pr.2 == 2))
+                                        .for_each(|(_, _, _, thread, _, tx)| {
+                                            std::iter::once(8_u8)
+                                                .filter(|_| e.logical_key == bevy::input::keyboard::Key::Backspace)
+                                                .chain(std::iter::once(10_u8).filter(|_| e.logical_key == bevy::input::keyboard::Key::Enter))
+                                                .chain(
+                                                    e.text
+                                                        .iter()
+                                                        .flat_map(|t| t.chars())
+                                                        .filter(|c| c.is_ascii_graphic() || *c == ' ')
+                                                        .map(|c| c as u8),
+                                                )
+                                                .for_each(|byte| {
+                                                    tx.send(byte).ok();
+                                                    thread.unpark();
+                                                });
+                                        });
+                                }
                                 if e.state.is_pressed() && *modal && !*picker && !*hud {
                                     *moving = true;
                                     if e.logical_key == bevy::input::keyboard::Key::Backspace {
@@ -1849,12 +1871,13 @@ fn main() {
                                             } else {
                                                 *view = 4;
                                                 for (width, height, cli) in [(w as usize, h as usize, store[project].2 == 2)] {
-                                                    for (pixels, generation, on) in [(
+                                                    for (pixels, generation, on, (tx, rx)) in [(
                                                         (0..width * height)
                                                             .map(|_| std::sync::atomic::AtomicU32::new(0))
                                                             .collect::<std::sync::Arc<[std::sync::atomic::AtomicU32]>>(),
                                                         std::sync::Arc::new(std::sync::atomic::AtomicU32::new(0)),
                                                         std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true)),
+                                                        std::sync::mpsc::channel::<u8>(),
                                                     )] {
                                                         icons[25] = images.add(bevy::image::Image::new(
                                                             bevy::render::render_resource::Extent3d {
@@ -1884,6 +1907,7 @@ fn main() {
                                                                             std::thread::park_timeout(std::time::Duration::from_millis(530));
                                                                             on.load(std::sync::atomic::Ordering::Acquire)
                                                                         },
+                                                                        || rx.try_recv().ok(),
                                                                     );
                                                                 } else {
                                                                     kernel::boot(
@@ -1902,6 +1926,7 @@ fn main() {
                                                             .thread()
                                                             .clone(),
                                                             0,
+                                                            tx,
                                                         ));
                                                     }
                                                 }
@@ -1957,7 +1982,7 @@ fn main() {
                             };
                             if *view > 1 && *esc >= 5.0 {
                                 *view = (*view - 1).min(2);
-                                machine.take().into_iter().for_each(|(_, _, on, thread, _)| {
+                                machine.take().into_iter().for_each(|(_, _, on, thread, _, _)| {
                                     on.store(false, std::sync::atomic::Ordering::Release);
                                     thread.unpark();
                                     icons[25] = icons[2].clone();
@@ -1966,7 +1991,7 @@ fn main() {
                                 *picker = false;
                                 *esc = -1.0;
                             }
-                            machine.iter_mut().for_each(|(pixels, generation, _, _, seen)| {
+                            machine.iter_mut().for_each(|(pixels, generation, _, _, seen, _)| {
                                 Some(generation.load(std::sync::atomic::Ordering::Acquire))
                                     .filter(|g| g != seen)
                                     .into_iter()
@@ -2012,7 +2037,7 @@ fn main() {
                             Some(if *moving || *esc != 0.0 || press.is_some() {
                                 bevy::winit::UpdateMode::Continuous
                             } else {
-                                bevy::winit::UpdateMode::reactive_low_power(std::time::Duration::from_millis(if machine.is_some() { 50 } else { 60_000 }))
+                                bevy::winit::UpdateMode::reactive_low_power(std::time::Duration::from_millis(if machine.is_some() { 16 } else { 60_000 }))
                             })
                             .filter(|mode| winit.focused_mode != *mode)
                             .into_iter()

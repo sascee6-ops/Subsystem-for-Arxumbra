@@ -26,6 +26,7 @@ pub fn cli(
     present: impl Fn(),
     halt: impl Fn() -> bool,
     key: impl Fn() -> Option<u8>,
+    line: &[u8],
 ) {
     pixels
         .iter()
@@ -120,6 +121,10 @@ pub fn cli(
                                 }
                             }
                         }] {
+                            Some(line).filter(|text| !text.is_empty()).into_iter().for_each(|text| {
+                                text.iter().for_each(|byte| step(*byte));
+                                step(10);
+                            });
                             (0_u32..).try_for_each(|_| {
                                 for (column, row, visible) in [state.get()] {
                                     fill(

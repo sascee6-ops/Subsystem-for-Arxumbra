@@ -304,7 +304,7 @@ fn main() {
                 f32,
                 bool,
                 usize,
-                bool,
+                u8,
             )>,
              fo: bevy::ecs::system::Local<(
                 String,
@@ -325,6 +325,7 @@ fn main() {
                     u8,
                     u8,
                     u64,
+                    String,
                     String,
                 )>,
                 usize,
@@ -1056,6 +1057,34 @@ fn main() {
                               ..........................\
                               .........................."
                                 .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..................391.....\
+                              ..................9f6.....\
+                              ..................8f7.....\
+                              ..................8f7.....\
+                              ...........3......8f7.....\
+                              .........1bf5.....8f7.....\
+                              ........1bfe2.....8f7.....\
+                              .......1cfd2......8f7.....\
+                              ......1cfd2.......8f7.....\
+                              ......cffdccccccccef7.....\
+                              .....2ffffffffffffff4.....\
+                              ......5ffb3333333332......\
+                              .......4ef9...............\
+                              ........4efa..............\
+                              .........3ef6.............\
+                              ..........391.............\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
                         ]
                         .map(|art: &[u8]| {
                             images.add(bevy::image::Image::new(
@@ -1105,14 +1134,18 @@ fn main() {
                                             .get(format!("{}line", &key.value()[..27]).as_str())
                                             .unwrap()
                                             .map_or(String::new(), |text| String::from_utf8_lossy(text.value()).into_owned()),
+                                        table
+                                            .get(format!("{}prompt", &key.value()[..27]).as_str())
+                                            .unwrap()
+                                            .map_or(String::from("> "), |text| String::from_utf8_lossy(text.value()).into_owned()),
                                     )
                                 })
                                 .collect::<Vec<_>>()
                         })
                         .enumerate()
-                        .map(|(row, (name, png, kind, dim, id, line))| {
+                        .map(|(row, (name, png, kind, dim, id, line, prompt))| {
                             st.2.extend(png.map(|bytes| (row, bytes)));
-                            (name, None, kind, dim, id, line)
+                            (name, None, kind, dim, id, line, prompt)
                         })
                         .collect();
                     commands.spawn_batch((0..272).map(|_| {
@@ -1247,29 +1280,31 @@ fn main() {
                                                 });
                                         });
                                 }
-                                if e.state.is_pressed() && *edit && *view == 3 && !*hud {
+                                if e.state.is_pressed() && *edit > 0 && *view == 3 && !*hud {
                                     *moving = true;
                                     store.get_mut(*ed).into_iter().for_each(|pr| {
+                                        for (id, key, field) in [(pr.4, if *edit == 11 { "line" } else { "prompt" }, if *edit == 11 { &mut pr.5 } else { &mut pr.6 })] {
                                         if e.logical_key == bevy::input::keyboard::Key::Backspace {
-                                            pr.5.pop();
+                                            field.pop();
                                         }
-                                        pr.5.extend(
+                                        field.extend(
                                             e.text
                                                 .iter()
                                                 .flat_map(|t| t.chars())
                                                 .filter(|c| c.is_ascii_graphic() || *c == ' ')
-                                                .take(24_usize.saturating_sub(pr.5.len())),
+                                                .take(24_usize.saturating_sub(field.len())),
                                         );
                                         Some(db.begin_write().unwrap()).into_iter().for_each(|tx| {
                                             Some(tx.open_table(redb::TableDefinition::<&str, &[u8]>::new("fs")).unwrap())
                                                 .iter_mut()
                                                 .for_each(|table| {
                                                     table
-                                                        .insert(format!("/projects/{:016x}/line", pr.4).as_str(), pr.5.as_bytes())
+                                                        .insert(format!("/projects/{id:016x}/{key}").as_str(), field.as_bytes())
                                                         .unwrap();
                                                 });
                                             tx.commit().unwrap();
                                         });
+                                        }
                                     });
                                 }
                                 if e.state.is_pressed() && *modal && !*picker && !*hud {
@@ -1539,12 +1574,13 @@ fn main() {
                                                     (14, "Graphical User Interface", 0b1010),
                                                     (13, "Command Line Interface", 0b0110),
              (25, "Startup Line", 0b0100),
+             (26, "Input", 0b0100),
                                                     (24, "Keyboard", 0b1110),
                                                 ]
                                                 .into_iter()
                                                 .filter(|(_, _, shown)| shown >> store.get(*ed).map_or(0, |pr| pr.2) & 1 == 1)
                                                 .enumerate()
-                                                .map(|(i, (glyph, title, _))| (i, (glyph, title, 3 + (store.get(*ed).map_or(0, |pr| pr.2) != 3) as usize)))
+                                                .map(|(i, (glyph, title, _))| (i, (glyph, title, 3 + (store.get(*ed).map_or(0, |pr| pr.2) != 3) as usize + (store.get(*ed).map_or(0, |pr| pr.2) == 2) as usize)))
                                                 {
                                                     for r in [rc(
                                                         cv.min.x + 40.0 + 28.0 * i as f32,
@@ -1569,21 +1605,31 @@ fn main() {
                                                             spr(tile, 8.15, gr(0.26, fades[0]), 1);
                                                             spr(cs(tile.center().x, tile.center().y, 18.0, 18.0), 8.2, gr(0.93, fades[0]), glyph);
                                                         }
-                                                        if glyph == 25 {
-                     bt.push((r, 11, *edit as u8 as f32, 8.02, true, fades[0]));
-                     spr(r, 8.06, gr(0.6, fades[0] * anim[11][3]), 1);
-                     for text in store.get(*ed).map(|pr| pr.5.as_str()).into_iter() {
-                         txt(r.min.x + 54.0, r.min.y + 17.0, 0, "STARTUP LINE", 10.0, 8.3, gr(0.42, fades[0]));
+                                                        if glyph > 24 {
+                     for (id, caption, hint, text) in store
+                         .get(*ed)
+                         .map(|pr| {
+                             if glyph == 25 {
+                                 (11, "STARTUP LINE", "Text shown on launch", pr.5.as_str())
+                             } else {
+                                 (12, "INPUT PROMPT", "No prompt", pr.6.as_str())
+                             }
+                         })
+                         .into_iter()
+                     {
+                         bt.push((r, id, (*edit as usize == id) as u8 as f32, 8.02, true, fades[0]));
+                         spr(r, 8.06, gr(0.6, fades[0] * anim[id][3]), 1);
+                         txt(r.min.x + 54.0, r.min.y + 17.0, 0, caption, 10.0, 8.3, gr(0.42, fades[0]));
                          txt(
                              r.min.x + 54.0,
                              r.min.y + 35.0,
                              0,
-                             if text.is_empty() { "Text shown on launch" } else { text },
+                             if text.is_empty() { hint } else { text },
                              14.0,
                              8.3,
                              gr(if text.is_empty() { 0.34 } else { 0.93 }, fades[0]),
                          );
-                         if *edit {
+                         if *edit as usize == id {
                              spr(
                                  rc(
                                      r.min.x + 54.0 + text.len() as f32 * 8.4,
@@ -1628,11 +1674,20 @@ fn main() {
                                                         }
                                                         if pr.2 == 2 {
                                                             txt(pv.min.x + 24.0 * s, pv.min.y + 39.0 * s, 0, pr.5.as_str(), 30.0 * s, 8.3, gr(0.9, fades[0]));
+                                                            txt(
+                                                                pv.min.x + 24.0 * s,
+                                                                pv.min.y + (39.0 + 30.0 * !pr.5.is_empty() as u8 as f32) * s,
+                                                                0,
+                                                                pr.6.as_str(),
+                                                                30.0 * s,
+                                                                8.3,
+                                                                gr(0.9, fades[0]),
+                                                            );
                                                             spr(
                                                                 rc(
-                                                                    pv.min.x + 24.0 * s,
+                                                                    pv.min.x + (24.0 + 18.0 * pr.6.len() as f32) * s,
                                                                     pv.min.y + (24.0 + 30.0 * !pr.5.is_empty() as u8 as f32) * s,
-                                                                    pv.min.x + 39.0 * s,
+                                                                    pv.min.x + (39.0 + 18.0 * pr.6.len() as f32) * s,
                                                                     pv.min.y + (51.0 + 30.0 * !pr.5.is_empty() as u8 as f32) * s,
                                                                 ),
                                                                 8.2,
@@ -1871,7 +1926,7 @@ fn main() {
                                             }
                                         }
                                         if *view == 4 {
-                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 26);
+                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 27);
                                         }
                                     });
                                     sit.for_each(|(_, _, v)| {
@@ -1925,7 +1980,7 @@ fn main() {
                                         keys.just_pressed(bevy::input::keyboard::KeyCode::Enter)
                                             || (keys.just_pressed(bevy::input::keyboard::KeyCode::Space)
                                                 && !(*modal && !*picker)
-                                                && !*edit)
+                                                && *edit == 0)
                                     })),
                             )
                             .into_iter()
@@ -1941,15 +1996,19 @@ fn main() {
                                     *modal &= *picker;
                                     *picker = false;
                                 }
-                                *edit = (*edit
-                                    && !(keys.just_pressed(bevy::input::keyboard::KeyCode::Escape)
-                                        || keys.just_pressed(bevy::input::keyboard::KeyCode::Enter)
-                                        || *view != 3
-                                        || (mdn
-                                            && !window
-                                                .cursor_position()
-                                                .is_some_and(|c| bt.iter().any(|b| b.1 == 11 && b.0.contains(c))))))
-                                    || (act == Some(11) && !*edit);
+                                *edit = match act {
+                                    Some(i @ 11..=12) if i != *edit as usize => i as u8,
+                                    _ => {
+                                        *edit
+                                            * !(keys.just_pressed(bevy::input::keyboard::KeyCode::Escape)
+                                                || keys.just_pressed(bevy::input::keyboard::KeyCode::Enter)
+                                                || *view != 3
+                                                || (mdn
+                                                    && !window.cursor_position().is_some_and(|c| {
+                                                        bt.iter().any(|b| b.1 == *edit as usize && b.0.contains(c))
+                                                    }))) as u8
+                                    }
+                                };
                                 match act {
                                     Some(i @ 0..=2) => *view = i as u8,
                                     Some(3) => *modal = true,
@@ -1993,7 +2052,7 @@ fn main() {
                                                 tx.commit().unwrap();
                                             });
                                             pending.clear();
-                                            store.push((std::mem::take(name), icon.take(), *kind, *dim, id, String::new()));
+                                            store.push((std::mem::take(name), icon.take(), *kind, *dim, id, String::new(), String::from("> ")));
                                         }
                                         *kind = 0;
                                         *dim = 0;
@@ -2028,16 +2087,16 @@ fn main() {
                                             } else {
                                                 *view = 4;
                                                 for (width, height, cli) in [(w as usize, h as usize, store[project].2 == 2)] {
-                                                    for (pixels, generation, on, (tx, rx), line) in [(
+                                                    for (pixels, generation, on, (tx, rx), (line, prompt)) in [(
                                                         (0..width * height)
                                                             .map(|_| std::sync::atomic::AtomicU32::new(0))
                                                             .collect::<std::sync::Arc<[std::sync::atomic::AtomicU32]>>(),
                                                         std::sync::Arc::new(std::sync::atomic::AtomicU32::new(0)),
                                                         std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true)),
                                                         std::sync::mpsc::channel::<u8>(),
-                                                        store[project].5.clone(),
+                                                        (store[project].5.clone(), store[project].6.clone()),
                                                     )] {
-                                                        icons[26] = images.add(bevy::image::Image::new(
+                                                        icons[27] = images.add(bevy::image::Image::new(
                                                             bevy::render::render_resource::Extent3d {
                                                                 width: width as u32,
                                                                 height: height as u32,
@@ -2067,6 +2126,7 @@ fn main() {
                                                                         },
                                                                         || rx.try_recv().ok(),
                                                                         line.as_bytes(),
+                                                                        prompt.as_bytes(),
                                                                     );
                                                                 } else {
                                                                     kernel::boot(
@@ -2144,7 +2204,7 @@ fn main() {
                                 machine.take().into_iter().for_each(|(_, _, on, thread, _, _)| {
                                     on.store(false, std::sync::atomic::Ordering::Release);
                                     thread.unpark();
-                                    icons[26] = icons[2].clone();
+                                    icons[27] = icons[2].clone();
                                 });
                                 *modal = false;
                                 *picker = false;
@@ -2156,7 +2216,7 @@ fn main() {
                                     .into_iter()
                                     .for_each(|g| {
                                         *seen = g;
-                                        images.get_mut(&icons[26]).iter_mut().for_each(|image| {
+                                        images.get_mut(&icons[27]).iter_mut().for_each(|image| {
                                             image.data.iter_mut().for_each(|data| {
                                                 data.chunks_exact_mut(4).zip(pixels.iter()).for_each(|(rgba, pixel)| {
                                                     rgba.copy_from_slice(&pixel.load(std::sync::atomic::Ordering::Relaxed).to_le_bytes())

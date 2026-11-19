@@ -27,13 +27,15 @@ pub fn cli(
     halt: impl Fn() -> bool,
     key: impl Fn() -> Option<u8>,
     line: &[u8],
+    prompt: &[u8],
 ) {
     pixels
         .iter()
         .for_each(|pixel| pixel.store(0xFF0A_0A0A, core::sync::atomic::Ordering::Relaxed));
-    for (unit, state) in [(
+    for (unit, state, floor) in [(
         (width / 1280).max(1) * 3,
         core::cell::Cell::new((0_usize, 0_usize, false)),
+        core::cell::Cell::new(0_usize),
     )] {
         for fill in [|x: usize, y: usize, w: usize, h: usize, color: u32| {
             (y..y + h).for_each(|row| {
@@ -97,7 +99,7 @@ pub fn cli(
                             for (column, row, _) in [state.get()] {
                                 match byte {
                                     8 => {
-                                        if column > 0 {
+                                        if column > floor.get() {
                                             fill(
                                                 8 * unit + (column - 1) * 6 * unit,
                                                 8 * unit + row * 10 * unit,
@@ -108,10 +110,14 @@ pub fn cli(
                                             state.set((column - 1, row, true))
                                         }
                                     }
-                                    10 => state.set((0, advance(row), true)),
+                                    10 => {
+                                        floor.set(0);
+                                        state.set((0, advance(row), true))
+                                    }
                                     32..=126 => {
                                         glyph(byte, column, row, 0xFFE6_E6E6);
                                         if column + 1 == cols {
+                                            floor.set(0);
                                             state.set((0, advance(row), true))
                                         } else {
                                             state.set((column + 1, row, true))
@@ -121,43 +127,57 @@ pub fn cli(
                                 }
                             }
                         }] {
-                            Some(line).filter(|text| !text.is_empty()).into_iter().for_each(|text| {
-                                text.iter().for_each(|byte| step(*byte));
-                                step(10);
-                            });
-                            (0_u32..).try_for_each(|_| {
-                                for (column, row, visible) in [state.get()] {
-                                    fill(
-                                        8 * unit + column * 6 * unit,
-                                        8 * unit + row * 10 * unit,
-                                        5 * unit,
-                                        9 * unit,
-                                        0xFF0A_0A0A,
-                                    );
-                                    for typed in [core::iter::from_fn(|| key())
-                                        .map(|byte| step(byte))
-                                        .count()
-                                        > 0]
-                                    {
-                                        for (column, row, _) in [state.get()] {
-                                            fill(
-                                                8 * unit + column * 6 * unit,
-                                                8 * unit + row * 10 * unit,
-                                                5 * unit,
-                                                9 * unit,
-                                                if typed || !visible {
-                                                    0xFFE6_E6E6
-                                                } else {
-                                                    0xFF0A_0A0A
-                                                },
-                                            );
-                                            state.set((column, row, typed || !visible));
+                            for show in [|| {
+                                prompt.iter().for_each(|byte| step(*byte));
+                                floor.set(state.get().0)
+                            }] {
+                                Some(line)
+                                    .filter(|text| !text.is_empty())
+                                    .into_iter()
+                                    .for_each(|text| {
+                                        text.iter().for_each(|byte| step(*byte));
+                                        step(10);
+                                    });
+                                show();
+                                (0_u32..).try_for_each(|_| {
+                                    for (column, row, visible) in [state.get()] {
+                                        fill(
+                                            8 * unit + column * 6 * unit,
+                                            8 * unit + row * 10 * unit,
+                                            5 * unit,
+                                            9 * unit,
+                                            0xFF0A_0A0A,
+                                        );
+                                        for typed in [core::iter::from_fn(|| key())
+                                            .map(|byte| {
+                                                step(byte);
+                                                if byte == 10 {
+                                                    show()
+                                                }
+                                            })
+                                            .count()
+                                            > 0]
+                                        {
+                                            for (column, row, _) in [state.get()] {
+                                                fill(
+                                                    8 * unit + column * 6 * unit,
+                                                    8 * unit + row * 10 * unit,
+                                                    5 * unit,
+                                                    9 * unit,
+                                                    if typed || !visible {
+                                                        0xFFE6_E6E6
+                                                    } else {
+                                                        0xFF0A_0A0A
+                                                    },
+                                                );
+                                                state.set((column, row, typed || !visible));
+                                            }
                                         }
                                     }
-                                }
-                                present();
-                                halt().then_some(())
-                            });
+                                    present();
+                                    halt().then_some(())
+                                });
+                            }
                         }
                     }
                 }

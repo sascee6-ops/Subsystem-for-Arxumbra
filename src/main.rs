@@ -1602,6 +1602,63 @@ fn main() {
                  }
                                                     }
                                                 }
+                                                for (pr, pw) in store
+                                                    .get(*ed)
+                                                    .into_iter()
+                                                    .map(|pr| (pr, (cv.max.x - cv.min.x - 560.0).min(760.0).min((cv.height() - 90.0) * w / h)))
+                                                    .filter(|(_, pw)| *pw >= 320.0)
+                                                {
+                                                    for (pv, s) in [(
+                                                        rc(cv.min.x + 520.0, cv.min.y + 40.0, cv.min.x + 520.0 + pw, cv.min.y + 40.0 + pw * h / w),
+                                                        pw / w,
+                                                    )] {
+                                                        txt(pv.min.x, cv.min.y + 24.0, 0, "PREVIEW", 10.0, 8.3, gr(0.42, fades[0]));
+                                                        for size in [format!("{} x {}", w as u32, h as u32)] {
+                                                            txt(pv.max.x - 6.0 * size.len() as f32, cv.min.y + 24.0, 0, size.as_str(), 10.0, 8.3, gr(0.42, fades[0]));
+                                                        }
+                                                        spr(pv.inflate(3.0), 7.9, gr(1.0, 0.01 * fades[0]), 0);
+                                                        spr(pv, 8.0, gr(if pr.2 == 2 { 0.039 } else { 1.0 }, fades[0]), 2);
+                                                        for edge in [
+                                                            rc(pv.min.x - 1.0, pv.min.y - 1.0, pv.max.x + 1.0, pv.min.y),
+                                                            rc(pv.min.x - 1.0, pv.max.y, pv.max.x + 1.0, pv.max.y + 1.0),
+                                                            rc(pv.min.x - 1.0, pv.min.y, pv.min.x, pv.max.y),
+                                                            rc(pv.max.x, pv.min.y, pv.max.x + 1.0, pv.max.y),
+                                                        ] {
+                                                            spr(edge, 8.4, gr(0.26, fades[0]), 2);
+                                                        }
+                                                        if pr.2 == 2 {
+                                                            txt(pv.min.x + 24.0 * s, pv.min.y + 39.0 * s, 0, pr.5.as_str(), 30.0 * s, 8.3, gr(0.9, fades[0]));
+                                                            spr(
+                                                                rc(
+                                                                    pv.min.x + 24.0 * s,
+                                                                    pv.min.y + (24.0 + 30.0 * !pr.5.is_empty() as u8 as f32) * s,
+                                                                    pv.min.x + 39.0 * s,
+                                                                    pv.min.y + (51.0 + 30.0 * !pr.5.is_empty() as u8 as f32) * s,
+                                                                ),
+                                                                8.2,
+                                                                gr(0.9, fades[0]),
+                                                                2,
+                                                            );
+                                                        } else {
+                                                            for (x, y) in (0..16_usize)
+                                                                .flat_map(|x| (0..(pv.height() * 16.0 / pv.width()).ceil() as usize).map(move |y| (x, y)))
+                                                                .filter(|(x, y)| (x + y) % 2 == 1)
+                                                            {
+                                                                spr(
+                                                                    rc(
+                                                                        pv.min.x + x as f32 * pv.width() / 16.0,
+                                                                        pv.min.y + y as f32 * pv.width() / 16.0,
+                                                                        pv.min.x + (x + 1) as f32 * pv.width() / 16.0,
+                                                                        (pv.min.y + (y + 1) as f32 * pv.width() / 16.0).min(pv.max.y),
+                                                                    ),
+                                                                    8.1,
+                                                                    gr(0.902, fades[0]),
+                                                                    2,
+                                                                );
+                                                            }
+                                                        }
+                                                    }
+                                                }
                                             }
                                             if *modal {
                                                 for a in [fades[1]] {

@@ -1226,7 +1226,7 @@ fn main() {
                     window.width(),
                     window.height(),
                 ))
-                    .map(|(l, w, h)| (l.0.0 == 3, l, w, h))
+                    .map(|(l, w, h)| (matches!(l.0.0, 3 | 5), l, w, h))
                     .map(|(tight, l, w, h)| (l, w, h, if tight { 4.0 } else { (w * 0.22).clamp(240.0, 304.0).min(w * 0.5) }))
                     .map(|(l, w, h, side)| (l, w, h, side, ((w - side - 68.0) / 396.0).clamp(1.0, 8.0) as usize))
                     .map(|(l, w, h, side, cols)| {
@@ -1249,7 +1249,7 @@ fn main() {
                             (
                                 cols,
                                 (((h - 136.0) / 160.0).max(1.0) as usize).min(16 / cols),
-                                (((h - 172.0) / 32.0).max(1.0) as usize).min(28),
+                                (((h - 140.0) / 32.0).max(1.0) as usize).min(30),
                             ),
                             (
                                 mouse.just_pressed(bevy::input::mouse::MouseButton::Left),
@@ -1462,15 +1462,11 @@ fn main() {
                                     .iter_mut()
                                     .for_each(|(spr, txt, gr, rc, cs)| {
                                         if !*hud && (*view < 4 || *view == 5) {
-                                          if *view != 3 {
+                                          if *view != 3 && *view != 5 {
                                             spr(rc(24.0, 24.0, side - 4.0, (h - 24.0).max(48.0)), 1.0, gr(0.071, 1.0), 0);
                                             spr(rc(24.0, 24.0, side - 4.0, (h - 24.0).max(48.0)), 1.1, gr(0.133, 1.0), 1);
                                             spr(rc(40.0, 84.0, side - 20.0, 85.0), 3.0, gr(0.133, 1.0), 2);
-                                            for (index, label) in [match *view {
-                    2 => (6, "Laboratory"),
-                    5 => (27, "Explorer"),
-                    _ => (3, title),
-                }] {
+                                            for (index, label) in [if *view == 2 { (6, "Laboratory") } else { (3, title) }] {
                                                 spr(cs(54.0, 56.0, 18.0, 18.0), 6.0, gr(0.93, 1.0), index);
                                                 txt(72.0, 46.0, 1, label, ((side - 88.0) / (0.6 * label.chars().count() as f32)).clamp(9.0, 15.0), 6.0, gr(0.93, 1.0));
                                             }
@@ -1496,18 +1492,6 @@ fn main() {
                                                 bt.push((rc(36.0, 100.0, side - 16.0, 152.0), 3, 0.0, 5.0, !*modal && !*picker, 1.0));
                                                 spr(cs(64.0, 126.0, 18.0, 18.0), 6.0, gr(0.7 + 0.23 * anim[3][0], 1.0), 9);
                                                 txt(84.0, 126.0, 0, "Create project", 15.0, 6.5, gr(0.7 + 0.23 * anim[3][0], 1.0));
-                                            } else if *view == 5 {
-                                                for (k, (r, label, index)) in [
-                                                    (rc(36.0, 100.0, side - 16.0, 152.0), "Up", 23),
-                                                    (rc(36.0, 160.0, side - 16.0, 212.0), "Home", 4),
-                                                ]
-                                                .into_iter()
-                                                .enumerate()
-                                                {
-                                                    bt.push((r, 14 + k, 0.0, 5.0, true, 1.0));
-                                                    spr(cs(64.0, r.center().y, 18.0, 18.0), 6.0, gr(0.7 + 0.23 * anim[14 + k][0], 1.0), index);
-                                                    txt(84.0, r.center().y, 0, label, 15.0, 6.5, gr(0.7 + 0.23 * anim[14 + k][0], 1.0));
-                                                }
                                             }
                                           }
                                             if *view > 0 {
@@ -1536,24 +1520,36 @@ fn main() {
                                                     } else if *view == 5 {
                                                         spr(cs(side + 55.0, 56.0, 26.0, 26.0), 6.0, gr(0.93, a), 27);
                                                         txt(side + 82.0, 56.0, 0, "Explorer", 18.0, 6.5, gr(0.93, a));
-                                                        for tag in [format!("{} items", xlist.len())] {
-                                                            txt(w - 44.0 - 7.8 * tag.len() as f32, 56.0, 0, tag.as_str(), 13.0, 6.5, gr(0.42, a));
+                                                        for (k, (r, index)) in [
+                                                            (rc(side + 190.0, 38.0, side + 226.0, 74.0), 23),
+                                                            (rc(side + 234.0, 38.0, side + 270.0, 74.0), 4),
+                                                        ]
+                                                        .into_iter()
+                                                        .enumerate()
+                                                        {
+                                                            bt.push((r, 14 + k, 0.0, 5.0, true, a));
+                                                            spr(cs(r.center().x, r.center().y, 18.0, 18.0), 6.0, gr(0.7 + 0.23 * anim[14 + k][0], a), index);
                                                         }
-                                                        spr(rc(side + 40.0, 88.0, (w - 44.0).max(side + 41.0), 89.0), 1.8, gr(0.133, a), 2);
-                                                        for path in [xdir.to_string_lossy()] {
+                                                        for (tag, path) in [(format!("{} items", xlist.len()), xdir.to_string_lossy())] {
+                                                            txt(w - 44.0 - 7.8 * tag.len() as f32, 56.0, 0, tag.as_str(), 13.0, 6.5, gr(0.42, a));
                                                             txt(
-                                                                side + 44.0,
-                                                                108.0,
-                                                                1,
-                                                                &path[path.char_indices().rev().nth(95).map_or(0, |c| c.0)..],
-                                                                12.0,
+                                                                side + 290.0,
+                                                                56.0,
+                                                                0,
+                                                                &path[path
+                                                                    .char_indices()
+                                                                    .rev()
+                                                                    .nth((((w - 90.0 - 7.8 * tag.len() as f32 - side - 290.0) / 7.8).max(8.0)) as usize)
+                                                                    .map_or(0, |c| c.0)..],
+                                                                13.0,
                                                                 6.5,
                                                                 gr(0.42, a),
                                                             );
                                                         }
+                                                        spr(rc(side + 40.0, 88.0, (w - 44.0).max(side + 41.0), 89.0), 1.8, gr(0.133, a), 2);
                                                         for (k, (name, folder, size)) in xlist.iter().skip(*xscroll).take(vis).enumerate() {
                                                             for (rr, on) in [(
-                                                                rc(side + 40.0, 132.0 + k as f32 * 32.0, (w - 44.0).max(side + 41.0), 160.0 + k as f32 * 32.0),
+                                                                rc(side + 40.0, 100.0 + k as f32 * 32.0, (w - 44.0).max(side + 41.0), 128.0 + k as f32 * 32.0),
                                                                 (*xsel == *xscroll + k + 1) as u8 as f32,
                                                             )] {
                                                                 spr(
@@ -1563,6 +1559,9 @@ fn main() {
                                                                     2,
                                                                 );
                                                                 spr(rc(rr.min.x, rr.min.y + 4.0, rr.min.x + 3.0, rr.max.y - 4.0), 2.1, gr(0.93, a * on), 2);
+                                                                if *xscroll + k > 0 && *xscroll + k == xlist.partition_point(|e| e.1) {
+                                                                    spr(rc(rr.min.x + 16.0, rr.min.y - 1.0, rr.max.x - 16.0, rr.min.y), 2.2, gr(0.157, a), 2);
+                                                                }
                                                                 spr(
                                                                     cs(rr.min.x + 24.0, rr.center().y, 16.0, 16.0),
                                                                     6.0,
@@ -2111,10 +2110,10 @@ fn main() {
                                         mdn && *view == 5
                                             && c.x > side + 40.0
                                             && c.x < w - 44.0
-                                            && c.y >= 132.0
-                                            && (c.y - 132.0) / 32.0 < vis as f32
+                                            && c.y >= 100.0
+                                            && (c.y - 100.0) / 32.0 < vis as f32
                                     })
-                                    .map(|c| *xscroll + ((c.y - 132.0) / 32.0) as usize)
+                                    .map(|c| *xscroll + ((c.y - 100.0) / 32.0) as usize)
                                     .filter(|row| *row < xlist.len())
                                     .into_iter()
                                     .for_each(|row| {

@@ -325,8 +325,7 @@ fn main() {
                     u8,
                     u8,
                     u64,
-                    String,
-                    String,
+                    [String; 2],
                 )>,
                 usize,
                 Vec<(usize, Vec<u8>)>,
@@ -1145,7 +1144,7 @@ fn main() {
                         .enumerate()
                         .map(|(row, (name, png, kind, dim, id, line, prompt))| {
                             st.2.extend(png.map(|bytes| (row, bytes)));
-                            (name, None, kind, dim, id, line, prompt)
+                            (name, None, kind, dim, id, [line, prompt])
                         })
                         .collect();
                     commands.spawn_batch((0..272).map(|_| {
@@ -1283,7 +1282,8 @@ fn main() {
                                 if e.state.is_pressed() && *edit > 0 && *view == 3 && !*hud {
                                     *moving = true;
                                     store.get_mut(*ed).into_iter().for_each(|pr| {
-                                        for (id, key, field) in [(pr.4, if *edit == 11 { "line" } else { "prompt" }, if *edit == 11 { &mut pr.5 } else { &mut pr.6 })] {
+                                        for (id, key) in [(pr.4, if *edit == 11 { "line" } else { "prompt" })] {
+                                        pr.5.get_mut(*edit as usize - 11).into_iter().for_each(|field| {
                                         if e.logical_key == bevy::input::keyboard::Key::Backspace {
                                             field.pop();
                                         }
@@ -1303,6 +1303,7 @@ fn main() {
                                                         .unwrap();
                                                 });
                                             tx.commit().unwrap();
+                                        });
                                         });
                                         }
                                     });
@@ -1610,9 +1611,9 @@ fn main() {
                          .get(*ed)
                          .map(|pr| {
                              if glyph == 25 {
-                                 (11, "STARTUP LINE", "Text shown on launch", pr.5.as_str())
+                                 (11, "STARTUP LINE", "Text shown on launch", pr.5[0].as_str())
                              } else {
-                                 (12, "INPUT PROMPT", "No prompt", pr.6.as_str())
+                                 (12, "INPUT PROMPT", "No prompt", pr.5[1].as_str())
                              }
                          })
                          .into_iter()
@@ -1673,22 +1674,22 @@ fn main() {
                                                             spr(edge, 8.4, gr(0.26, fades[0]), 2);
                                                         }
                                                         if pr.2 == 2 {
-                                                            txt(pv.min.x + 24.0 * s, pv.min.y + 39.0 * s, 0, pr.5.as_str(), 30.0 * s, 8.3, gr(0.9, fades[0]));
+                                                            txt(pv.min.x + 24.0 * s, pv.min.y + 39.0 * s, 0, pr.5[0].as_str(), 30.0 * s, 8.3, gr(0.9, fades[0]));
                                                             txt(
                                                                 pv.min.x + 24.0 * s,
-                                                                pv.min.y + (39.0 + 30.0 * !pr.5.is_empty() as u8 as f32) * s,
+                                                                pv.min.y + (39.0 + 30.0 * !pr.5[0].is_empty() as u8 as f32) * s,
                                                                 0,
-                                                                pr.6.as_str(),
+                                                                pr.5[1].as_str(),
                                                                 30.0 * s,
                                                                 8.3,
                                                                 gr(0.9, fades[0]),
                                                             );
                                                             spr(
                                                                 rc(
-                                                                    pv.min.x + (24.0 + 18.0 * pr.6.len() as f32) * s,
-                                                                    pv.min.y + (24.0 + 30.0 * !pr.5.is_empty() as u8 as f32) * s,
-                                                                    pv.min.x + (39.0 + 18.0 * pr.6.len() as f32) * s,
-                                                                    pv.min.y + (51.0 + 30.0 * !pr.5.is_empty() as u8 as f32) * s,
+                                                                    pv.min.x + (24.0 + 18.0 * pr.5[1].len() as f32) * s,
+                                                                    pv.min.y + (24.0 + 30.0 * !pr.5[0].is_empty() as u8 as f32) * s,
+                                                                    pv.min.x + (39.0 + 18.0 * pr.5[1].len() as f32) * s,
+                                                                    pv.min.y + (51.0 + 30.0 * !pr.5[0].is_empty() as u8 as f32) * s,
                                                                 ),
                                                                 8.2,
                                                                 gr(0.9, fades[0]),
@@ -2052,7 +2053,7 @@ fn main() {
                                                 tx.commit().unwrap();
                                             });
                                             pending.clear();
-                                            store.push((std::mem::take(name), icon.take(), *kind, *dim, id, String::new(), String::from("> ")));
+                                            store.push((std::mem::take(name), icon.take(), *kind, *dim, id, [String::new(), String::from("> ")]));
                                         }
                                         *kind = 0;
                                         *dim = 0;
@@ -2087,14 +2088,14 @@ fn main() {
                                             } else {
                                                 *view = 4;
                                                 for (width, height, cli) in [(w as usize, h as usize, store[project].2 == 2)] {
-                                                    for (pixels, generation, on, (tx, rx), (line, prompt)) in [(
+                                                    for (pixels, generation, on, (tx, rx), texts) in [(
                                                         (0..width * height)
                                                             .map(|_| std::sync::atomic::AtomicU32::new(0))
                                                             .collect::<std::sync::Arc<[std::sync::atomic::AtomicU32]>>(),
                                                         std::sync::Arc::new(std::sync::atomic::AtomicU32::new(0)),
                                                         std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true)),
                                                         std::sync::mpsc::channel::<u8>(),
-                                                        (store[project].5.clone(), store[project].6.clone()),
+                                                        store[project].5.clone(),
                                                     )] {
                                                         icons[27] = images.add(bevy::image::Image::new(
                                                             bevy::render::render_resource::Extent3d {
@@ -2125,8 +2126,8 @@ fn main() {
                                                                             on.load(std::sync::atomic::Ordering::Acquire)
                                                                         },
                                                                         || rx.try_recv().ok(),
-                                                                        line.as_bytes(),
-                                                                        prompt.as_bytes(),
+                                                                        texts[0].as_bytes(),
+                                                                        texts[1].as_bytes(),
                                                                     );
                                                                 } else {
                                                                     kernel::boot(

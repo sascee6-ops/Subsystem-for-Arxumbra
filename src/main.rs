@@ -1113,6 +1113,34 @@ fn main() {
                               ..........................\
                               .........................."
                                 .as_slice(),
+                            b"\
+                              fb3.......................\
+                              fffb3.....................\
+                              fffffa3...................\
+                              fffffffa3.................\
+                              fffffffffa2...............\
+                              fffffffffffa2.............\
+                              fffffffffffff92...........\
+                              fffffffffffffff92.........\
+                              fffffffffffffffff92.......\
+                              fffffffffffffffffff92.....\
+                              ffffffffffffffffffffe81...\
+                              ffffffffffffffffffffffe81.\
+                              ffffffffffffffffffffffffe8\
+                              fffffffffffffffffffffffff9\
+                              fffffffffffffffffffffff92.\
+                              fffffffffffffffffffff92...\
+                              fffffffffffffffffffa2.....\
+                              fffffffffffffffffa2.......\
+                              fffffffffffffffa3.........\
+                              fffffffffffffa3...........\
+                              fffffffffffb3.............\
+                              fffffffffb3...............\
+                              fffffffb4.................\
+                              fffffb4...................\
+                              fffc4.....................\
+                              fc4......................."
+                                .as_slice(),
                         ]
                         .map(|art: &[u8]| {
                             images.add(bevy::image::Image::new(
@@ -1530,21 +1558,91 @@ fn main() {
                                                             bt.push((r, 14 + k, 0.0, 5.0, true, a));
                                                             spr(cs(r.center().x, r.center().y, 18.0, 18.0), 6.0, gr(0.7 + 0.23 * anim[14 + k][0], a), index);
                                                         }
-                                                        for (tag, path) in [(format!("{} items", xlist.len()), xdir.to_string_lossy())] {
+                                                        for (tag, whole, home) in [(
+                                                            format!("{} items", xlist.len()),
+                                                            xdir.as_path(),
+                                                            std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE")),
+                                                        )] {
                                                             txt(w - 44.0 - 7.8 * tag.len() as f32, 56.0, 0, tag.as_str(), 13.0, 6.5, gr(0.42, a));
-                                                            txt(
-                                                                side + 290.0,
-                                                                56.0,
-                                                                0,
-                                                                &path[path
-                                                                    .char_indices()
-                                                                    .rev()
-                                                                    .nth((((w - 90.0 - 7.8 * tag.len() as f32 - side - 290.0) / 7.8).max(8.0)) as usize)
-                                                                    .map_or(0, |c| c.0)..],
-                                                                13.0,
-                                                                6.5,
-                                                                gr(0.42, a),
-                                                            );
+                                                            for (glyph, rest) in [home
+                                                                .as_ref()
+                                                                .and_then(|base| whole.strip_prefix(base).ok())
+                                                                .map_or((false, whole), |rest| (true, rest))]
+                                                            {
+                                                                for (names, room, fit) in [(
+                                                                    std::iter::once(String::new())
+                                                                        .filter(|_| glyph)
+                                                                        .chain(
+                                                                            rest.components()
+                                                                                .enumerate()
+                                                                                .filter(|(i, c)| *i == 0 || !matches!(c, std::path::Component::RootDir))
+                                                                                .map(|(_, c)| c.as_os_str().to_string_lossy().chars().take(28).collect::<String>()),
+                                                                        )
+                                                                        .collect::<Vec<_>>(),
+                                                                    w - 44.0 - 7.8 * tag.len() as f32 - 28.0 - (side + 290.0) - 36.0,
+                                                                    |n: &String| 32.0 + if n.is_empty() { 16.0 } else { 7.8 * n.chars().count() as f32 },
+                                                                )] {
+                                                                    for k in [if names.len() <= 10 && names.iter().map(fit).sum::<f32>() <= room {
+                                                                        names.len()
+                                                                    } else {
+                                                                        names
+                                                                            .iter()
+                                                                            .rev()
+                                                                            .map(fit)
+                                                                            .scan(48.0, |total, width| {
+                                                                                *total += width;
+                                                                                Some(*total)
+                                                                            })
+                                                                            .take_while(|total| *total <= room)
+                                                                            .count()
+                                                                            .clamp(1, 9)
+                                                                            .min(names.len())
+                                                                    }] {
+                                                                        for shown in [std::iter::once("..")
+                                                                            .filter(|_| k < names.len())
+                                                                            .chain(names[names.len() - k..].iter().map(String::as_str))
+                                                                            .collect::<Vec<_>>()]
+                                                                        {
+                                                                            for segs in [shown
+                                                                                .iter()
+                                                                                .enumerate()
+                                                                                .scan(side + 290.0, |edge, (j, label)| {
+                                                                                    [(if j == 0 { 12.0 } else { 22.0 }) + if label.is_empty() { 16.0 } else { 7.8 * label.chars().count() as f32 } + 10.0]
+                                                                                        .into_iter()
+                                                                                        .map(|body| {
+                                                                                            *edge += body;
+                                                                                            (j, *label, *edge - body, body)
+                                                                                        })
+                                                                                        .next()
+                                                                                })
+                                                                                .collect::<Vec<_>>()]
+                                                                            {
+                                                                                for (j, label, x, body) in segs.iter().copied() {
+                                                                                    for (shade, ink) in [match (j, j + 1 == segs.len()) {
+                                                                                        (0, _) => (0.9, 0.07),
+                                                                                        (_, true) => (0.3, 0.96),
+                                                                                        _ => (0.17, 0.62),
+                                                                                    }] {
+                                                                                        spr(rc(x, 42.0, x + body, 70.0), 6.0, gr(shade, a), 2);
+                                                                                        spr(rc(x + body, 42.0, x + body + 14.0, 70.0), 6.2, gr(shade, a), 28);
+                                                                                        if j + 1 < segs.len() {
+                                                                                            spr(rc(x + body + 2.5, 42.0, x + body + 16.5, 70.0), 6.1, gr(0.071, a), 28);
+                                                                                        }
+                                                                                        if label.is_empty() {
+                                                                                            spr(cs(x + 20.0, 56.0, 16.0, 16.0), 6.5, gr(ink, a), 4);
+                                                                                        } else {
+                                                                                            txt(x + if j == 0 { 12.0 } else { 22.0 }, 56.0, 0, label, 13.0, 6.5, gr(ink, a));
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                                for (x, body) in segs.last().map(|s| (s.2, s.3)).into_iter() {
+                                                                                    spr(rc(x + body + 26.0, 46.0, x + body + 35.0, 66.0), 6.0, gr(0.9, a), 2);
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
                                                         }
                                                         spr(rc(side + 40.0, 88.0, (w - 44.0).max(side + 41.0), 89.0), 1.8, gr(0.133, a), 2);
                                                         for (k, (name, folder, size)) in xlist.iter().skip(*xscroll).take(vis).enumerate() {
@@ -2034,7 +2132,7 @@ fn main() {
                                             }
                                         }
                                         if *view == 4 {
-                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 28);
+                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 29);
                                         }
                                     });
                                     sit.for_each(|(_, _, v)| {
@@ -2242,7 +2340,7 @@ fn main() {
                                                         std::sync::mpsc::channel::<u8>(),
                                                         store[project].5.clone(),
                                                     )] {
-                                                        icons[28] = images.add(bevy::image::Image::new(
+                                                        icons[29] = images.add(bevy::image::Image::new(
                                                             bevy::render::render_resource::Extent3d {
                                                                 width: width as u32,
                                                                 height: height as u32,
@@ -2367,7 +2465,7 @@ fn main() {
                                 machine.take().into_iter().for_each(|(_, _, on, thread, _, _)| {
                                     on.store(false, std::sync::atomic::Ordering::Release);
                                     thread.unpark();
-                                    icons[28] = icons[2].clone();
+                                    icons[29] = icons[2].clone();
                                 });
                                 *modal = false;
                                 *picker = false;
@@ -2379,7 +2477,7 @@ fn main() {
                                     .into_iter()
                                     .for_each(|g| {
                                         *seen = g;
-                                        images.get_mut(&icons[28]).iter_mut().for_each(|image| {
+                                        images.get_mut(&icons[29]).iter_mut().for_each(|image| {
                                             image.data.iter_mut().for_each(|data| {
                                                 data.chunks_exact_mut(4).zip(pixels.iter()).for_each(|(rgba, pixel)| {
                                                     rgba.copy_from_slice(&pixel.load(std::sync::atomic::Ordering::Relaxed).to_le_bytes())

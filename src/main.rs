@@ -329,7 +329,7 @@ fn main() {
                 )>,
                 usize,
                 Vec<(usize, Vec<u8>)>,
-                (std::path::PathBuf, Vec<(String, bool, u64)>, usize, usize, bool),
+                (std::path::PathBuf, Vec<(String, bool, u64)>, usize, usize, bool, String, u8, bool),
             )>,
              pt: bevy::ecs::system::Local<(
                 Option<usize>,
@@ -1221,7 +1221,7 @@ fn main() {
                             bevy::camera::visibility::Visibility::Hidden,
                         )
                     }));
-                    commands.spawn_batch((0..72).map(|_| {
+                    commands.spawn_batch((0..96).map(|_| {
                         (
                             bevy::sprite::Text2d::new(""),
                             bevy::text::TextFont {
@@ -1277,7 +1277,7 @@ fn main() {
                             (
                                 cols,
                                 (((h - 136.0) / 160.0).max(1.0) as usize).min(16 / cols),
-                                (((h - 140.0) / 32.0).max(1.0) as usize).min(30),
+                                (((h - 216.0) / 32.0).max(1.0) as usize).min(30),
                             ),
                             (
                                 mouse.just_pressed(bevy::input::mouse::MouseButton::Left),
@@ -1292,7 +1292,7 @@ fn main() {
                             (
                                 (view, hud, modal, picker, esc, moving, ed, edit),
                                 (name, icon, kind, dim, dir, entries, pscroll, dirty, wacc, pending),
-                                (store, lscroll, jobs, (xdir, xlist, xscroll, xsel, xdirty)),
+                                (store, lscroll, jobs, (xdir, xlist, xscroll, xsel, xdirty, xname, xmode, xerr)),
                                 (hover, focus, press, anim, fades, bt, machine),
                                 icons,
                             ),
@@ -1340,7 +1340,53 @@ fn main() {
                                                 });
                                         });
                                 }
-                                if e.state.is_pressed() && *edit > 0 && *view == 3 && !*hud {
+                                if e.state.is_pressed() && *view == 5 && !*hud {
+                *moving = true;
+                for (ctrl, start) in [(
+                    keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft),
+                    match e.key_code {
+                        bevy::input::keyboard::KeyCode::KeyD => 1_u8,
+                        bevy::input::keyboard::KeyCode::KeyF => 2,
+                        _ => 0,
+                    },
+                )] {
+                    if ctrl && start > 0 && !e.repeat {
+                        if *xmode == 0 {
+                            xname.clear();
+                        }
+                        *xmode = start;
+                        *xerr = false;
+                    } else if *xmode > 0 && !ctrl {
+                        if e.logical_key == bevy::input::keyboard::Key::Escape {
+                            *xmode = 0;
+                            *xerr = false;
+                            xname.clear();
+                        } else if e.logical_key == bevy::input::keyboard::Key::Enter {
+                            *xerr = xname.is_empty()
+                                || xname.starts_with('.')
+                                || !match *xmode {
+                                    1 => std::fs::create_dir(xdir.join(&*xname)).is_ok(),
+                                    _ => std::fs::File::create_new(xdir.join(&*xname)).is_ok(),
+                                };
+                            *xmode *= *xerr as u8;
+                            *xdirty |= !*xerr;
+                        } else {
+                            *xerr = false;
+                            if e.logical_key == bevy::input::keyboard::Key::Backspace {
+                                xname.pop();
+                            }
+                            xname.extend(
+                                e.text
+                                    .iter()
+                                    .flat_map(|t| t.chars())
+                                    .filter(|c| (c.is_ascii_graphic() && !"/\\:*?\"<>|".contains(*c)) || *c == ' ')
+                                    .take(40_usize.saturating_sub(xname.len())),
+                            );
+                        }
+                    }
+                }
+            }
+            if e.state.is_pressed() && *edit > 0 && *view == 3 && !*hud {
                                     *moving = true;
                                     store.get_mut(*ed).into_iter().for_each(|pr| {
                                         for (id, key) in [(pr.4, if *edit == 11 { "line" } else { "prompt" })] {
@@ -1548,40 +1594,39 @@ fn main() {
                                                     } else if *view == 5 {
                                                         spr(cs(side + 55.0, 56.0, 26.0, 26.0), 6.0, gr(0.93, a), 27);
                                                         txt(side + 82.0, 56.0, 0, "Explorer", 18.0, 6.5, gr(0.93, a));
-                                                        for (k, (r, index)) in [
-                                                            (rc(side + 190.0, 38.0, side + 226.0, 74.0), 23),
-                                                            (rc(side + 234.0, 38.0, side + 270.0, 74.0), 4),
-                                                        ]
-                                                        .into_iter()
-                                                        .enumerate()
-                                                        {
-                                                            bt.push((r, 14 + k, 0.0, 5.0, true, a));
-                                                            spr(cs(r.center().x, r.center().y, 18.0, 18.0), 6.0, gr(0.7 + 0.23 * anim[14 + k][0], a), index);
-                                                        }
+                                                        spr(rc(side + 40.0, 88.0, (w - 44.0).max(side + 41.0), 89.0), 1.8, gr(0.133, a), 2);
                                                         for (tag, whole, home) in [(
-                                                            format!("{} items", xlist.len()),
+                                                            format!("{} item{}", xlist.len(), if xlist.len() == 1 { "" } else { "s" }),
                                                             xdir.as_path(),
                                                             std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE")),
                                                         )] {
-                                                            txt(w - 44.0 - 7.8 * tag.len() as f32, 56.0, 0, tag.as_str(), 13.0, 6.5, gr(0.42, a));
-                                                            for (glyph, rest) in [home
-                                                                .as_ref()
-                                                                .and_then(|base| whole.strip_prefix(base).ok())
-                                                                .map_or((false, whole), |rest| (true, rest))]
-                                                            {
-                                                                for (names, room, fit) in [(
-                                                                    std::iter::once(String::new())
-                                                                        .filter(|_| glyph)
-                                                                        .chain(
-                                                                            rest.components()
-                                                                                .enumerate()
-                                                                                .filter(|(i, c)| *i == 0 || !matches!(c, std::path::Component::RootDir))
-                                                                                .map(|(_, c)| c.as_os_str().to_string_lossy().chars().take(28).collect::<String>()),
-                                                                        )
-                                                                        .collect::<Vec<_>>(),
-                                                                    w - 44.0 - 7.8 * tag.len() as f32 - 28.0 - (side + 290.0) - 36.0,
+                                                            for chip in [rc(w - 72.0 - 7.2 * tag.len() as f32, 43.0, (w - 44.0).max(side + 41.0), 69.0)] {
+                                                                spr(chip, 6.0, gr(0.118, a), 0);
+                                                                spr(chip, 6.1, gr(0.2, a), 1);
+                                                                txt(chip.min.x + 14.0, 56.0, 0, tag.as_str(), 12.0, 6.5, gr(0.6, a));
+                                                            }
+                                                            for (names, room, fit) in [(
+                                                                whole
+                                                                    .components()
+                                                                    .enumerate()
+                                                                    .filter(|(i, c)| *i == 0 || !matches!(c, std::path::Component::RootDir))
+                                                                    .map(|(_, c)| c.as_os_str().to_string_lossy().chars().take(28).collect::<String>())
+                                                                    .collect::<Vec<_>>(),
+                                                                    w - 72.0 - 7.2 * tag.len() as f32 - 24.0 - (side + 196.0) - 36.0,
                                                                     |n: &String| 32.0 + if n.is_empty() { 16.0 } else { 7.8 * n.chars().count() as f32 },
                                                                 )] {
+                                                                for names in [names
+                                                                    .iter()
+                                                                    .enumerate()
+                                                                    .map(|(i, n)| {
+                                                                        if home.as_ref().is_some_and(|base| whole.ancestors().nth(names.len() - 1 - i) == Some(std::path::Path::new(base))) {
+                                                                            String::new()
+                                                                        } else {
+                                                                            n.clone()
+                                                                        }
+                                                                    })
+                                                                    .collect::<Vec<_>>()]
+                                                                {
                                                                     for k in [if names.len() <= 10 && names.iter().map(fit).sum::<f32>() <= room {
                                                                         names.len()
                                                                     } else {
@@ -1606,7 +1651,7 @@ fn main() {
                                                                             for segs in [shown
                                                                                 .iter()
                                                                                 .enumerate()
-                                                                                .scan(side + 290.0, |edge, (j, label)| {
+                                                                                .scan(side + 196.0, |edge, (j, label)| {
                                                                                     [(if j == 0 { 12.0 } else { 22.0 }) + if label.is_empty() { 16.0 } else { 7.8 * label.chars().count() as f32 } + 10.0]
                                                                                         .into_iter()
                                                                                         .map(|body| {
@@ -1618,20 +1663,25 @@ fn main() {
                                                                                 .collect::<Vec<_>>()]
                                                                             {
                                                                                 for (j, label, x, body) in segs.iter().copied() {
-                                                                                    for (shade, ink) in [match (j, j + 1 == segs.len()) {
-                                                                                        (0, _) => (0.9, 0.07),
-                                                                                        (_, true) => (0.3, 0.96),
-                                                                                        _ => (0.17, 0.62),
-                                                                                    }] {
-                                                                                        spr(rc(x, 42.0, x + body, 70.0), 6.0, gr(shade, a), 2);
-                                                                                        spr(rc(x + body, 42.0, x + body + 14.0, 70.0), 6.2, gr(shade, a), 28);
-                                                                                        if j + 1 < segs.len() {
-                                                                                            spr(rc(x + body + 2.5, 42.0, x + body + 16.5, 70.0), 6.1, gr(0.071, a), 28);
-                                                                                        }
-                                                                                        if label.is_empty() {
-                                                                                            spr(cs(x + 20.0, 56.0, 16.0, 16.0), 6.5, gr(ink, a), 4);
-                                                                                        } else {
-                                                                                            txt(x + if j == 0 { 12.0 } else { 22.0 }, 56.0, 0, label, 13.0, 6.5, gr(ink, a));
+                                                                                    for idx in [segs.len() - 1 - j] {
+                                                                                        bt.push((rc(x, 42.0, x + body + 8.0, 70.0), 16 + idx, 0.0, 5.0, *xmode == 0 && idx > 0, a));
+                                                                                        for (shade, ink) in [match (j, idx) {
+                                                                                            (0, _) => (0.9, 0.07),
+                                                                                            (_, 0) => (0.3, 0.96),
+                                                                                            _ => (0.17, 0.62),
+                                                                                        }] {
+                                                                                            for tone in [shade + 0.1 * anim[16 + idx][0]] {
+                                                                                                spr(rc(x, 42.0, x + body, 70.0), 6.0, gr(tone, a), 2);
+                                                                                                spr(rc(x + body, 42.0, x + body + 14.0, 70.0), 6.2, gr(tone, a), 28);
+                                                                                            }
+                                                                                            if idx > 0 {
+                                                                                                spr(rc(x + body + 2.5, 42.0, x + body + 16.5, 70.0), 6.1, gr(0.071, a), 28);
+                                                                                            }
+                                                                                            if label.is_empty() {
+                                                                                                spr(cs(x + if j == 0 { 20.0 } else { 30.0 }, 56.0, 16.0, 16.0), 6.5, gr(ink, a), 4);
+                                                                                            } else {
+                                                                                                txt(x + if j == 0 { 12.0 } else { 22.0 }, 56.0, 0, label, 13.0, 6.5, gr(ink, a));
+                                                                                            }
                                                                                         }
                                                                                     }
                                                                                 }
@@ -1644,45 +1694,104 @@ fn main() {
                                                                 }
                                                             }
                                                         }
-                                                        spr(rc(side + 40.0, 88.0, (w - 44.0).max(side + 41.0), 89.0), 1.8, gr(0.133, a), 2);
+                                                        txt(side + 86.0, 106.0, 0, "NAME", 10.0, 6.5, gr(0.35, a));
+                                                        txt(w - 88.0, 106.0, 0, "SIZE", 10.0, 6.5, gr(0.35, a));
+                                                        spr(rc(side + 40.0, 123.0, (w - 44.0).max(side + 41.0), 124.0), 1.8, gr(0.118, a), 2);
                                                         for (k, (name, folder, size)) in xlist.iter().skip(*xscroll).take(vis).enumerate() {
                                                             for (rr, on) in [(
-                                                                rc(side + 40.0, 100.0 + k as f32 * 32.0, (w - 44.0).max(side + 41.0), 128.0 + k as f32 * 32.0),
+                                                                rc(side + 40.0, 132.0 + k as f32 * 32.0, (w - 44.0).max(side + 41.0), 160.0 + k as f32 * 32.0),
                                                                 (*xsel == *xscroll + k + 1) as u8 as f32,
                                                             )] {
-                                                                spr(
-                                                                    rr,
-                                                                    2.0,
-                                                                    gr(1.0, a * (0.03 * window.cursor_position().is_some_and(|c| rr.contains(c)) as u8 as f32 + 0.05 * on)),
-                                                                    2,
-                                                                );
-                                                                spr(rc(rr.min.x, rr.min.y + 4.0, rr.min.x + 3.0, rr.max.y - 4.0), 2.1, gr(0.93, a * on), 2);
-                                                                if *xscroll + k > 0 && *xscroll + k == xlist.partition_point(|e| e.1) {
-                                                                    spr(rc(rr.min.x + 16.0, rr.min.y - 1.0, rr.max.x - 16.0, rr.min.y), 2.2, gr(0.157, a), 2);
-                                                                }
-                                                                spr(
-                                                                    cs(rr.min.x + 24.0, rr.center().y, 16.0, 16.0),
-                                                                    6.0,
-                                                                    gr(if *folder { 0.93 } else { 0.6 }, a),
-                                                                    if *folder { 21 } else { 22 },
-                                                                );
-                                                                txt(
-                                                                    rr.min.x + 46.0,
-                                                                    rr.center().y,
-                                                                    0,
-                                                                    &name[..name.char_indices().nth(60).map_or(name.len(), |c| c.0)],
-                                                                    14.0,
-                                                                    6.5,
-                                                                    gr(if *folder { 0.93 } else { 0.7 }, a),
-                                                                );
-                                                                for label in [[(1_u64 << 30, "GB"), (1 << 20, "MB"), (1 << 10, "KB")]
-                                                                    .iter()
-                                                                    .find(|(unit, _)| *size >= *unit)
-                                                                    .map_or(format!("{size} B"), |(unit, tag)| format!("{:.1} {tag}", *size as f64 / *unit as f64))]
+                                                                for hov in [window.cursor_position().is_some_and(|c| rr.contains(c)) as u8 as f32] {
+                                                                    for pill in [rc(rr.min.x + 4.0, rr.min.y, rr.max.x - 4.0, rr.max.y)] {
+                                                                        spr(pill, 2.0, gr(1.0, a * (0.01 * hov + 0.012 * on)), 0);
+                                                                        spr(pill, 2.1, gr(1.0, a * (0.012 * hov + 0.03 * on)), 1);
+                                                                    }
+                                                                    if *xscroll + k > 0 && *xscroll + k == xlist.partition_point(|e| e.1) {
+                                                                        spr(rc(rr.min.x + 16.0, rr.min.y - 2.0, rr.max.x - 16.0, rr.min.y - 1.0), 2.2, gr(0.157, a), 2);
+                                                                    }
+                                                                    spr(
+                                                                        cs(rr.min.x + 24.0, rr.center().y, 16.0, 16.0),
+                                                                        6.0,
+                                                                        gr(if *folder { 0.93 } else { 0.6 }, a),
+                                                                        if *folder { 21 } else { 22 },
+                                                                    );
+                                                                    txt(
+                                                                        rr.min.x + 46.0,
+                                                                        rr.center().y,
+                                                                        0,
+                                                                        &name[..name.char_indices().nth(60).map_or(name.len(), |c| c.0)],
+                                                                        14.0,
+                                                                        6.5,
+                                                                        gr(if *folder { 0.93 } else { 0.7 }, a),
+                                                                    );
+                                                                    if *folder {
+                                                                        spr(cs(rr.max.x - 26.0, rr.center().y, 8.0, 8.0), 6.0, gr(0.22 + 0.5 * hov, a), 28);
+                                                                    }
+                                                                    for label in [[(1_u64 << 30, "GB"), (1 << 20, "MB"), (1 << 10, "KB")]
+                                                                        .iter()
+                                                                        .find(|(unit, _)| *size >= *unit)
+                                                                        .map_or(format!("{size} B"), |(unit, tag)| format!("{:.1} {tag}", *size as f64 / *unit as f64))]
                                                                     .into_iter()
                                                                     .filter(|_| !*folder)
-                                                                {
-                                                                    txt(rr.max.x - 20.0 - 7.2 * label.len() as f32, rr.center().y, 0, label.as_str(), 12.0, 6.5, gr(0.42, a));
+                                                                    {
+                                                                        txt(rr.max.x - 20.0 - 7.2 * label.len() as f32, rr.center().y, 0, label.as_str(), 12.0, 6.5, gr(0.42, a));
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        for (cx, cy) in [((side + w - 4.0) / 2.0, (h + 48.0) / 2.0)].into_iter().filter(|_| xlist.is_empty()) {
+                                                            spr(cs(cx, cy - 22.0, 36.0, 36.0), 6.0, gr(0.2, a), 21);
+                                                            txt(cx, cy + 22.0, 2, "This folder is empty", 14.0, 6.5, gr(0.35, a));
+                                                        }
+                                                        for (track, thumb) in [(h - 216.0, ((h - 216.0) * vis as f32 / xlist.len().max(1) as f32).max(28.0))]
+                                                            .into_iter()
+                                                            .filter(|_| xlist.len() > vis)
+                                                        {
+                                                            for top in [132.0 + (track - thumb) * *xscroll as f32 / (xlist.len() - vis) as f32] {
+                                                                spr(rc(w - 36.0, top, w - 33.0, top + thumb), 2.3, gr(0.3, a), 2);
+                                                            }
+                                                        }
+                                                        spr(rc(side + 40.0, h - 80.0, (w - 44.0).max(side + 41.0), h - 79.0), 1.8, gr(0.133, a), 2);
+                                                        if *xmode == 0 {
+                                                            for (k, (cap, label)) in [("Ctrl D", "New folder"), ("Ctrl F", "New file")].into_iter().enumerate() {
+                                                                for x in [side + 48.0 + 200.0 * k as f32] {
+                                                                    spr(rc(x, h - 64.0, x + 60.0, h - 40.0), 6.0, gr(0.118, a), 0);
+                                                                    spr(rc(x, h - 64.0, x + 60.0, h - 40.0), 6.1, gr(0.22, a), 1);
+                                                                    txt(x + 30.0, h - 52.0, 2, cap, 11.0, 6.5, gr(0.7, a));
+                                                                    txt(x + 74.0, h - 52.0, 0, label, 12.0, 6.5, gr(0.5, a));
+                                                                }
+                                                            }
+                                                        } else {
+                                                            for (icon, caption) in [if *xmode == 1 { (21, "New folder") } else { (22, "New file") }] {
+                                                                spr(cs(side + 60.0, h - 52.0, 18.0, 18.0), 6.0, gr(0.93, a), icon);
+                                                                for field in [rc(side + 88.0, h - 70.0, (side + 508.0).min((w - 340.0).max(side + 200.0)), h - 34.0)] {
+                                                                    spr(field, 6.0, gr(0.118, a), 0);
+                                                                    spr(field, 6.1, gr(if *xerr { 0.93 } else { 0.42 }, a), 1);
+                                                                    txt(
+                                                                        field.min.x + 14.0,
+                                                                        h - 52.0,
+                                                                        0,
+                                                                        if xname.is_empty() { caption } else { xname.as_str() },
+                                                                        14.0,
+                                                                        6.5,
+                                                                        gr(if xname.is_empty() { 0.3 } else { 0.93 }, a),
+                                                                    );
+                                                                    spr(
+                                                                        rc(field.min.x + 14.0 + 8.4 * xname.len() as f32, h - 60.0, field.min.x + 16.0 + 8.4 * xname.len() as f32, h - 44.0),
+                                                                        6.5,
+                                                                        gr(0.93, a),
+                                                                        2,
+                                                                    );
+                                                                    txt(
+                                                                        field.max.x + 20.0,
+                                                                        h - 52.0,
+                                                                        0,
+                                                                        if *xerr { "Name is taken or invalid" } else { "Enter  create      Esc  cancel" },
+                                                                        12.0,
+                                                                        6.5,
+                                                                        gr(if *xerr { 0.93 } else { 0.42 }, a),
+                                                                    );
                                                                 }
                                                             }
                                                         }
@@ -2208,10 +2317,10 @@ fn main() {
                                         mdn && *view == 5
                                             && c.x > side + 40.0
                                             && c.x < w - 44.0
-                                            && c.y >= 100.0
-                                            && (c.y - 100.0) / 32.0 < vis as f32
+                                            && c.y >= 132.0
+                                            && (c.y - 132.0) / 32.0 < vis as f32
                                     })
-                                    .map(|c| *xscroll + ((c.y - 100.0) / 32.0) as usize)
+                                    .map(|c| *xscroll + ((c.y - 132.0) / 32.0) as usize)
                                     .filter(|row| *row < xlist.len())
                                     .into_iter()
                                     .for_each(|row| {
@@ -2239,19 +2348,23 @@ fn main() {
                                 match act {
                                     Some(i @ 0..=2) => *view = i as u8,
                                     Some(3) => *modal = true,
-                                    Some(i @ (13 | 15)) => {
+                                    Some(13) => {
                                         *view = 5;
                                         *xdirty = true;
                                         *xscroll = 0;
                                         *xsel = 0;
-                                        if i == 15 || xdir.as_os_str().is_empty() {
-                                            *xdir = std::env::var_os("HOME")
-                                                .or_else(|| std::env::var_os("USERPROFILE"))
-                                                .map_or(".".into(), Into::into);
-                                        }
+                                        *xmode = 0;
+                                        xname.clear();
+                                        *xdir = std::env::var_os("HOME")
+                                            .or_else(|| std::env::var_os("USERPROFILE"))
+                                            .map_or(".".into(), Into::into);
                                     }
-                                    Some(14) => {
-                                        xdir.pop();
+                                    Some(i @ 16..=25) if *view == 5 => {
+                                        xdir.ancestors()
+                                            .nth(i - 16)
+                                            .map(std::path::Path::to_path_buf)
+                                            .into_iter()
+                                            .for_each(|up| *xdir = up);
                                         *xdirty = true;
                                         *xscroll = 0;
                                         *xsel = 0;
@@ -2409,6 +2522,17 @@ fn main() {
                                     .map(|e| (e.file_name().to_string_lossy().into_owned(), e.path().is_dir(), e.metadata().map_or(0, |m| m.len())))
                                     .collect();
                                 xlist.sort_by_cached_key(|e| (!e.1, e.0.to_lowercase()));
+                                Some(xlist.iter().position(|e| e.0 == *xname))
+                                    .flatten()
+                                    .filter(|_| *xmode == 0)
+                                    .into_iter()
+                                    .for_each(|row| {
+                                        *xsel = row + 1;
+                                        *xscroll = row.saturating_sub(vis / 2).min(xlist.len().saturating_sub(vis));
+                                    });
+                                if *xmode == 0 {
+                                    xname.clear();
+                                }
                                 *moving = true;
                             }
                             if *dirty {

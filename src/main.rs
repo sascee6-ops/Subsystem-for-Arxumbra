@@ -1277,7 +1277,7 @@ fn main() {
                             (
                                 cols,
                                 (((h - 136.0) / 160.0).max(1.0) as usize).min(16 / cols),
-                                (((h - 216.0) / 32.0).max(1.0) as usize).min(30),
+                                (((h - 168.0) / 32.0).max(1.0) as usize).min(30),
                             ),
                             (
                                 mouse.just_pressed(bevy::input::mouse::MouseButton::Left),
@@ -1740,11 +1740,11 @@ fn main() {
                                                                 }
                                                             }
                                                         }
-                                                        for (cx, cy) in [((side + w - 4.0) / 2.0, (h + 48.0) / 2.0)].into_iter().filter(|_| xlist.is_empty()) {
+                                                        for (cx, cy) in [((side + w - 4.0) / 2.0, (h + 96.0) / 2.0)].into_iter().filter(|_| xlist.is_empty()) {
                                                             spr(cs(cx, cy - 22.0, 36.0, 36.0), 6.0, gr(0.2, a), 21);
                                                             txt(cx, cy + 22.0, 2, "This folder is empty", 14.0, 6.5, gr(0.35, a));
                                                         }
-                                                        for (track, thumb) in [(h - 216.0, ((h - 216.0) * vis as f32 / xlist.len().max(1) as f32).max(28.0))]
+                                                        for (track, thumb) in [(vis as f32 * 32.0, (vis as f32 * 32.0 * vis as f32 / xlist.len().max(1) as f32).max(28.0))]
                                                             .into_iter()
                                                             .filter(|_| xlist.len() > vis)
                                                         {
@@ -1752,46 +1752,32 @@ fn main() {
                                                                 spr(rc(w - 36.0, top, w - 33.0, top + thumb), 2.3, gr(0.3, a), 2);
                                                             }
                                                         }
-                                                        spr(rc(side + 40.0, h - 80.0, (w - 44.0).max(side + 41.0), h - 79.0), 1.8, gr(0.133, a), 2);
-                                                        if *xmode == 0 {
-                                                            for (k, (cap, label)) in [("Ctrl D", "New folder"), ("Ctrl F", "New file")].into_iter().enumerate() {
-                                                                for x in [side + 48.0 + 200.0 * k as f32] {
-                                                                    spr(rc(x, h - 64.0, x + 60.0, h - 40.0), 6.0, gr(0.118, a), 0);
-                                                                    spr(rc(x, h - 64.0, x + 60.0, h - 40.0), 6.1, gr(0.22, a), 1);
-                                                                    txt(x + 30.0, h - 52.0, 2, cap, 11.0, 6.5, gr(0.7, a));
-                                                                    txt(x + 74.0, h - 52.0, 0, label, 12.0, 6.5, gr(0.5, a));
-                                                                }
-                                                            }
-                                                        } else {
+                                                        for bar in [rc(side + 40.0, h - 80.0, (w - 44.0).max(side + 41.0), h - 30.0)].into_iter().filter(|_| *xmode > 0) {
+                                                            spr(bar, 7.0, gr(0.071, a), 2);
+                                                            spr(rc(bar.min.x, bar.min.y, bar.max.x, bar.min.y + 1.0), 7.05, gr(0.133, a), 2);
                                                             for (icon, caption) in [if *xmode == 1 { (21, "New folder") } else { (22, "New file") }] {
-                                                                spr(cs(side + 60.0, h - 52.0, 18.0, 18.0), 6.0, gr(0.93, a), icon);
+                                                                spr(cs(side + 60.0, h - 52.0, 18.0, 18.0), 7.5, gr(0.93, a), icon);
                                                                 for field in [rc(side + 88.0, h - 70.0, (side + 508.0).min((w - 340.0).max(side + 200.0)), h - 34.0)] {
-                                                                    spr(field, 6.0, gr(0.118, a), 0);
-                                                                    spr(field, 6.1, gr(if *xerr { 0.93 } else { 0.42 }, a), 1);
+                                                                    spr(field, 7.1, gr(0.118, a), 0);
+                                                                    spr(field, 7.2, gr(if *xerr { 0.93 } else { 0.42 }, a), 1);
                                                                     txt(
                                                                         field.min.x + 14.0,
                                                                         h - 52.0,
                                                                         0,
                                                                         if xname.is_empty() { caption } else { xname.as_str() },
                                                                         14.0,
-                                                                        6.5,
+                                                                        7.5,
                                                                         gr(if xname.is_empty() { 0.3 } else { 0.93 }, a),
                                                                     );
                                                                     spr(
                                                                         rc(field.min.x + 14.0 + 8.4 * xname.len() as f32, h - 60.0, field.min.x + 16.0 + 8.4 * xname.len() as f32, h - 44.0),
-                                                                        6.5,
+                                                                        7.5,
                                                                         gr(0.93, a),
                                                                         2,
                                                                     );
-                                                                    txt(
-                                                                        field.max.x + 20.0,
-                                                                        h - 52.0,
-                                                                        0,
-                                                                        if *xerr { "Name is taken or invalid" } else { "Enter  create      Esc  cancel" },
-                                                                        12.0,
-                                                                        6.5,
-                                                                        gr(if *xerr { 0.93 } else { 0.42 }, a),
-                                                                    );
+                                                                    for note in ["Name is taken or invalid"].into_iter().filter(|_| *xerr) {
+                                                                        txt(field.max.x + 20.0, h - 52.0, 0, note, 12.0, 7.5, gr(0.93, a));
+                                                                    }
                                                                 }
                                                             }
                                                         }
@@ -2318,6 +2304,7 @@ fn main() {
                                             && c.x > side + 40.0
                                             && c.x < w - 44.0
                                             && c.y >= 132.0
+                            && (*xmode == 0 || c.y < h - 80.0)
                                             && (c.y - 132.0) / 32.0 < vis as f32
                                     })
                                     .map(|c| *xscroll + ((c.y - 132.0) / 32.0) as usize)

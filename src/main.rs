@@ -329,7 +329,7 @@ fn main() {
                 )>,
                 usize,
                 Vec<(usize, Vec<u8>)>,
-                (std::path::PathBuf, Vec<(String, bool, u64)>, usize, usize, bool, String, u8, bool, Option<(bevy::math::Rect, usize, Option<usize>, u8)>, Option<usize>),
+                (std::path::PathBuf, Vec<(String, bool, u64)>, usize, usize, bool, Option<usize>),
             )>,
              pt: bevy::ecs::system::Local<(
                 Option<usize>,
@@ -1143,56 +1143,56 @@ fn main() {
                             b"\
                               ..........................\
                               ..........................\
-                              ..........................\
-                              ..........................\
-                              ....23333.................\
-                              ..1bfffffe7...............\
-                              ..7fedddeffa..............\
-                              ..9f822227efb533333332....\
-                              ..9f7222226effffffffffb1..\
-                              ..9f722222249cdddddddef7..\
-                              ..9f722222223322222228f9..\
-                              ..9f72222222ee22222227f9..\
-                              ..9f72222222ef22222227f9..\
-                              ..9f72222455ef55422227f9..\
-                              ..9f72222effffffe22227f9..\
-                              ..9f722228bbffbb822227f9..\
-                              ..9f72222222df22222227f9..\
-                              ..9f72222222ef22222227f9..\
-                              ..9f822222227722222228f9..\
-                              ..8fdaaaaaaaaaaaaaaaadf8..\
-                              ..2dffffffffffffffffffd2..\
-                              ...16666666666666666661...\
-                              ..........................\
-                              ..........................\
+                              ...........1221...........\
+                              ......26adffffffda62......\
+                              ....2affffeddddeffffa2....\
+                              ...1efea6322222236aefe1...\
+                              ...8fc32222222222223cf8...\
+                              ...9fc32222222222223cf9...\
+                              ...8ffea6322222236aeff9...\
+                              ...8feffffeddddeffffdf9...\
+                              ...8f847beffffffeb747f9...\
+                              ...8f8222223443222227f9...\
+                              ...7a7222222222222226a8...\
+                              ...78622222222222222688...\
+                              ...8a8643222222223468a9...\
+                              ...8f9788766666678878f9...\
+                              ...8f8235677887765327f9...\
+                              ...8f8222222222222227f9...\
+                              ...9f8222222222222227f9...\
+                              ...8fc32222222222223cf8...\
+                              ...1efe964222222469efe1...\
+                              ....2affffeddddeffffa2....\
+                              ......26bdffffffdb62......\
+                              ...........2322...........\
                               ..........................\
                               .........................."
                                 .as_slice(),
                             b"\
                               ..........................\
                               ..........................\
-                              ......2666666652..........\
-                              .....4fffffffffe5.........\
-                              .....bfcaaaaaaffe5........\
-                              .....cf5222222de8e5.......\
-                              .....cf4222222de68e5......\
-                              .....cf4222222de668e5.....\
-                              .....cf4222222dfeeefe2....\
-                              .....cf4222222aeeeeff5....\
-                              .....cf422222222222af7....\
-                              .....cf422226b322229f7....\
-                              .....cf42222af522229f7....\
-                              .....cf42222af522229f7....\
-                              .....cf42698dfa89329f7....\
-                              .....cf42dfffffff829f7....\
-                              .....cf42477cf976229f7....\
-                              .....cf42222af522229f7....\
-                              .....cf42222af522229f7....\
-                              .....cf4222248222229f7....\
-                              .....cf522222222222af7....\
-                              .....bfcaaaaaaaaaaadf6....\
-                              .....4ffffffffffffffd1....\
-                              ......266666666666651.....\
+                              ..........................\
+                              ..........................\
+                              ...............251........\
+                              ..............5ffe3.......\
+                              .............5ffefe3......\
+                              ............5ffa2bfe3.....\
+                              ...........5fffe52bfe1....\
+                              ..........5ff97fe52ef5....\
+                              .........5ff9227feaff2....\
+                              ........5ff922227fff5.....\
+                              .......5ff9222229ff5......\
+                              ......5ff9222229ff5.......\
+                              .....5ff9222229ff5........\
+                              ....2ff9222229ff5.........\
+                              ....afb222229ff5..........\
+                              ....ef522229ff5...........\
+                              ...3fe22229ff5............\
+                              ...6fb225bff5.............\
+                              ...8fcbefff5..............\
+                              ...7ffffe92...............\
+                              ....7851..................\
+                              ..........................\
                               ..........................\
                               .........................."
                                 .as_slice(),
@@ -1221,6 +1221,34 @@ fn main() {
                               .....bfcaaaaaaaaaaadf6....\
                               .....4ffffffffffffffd1....\
                               ......266666666666651.....\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ............22............\
+                              ...........1ee1...........\
+                              ...........7ff8...........\
+                              ...........effe1..........\
+                              ..........6fedf7..........\
+                              ..........df76fd..........\
+                              .........5fe11ef6.........\
+                              .........cf8..8fc.........\
+                              ........4ff2..1ef4........\
+                              ........bf9....9fb........\
+                              .......3ff2....2ff3.......\
+                              .......afc333333bfa.......\
+                              ......2ffffffffffff2......\
+                              ......9feccccccccef9......\
+                              .....1ef5........4fe1.....\
+                              .....8fd..........cf8.....\
+                              ....1ef6..........5fe1....\
+                              ....7fd............df7....\
+                              ....af7............7fa....\
+                              ....14..............41....\
+                              ..........................\
                               ..........................\
                               .........................."
                                 .as_slice(),
@@ -1375,7 +1403,7 @@ fn main() {
                             (
                                 (view, hud, modal, picker, esc, moving, ed, edit),
                                 (name, icon, kind, dim, dir, entries, pscroll, dirty, wacc, pending),
-                                (store, lscroll, jobs, (xdir, xlist, xscroll, xsel, xdirty, xname, xmode, xerr, xmenu, xhit)),
+                                (store, lscroll, jobs, (xdir, xlist, xscroll, xsel, xdirty, xhit)),
                                 (hover, focus, press, anim, fades, bt, machine, (kc, kh, kact, km, ptr)),
                                 icons,
                             ),
@@ -1423,28 +1451,6 @@ fn main() {
                                                 });
                                         });
                                 }
-                                if e.state.is_pressed() && *view == 5 && !*hud {
-    *moving = true;
-    if *xmode > 0 && !keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) {
-        if e.logical_key == bevy::input::keyboard::Key::Escape {
-            *xmode = 0;
-            *xerr = false;
-            xname.clear();
-        } else {
-            *xerr = false;
-            if e.logical_key == bevy::input::keyboard::Key::Backspace {
-                xname.pop();
-            }
-            xname.extend(
-                e.text
-                    .iter()
-                    .flat_map(|t| t.chars())
-                    .filter(|c| (c.is_ascii_graphic() && !"/\\:*?\"<>|".contains(*c)) || *c == ' ')
-                    .take(40_usize.saturating_sub(xname.len())),
-            );
-        }
-    }
-}
 if e.state.is_pressed() && *edit > 0 && *view == 3 && !*hud && !keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) {
                                     *moving = true;
                                     store.get_mut(*ed).into_iter().for_each(|pr| {
@@ -1718,7 +1724,7 @@ for (left, right) in [(side + 48.0, (w - 52.0).max(side + 49.0))] {
                         {
                             for (j, label, x, body) in segs.iter().copied() {
                                 for idx in [segs.len() - 1 - j] {
-                                    bt.push((rc(x, 46.0, x + body + 8.0, 78.0), 16 + idx, 0.0, 5.0, *xmode == 0 && xmenu.is_none() && idx > 0, a));
+                                    bt.push((rc(x, 46.0, x + body + 8.0, 78.0), 16 + idx, 0.0, 5.0, idx > 0, a));
                                     for (shade, ink) in [match (j, idx) {
                                         (0, _) => (0.9, 0.07),
                                         (_, 0) => (0.3, 0.96),
@@ -1748,8 +1754,10 @@ for (left, right) in [(side + 48.0, (w - 52.0).max(side + 49.0))] {
             }
         }
     }
-    txt(left + 56.0, 120.0, 0, "NAME", 11.0, 6.5, gr(0.35, a));
-    txt(right - 52.4, 120.0, 0, "SIZE", 11.0, 6.5, gr(0.35, a));
+    spr(cs(left + 32.0, 120.0, 18.0, 18.0), 6.0, gr(0.46, a), 32);
+    txt(left + 56.0, 120.0, 0, "NAME", 12.0, 6.5, gr(0.42, a));
+    spr(cs(right - 72.8, 120.0, 18.0, 18.0), 6.0, gr(0.46, a), 29);
+    txt(right - 54.8, 120.0, 0, "SIZE", 12.0, 6.5, gr(0.42, a));
     spr(rc(left, 140.0, right, 141.0), 1.8, gr(0.1, a), 2);
     for (k, (name, folder, size)) in xlist.iter().skip(*xscroll).take(vis).enumerate() {
         for (rr, on, img) in [(
@@ -1760,7 +1768,7 @@ for (left, right) in [(side + 48.0, (w - 52.0).max(side + 49.0))] {
                 .and_then(|e| e.to_str())
                 .is_some_and(|e| ["png", "jpg", "jpeg", "gif", "webp", "bmp", "ico"].iter().any(|x| e.eq_ignore_ascii_case(x))),
         )] {
-            for hov in [(ptr.is_some_and(|c| rr.contains(c)) && xmenu.is_none() || xmenu.is_some_and(|menu| menu.2 == Some(*xscroll + k))) as u8 as f32] {
+            for hov in [ptr.is_some_and(|c| rr.contains(c)) as u8 as f32] {
                 spr(rr, 2.0, gr(1.0, a * (0.01 * hov + 0.012 * on)), 0);
                 spr(rr, 2.1, gr(1.0, a * (0.012 * hov + 0.03 * on)), 1);
                 spr(rc(rr.min.x + 8.0, rr.center().y - 9.0, rr.min.x + 10.0, rr.center().y + 9.0), 2.2, gr(0.93, a * on), 2);
@@ -1786,6 +1794,20 @@ for (left, right) in [(side + 48.0, (w - 52.0).max(side + 49.0))] {
                     6.5,
                     gr(if *folder { 0.95 } else { 0.72 }, a),
                 );
+                for (id, label, glyph, x0, x1) in [(26_usize, "Open", 20_usize, -294.0_f32, -218.0_f32), (27, "Rename", 30, -210.0, -120.0)]
+                    .into_iter()
+                    .filter(|_| hov > 0.0)
+                {
+                    for (btn, live) in [(rc(rr.max.x + x0 + 94.0 * *folder as u8 as f32, rr.center().y - 13.0, rr.max.x + x1 + 94.0 * *folder as u8 as f32, rr.center().y + 13.0), *folder || id == 27)] {
+                        bt.push((btn, id, 0.0, 5.0, live, a));
+                        for ink in [if live { 0.6 + 0.36 * anim[id][0] } else { 0.24 }] {
+                            spr(btn, 2.3, gr(1.0, a * 0.012), 0);
+                            spr(btn, 2.4, gr(1.0, a * (0.022 + 0.02 * anim[id][0] * live as u8 as f32)), 1);
+                            spr(cs(btn.min.x + 18.0, btn.center().y, 14.0, 14.0), 6.0, gr(ink, a), glyph);
+                            txt(btn.min.x + 32.0, btn.center().y, 0, label, 12.0, 6.5, gr(ink, a));
+                        }
+                    }
+                }
                 for (number, unit) in [[(1_u64 << 30, "GB"), (1 << 20, "MB"), (1 << 10, "KB")]
                     .iter()
                     .find(|(unit, _)| *size >= *unit)
@@ -1809,46 +1831,6 @@ for (left, right) in [(side + 48.0, (w - 52.0).max(side + 49.0))] {
     {
         for top in [152.0 + (track - thumb) * *xscroll as f32 / (xlist.len() - vis) as f32] {
             spr(rc(w - 38.0, top, w - 35.0, top + thumb), 2.3, gr(0.3, a), 2);
-        }
-    }
-    for (rect, sel, bits) in xmenu.map(|menu| (menu.0, menu.1, menu.3)).into_iter() {
-        spr(rect, 8.0, gr(0.098, a), 0);
-        spr(rect, 8.1, gr(0.22, a), 1);
-        for (k, (label, glyph)) in [("Open", 20), ("Up", 23), ("Home", 4), ("New folder", 29), ("New file", 30)].into_iter().enumerate() {
-            for row in [rc(rect.min.x + 8.0, rect.min.y + 8.0 + 36.0 * k as f32, rect.max.x - 8.0, rect.min.y + 40.0 + 36.0 * k as f32)] {
-                for ink in [if bits >> k & 1 == 0 { 0.26 } else if sel == k { 0.96 } else { 0.66 }] {
-                    bt.push((row, 16 + k, 0.0, 5.0, bits >> k & 1 == 1, a));
-                    spr(row, 8.2, gr(1.0, a * (0.03 * (sel == k) as u8 as f32 + 0.012 * anim[16 + k][0])), 0);
-                    spr(row, 8.3, gr(1.0, a * 0.03 * (sel == k) as u8 as f32), 1);
-                    spr(cs(row.min.x + 24.0, row.center().y, 18.0, 18.0), 8.5, gr(ink, a), glyph);
-                    txt(row.min.x + 48.0, row.center().y, 0, label, 15.0, 8.5, gr(ink, a));
-                }
-            }
-        }
-    }
-    for bar in [rc(left, h - 92.0, right, h - 40.0)].into_iter().filter(|_| *xmode > 0) {
-        spr(bar, 7.0, gr(0.098, a), 0);
-        spr(bar, 7.1, gr(if *xerr { 0.93 } else { 0.42 }, a), 1);
-        for (icon, caption) in [if *xmode == 1 { (21, "New folder") } else { (22, "New file") }] {
-            spr(cs(bar.min.x + 30.0, bar.center().y, 22.0, 22.0), 7.5, gr(0.93, a), icon);
-            txt(
-                bar.min.x + 58.0,
-                bar.center().y,
-                0,
-                if xname.is_empty() { caption } else { xname.as_str() },
-                15.0,
-                7.5,
-                gr(if xname.is_empty() { 0.3 } else { 0.93 }, a),
-            );
-            spr(
-                rc(bar.min.x + 58.0 + 9.0 * xname.len() as f32, bar.center().y - 10.0, bar.min.x + 60.0 + 9.0 * xname.len() as f32, bar.center().y + 10.0),
-                7.5,
-                gr(0.93, a),
-                2,
-            );
-            for note in ["Name is taken or invalid"].into_iter().filter(|_| *xerr) {
-                txt(bar.max.x - 28.0 - 7.8 * note.len() as f32, bar.center().y, 0, note, 13.0, 7.5, gr(0.93, a));
-            }
         }
     }
 }
@@ -2298,7 +2280,7 @@ for (left, right) in [(side + 48.0, (w - 52.0).max(side + 49.0))] {
                                             }
                                         }
                                         if *view == 4 {
-                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 32);
+                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 33);
                                         }
                                     });
                                     sit.for_each(|(_, _, v)| {
@@ -2312,7 +2294,7 @@ for (left, right) in [(side + 48.0, (w - 52.0).max(side + 49.0))] {
                                         });
                                     });
                                 });
-for ke in [keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) && !*hud && *view != 4 && *xmode == 0 && xmenu.is_none()] {
+for ke in [keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) && !*hud && *view != 4] {
 for (mdn, mup, mhd) in [(
     mdn || (ke && keys.just_pressed(bevy::input::keyboard::KeyCode::KeyE)),
     mup || (keys.just_released(bevy::input::keyboard::KeyCode::KeyE) && !*hud && *view != 4),
@@ -2321,11 +2303,12 @@ for (mdn, mup, mhd) in [(
                             *kact = *kact
     && !mouse.just_pressed(bevy::input::mouse::MouseButton::Left)
     && window.cursor_position().is_none_or(|c| c == *km);
+*moving |= window.cursor_position().is_some_and(|c| c != *km);
 *km = window.cursor_position().unwrap_or(*km);
 for dir in [bevy::math::Vec2::new(
     keys.pressed(bevy::input::keyboard::KeyCode::KeyD) as u8 as f32 - keys.pressed(bevy::input::keyboard::KeyCode::KeyA) as u8 as f32,
     keys.pressed(bevy::input::keyboard::KeyCode::KeyS) as u8 as f32 - keys.pressed(bevy::input::keyboard::KeyCode::KeyW) as u8 as f32,
-) * (keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) && !*hud && *view != 4 && xmenu.is_none()) as u8 as f32]
+) * (keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) && !*hud && *view != 4) as u8 as f32]
 {
     *kh = (*kh + dt) * (dir != bevy::math::Vec2::ZERO) as u8 as f32;
     *kc = if dir != bevy::math::Vec2::ZERO && !*kact {
@@ -2345,63 +2328,13 @@ for dir in [bevy::math::Vec2::new(
             && c.x > side + 48.0
             && c.x < w - 52.0
             && c.y >= 152.0
-            && (*xmode == 0 || c.y < h - 100.0)
             && (c.y - 152.0) / 36.0 < vis as f32
     })
     .map(|c| *xscroll + ((c.y - 152.0) / 36.0) as usize)
     .filter(|row| *row < xlist.len());
-for (ctrl, anchor, mask) in [(
-    keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) && *view == 5 && !*hud,
-    (ptr.unwrap_or(bevy::math::Vec2::new(w / 2.0, h / 2.0)) + bevy::math::Vec2::splat(8.0))
-        .min(bevy::math::Vec2::new(w - 240.0, h - 216.0)),
-    (xhit.is_some_and(|row| xlist[row].1) as u8) | ((xdir.parent().is_some() as u8) << 1) | 0b11100,
-)] {
-    *xmenu = match (xmenu.is_some(), ctrl && keys.just_pressed(bevy::input::keyboard::KeyCode::KeyQ) && *xmode == 0) {
-        (true, true) => None,
-        (false, true) => Some((
-            bevy::math::Rect::from_corners(anchor, anchor + bevy::math::Vec2::new(216.0, 192.0)),
-            mask.trailing_zeros() as usize,
-            *xhit,
-            mask,
-        )),
-        _ => *xmenu,
-    };
-    *xmenu = xmenu.map(|(rect, sel, target, bits)| {
-        (
-            rect,
-            if ctrl && (keys.just_pressed(bevy::input::keyboard::KeyCode::KeyS) || keys.just_pressed(bevy::input::keyboard::KeyCode::KeyW)) {
-                (1..5)
-                    .map(|k| (sel + if keys.just_pressed(bevy::input::keyboard::KeyCode::KeyS) { k } else { 5 - k }) % 5)
-                    .find(|i| bits >> i & 1 == 1)
-                    .unwrap_or(sel)
-            } else {
-                sel
-            },
-            target,
-            bits,
-        )
-    });
-}
-Some(*xmode)
-    .filter(|m| {
-        *m > 0
-            && (keys.just_pressed(bevy::input::keyboard::KeyCode::Enter)
-                || (keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) && keys.just_pressed(bevy::input::keyboard::KeyCode::KeyE)))
-    })
-    .into_iter()
-    .for_each(|m| {
-        *xerr = xname.is_empty()
-            || xname.starts_with('.')
-            || !match m {
-                1 => std::fs::create_dir(xdir.join(&*xname)).is_ok(),
-                _ => std::fs::File::create_new(xdir.join(&*xname)).is_ok(),
-            };
-        *xmode *= *xerr as u8;
-        *xdirty |= !*xerr;
-    });
 *wacc += 14.0
     * dt
-    * (*kact && keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) && *view == 5 && xmenu.is_none() && !*hud) as u8 as f32
+    * (*kact && keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) && *view == 5 && !*hud) as u8 as f32
     * ((kc.y < 176.0 && keys.pressed(bevy::input::keyboard::KeyCode::KeyW)) as u8 as f32
         - (kc.y > 128.0 + 36.0 * vis as f32 && keys.pressed(bevy::input::keyboard::KeyCode::KeyS)) as u8 as f32);
 *hover = ptr
@@ -2443,7 +2376,7 @@ Some(*xmode)
                                         keys.just_pressed(bevy::input::keyboard::KeyCode::Enter)
                                             || (keys.just_pressed(bevy::input::keyboard::KeyCode::Space)
                                                 && !(*modal && !*picker)
-                                                && *edit == 0) })).or(xmenu.filter(|_| keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) && keys.just_pressed(bevy::input::keyboard::KeyCode::KeyE)).map(|m| 16 + m.1)),
+                                                && *edit == 0) })),
                             )
                             .into_iter()
                             .for_each(|act| {
@@ -2457,7 +2390,7 @@ Some(*xmode)
                                     *modal &= *picker;
                                     *picker = false;
                                 }
-                                xhit.filter(|_| mdn && xmenu.is_none()).into_iter()
+                                xhit.filter(|_| mdn && hover.is_none()).into_iter()
                                     .for_each(|row| {
                                         *xsel = row + 1;
                                         if xlist[row].1 {
@@ -2483,37 +2416,28 @@ Some(*xmode)
                                 match act {
                                     Some(i @ 0..=2) => *view = i as u8,
                                     Some(3) => *modal = true,
-                                    Some(i @ (13 | 18)) if i == 13 || (*view == 5 && xmenu.is_some()) => {
-*xmenu = None;
+                                    Some(13) => {
                                         *view = 5;
                                         *xdirty = true;
                                         *xscroll = 0;
                                         *xsel = 0;
-                                        *xmode = 0;
-                                        xname.clear();
                                         *xdir = std::env::var_os("HOME")
                                             .or_else(|| std::env::var_os("USERPROFILE"))
                                             .map_or(".".into(), Into::into);
                                     }
-                                    Some(i @ (16 | 17 | 19 | 20)) if *view == 5 && xmenu.is_some() => {
-    xmenu
-        .and_then(|menu| menu.2)
-        .and_then(|row| xlist.get(row))
-        .filter(|e| i == 16 && e.1)
-        .map(|e| e.0.clone())
-        .into_iter()
-        .for_each(|name| xdir.push(name));
-    if i == 17 {
-        xdir.pop();
-    }
-    *xdirty |= i < 19;
-    *xscroll *= (i >= 19) as usize;
-    *xsel *= (i >= 19) as usize;
-    *xmode = (i as u8).saturating_sub(18);
-    *xerr = false;
-    xname.clear();
-    *xmenu = None;
-}
+                                    Some(26) if *view == 5 => {
+                                        xhit.and_then(|row| xlist.get(row))
+                                            .filter(|e| e.1)
+                                            .map(|e| e.0.clone())
+                                            .into_iter()
+                                            .for_each(|name| {
+                                                xdir.push(name);
+                                                *xdirty = true;
+                                                *xscroll = 0;
+                                                *xsel = 0;
+                                            });
+                                    }
+                                    Some(27) if *view == 5 => {}
 Some(i @ 16..=25) if *view == 5 => {
                                         xdir.ancestors()
                                             .nth(i - 16)
@@ -2608,7 +2532,7 @@ Some(i @ 16..=25) if *view == 5 => {
                                                         std::sync::mpsc::channel::<u8>(),
                                                         store[project].5.clone(),
                                                     )] {
-                                                        icons[32] = images.add(bevy::image::Image::new(
+                                                        icons[33] = images.add(bevy::image::Image::new(
                                                             bevy::render::render_resource::Extent3d {
                                                                 width: width as u32,
                                                                 height: height as u32,
@@ -2677,17 +2601,6 @@ Some(i @ 16..=25) if *view == 5 => {
                                     .map(|e| (e.file_name().to_string_lossy().into_owned(), e.path().is_dir(), e.metadata().map_or(0, |m| m.len())))
                                     .collect();
                                 xlist.sort_by_cached_key(|e| (!e.1, e.0.to_lowercase()));
-                                Some(xlist.iter().position(|e| e.0 == *xname))
-                                    .flatten()
-                                    .filter(|_| *xmode == 0)
-                                    .into_iter()
-                                    .for_each(|row| {
-                                        *xsel = row + 1;
-                                        *xscroll = row.saturating_sub(vis / 2).min(xlist.len().saturating_sub(vis));
-                                    });
-                                if *xmode == 0 {
-                                    xname.clear();
-                                }
                                 *moving = true;
                             }
                             if *dirty {
@@ -2744,7 +2657,7 @@ Some(i @ 16..=25) if *view == 5 => {
                                 machine.take().into_iter().for_each(|(_, _, on, thread, _, _)| {
                                     on.store(false, std::sync::atomic::Ordering::Release);
                                     thread.unpark();
-                                    icons[32] = icons[2].clone();
+                                    icons[33] = icons[2].clone();
                                 });
                                 *modal = false;
                                 *picker = false;
@@ -2756,7 +2669,7 @@ Some(i @ 16..=25) if *view == 5 => {
                                     .into_iter()
                                     .for_each(|g| {
                                         *seen = g;
-                                        images.get_mut(&icons[32]).iter_mut().for_each(|image| {
+                                        images.get_mut(&icons[33]).iter_mut().for_each(|image| {
                                             image.data.iter_mut().for_each(|data| {
                                                 data.chunks_exact_mut(4).zip(pixels.iter()).for_each(|(rgba, pixel)| {
                                                     rgba.copy_from_slice(&pixel.load(std::sync::atomic::Ordering::Relaxed).to_le_bytes())
@@ -2801,9 +2714,6 @@ Some(i @ 16..=25) if *view == 5 => {
                             .filter(|mode| winit.focused_mode != *mode)
                             .into_iter()
                             .for_each(|mode| winit.focused_mode = mode);
-                            *xmenu = xmenu.filter(|menu| {
-    *view == 5 && !keys.just_pressed(bevy::input::keyboard::KeyCode::Escape) && !(mdn && ptr.is_some_and(|c| !menu.0.contains(c)))
-});
 *moving = false;
 }
 }

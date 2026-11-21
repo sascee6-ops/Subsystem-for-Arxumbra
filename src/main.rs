@@ -3,6 +3,116 @@
 #[global_allocator]
 static GLOBAL_ALLOCATOR: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
+struct Dir {
+    path: std::path::PathBuf,
+    parent: Option<std::sync::Arc<Dir>>,
+    row: usize,
+    sum: std::sync::atomic::AtomicU64,
+    open: std::sync::atomic::AtomicUsize,
+}
+
+struct Walk {
+    queue: std::sync::Mutex<Vec<std::sync::Arc<Dir>>>,
+    todo: std::sync::atomic::AtomicUsize,
+    stop: std::sync::atomic::AtomicBool,
+    live: Vec<std::sync::atomic::AtomicU64>,
+}
+
+type Done = std::sync::mpsc::Sender<(usize, std::path::PathBuf, u64, bool)>;
+
+fn scan(job: &Walk, dir: &std::sync::Arc<Dir>, done: &Done) {
+    for entries in [std::fs::read_dir(&dir.path)
+        .ok()
+        .filter(|_| {
+            !["/proc", "/sys", "/dev"]
+                .iter()
+                .any(|root| dir.path.starts_with(root))
+        })
+        .into_iter()
+        .flatten()
+        .flatten()
+        .filter_map(|entry| {
+            entry
+                .file_type()
+                .ok()
+                .and_then(|kind| match (kind.is_dir(), kind.is_file()) {
+                    (true, _) => Some((Some(entry.path()), 0)),
+                    (_, true) => entry.metadata().ok().map(|meta| (None, meta.len())),
+                    _ => None,
+                })
+        })
+        .collect::<Vec<_>>()]
+    {
+        for (own, kids) in [(
+            entries.iter().map(|entry| entry.1).sum::<u64>(),
+            entries
+                .into_iter()
+                .filter_map(|entry| entry.0)
+                .map(|path| {
+                    std::sync::Arc::new(Dir {
+                        path,
+                        parent: Some(dir.clone()),
+                        row: dir.row,
+                        sum: std::sync::atomic::AtomicU64::new(0),
+                        open: std::sync::atomic::AtomicUsize::new(1),
+                    })
+                })
+                .collect::<Vec<_>>(),
+        )] {
+            job.live
+                .get(dir.row)
+                .into_iter()
+                .chain(std::iter::once(&dir.sum))
+                .for_each(|total| {
+                    total.fetch_add(own, std::sync::atomic::Ordering::AcqRel);
+                });
+            dir.open
+                .fetch_add(kids.len(), std::sync::atomic::Ordering::AcqRel);
+            job.todo
+                .fetch_add(kids.len(), std::sync::atomic::Ordering::AcqRel);
+            job.queue
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .extend(kids);
+            std::iter::successors(Some(dir.clone()), |node| {
+                (node.open.fetch_sub(1, std::sync::atomic::Ordering::AcqRel) == 1)
+                    .then(|| {
+                        for total in [node.sum.load(std::sync::atomic::Ordering::Acquire)] {
+                            done.send((node.row, node.path.clone(), total, node.parent.is_none()))
+                                .ok();
+                            node.parent.iter().for_each(|parent| {
+                                parent
+                                    .sum
+                                    .fetch_add(total, std::sync::atomic::Ordering::AcqRel);
+                            });
+                        }
+                    })
+                    .and_then(|()| node.parent.clone())
+            })
+            .for_each(drop);
+            job.todo.fetch_sub(1, std::sync::atomic::Ordering::AcqRel);
+        }
+    }
+}
+
+fn walk(job: &Walk, done: &Done) {
+    std::iter::from_fn(|| {
+        (!job.stop.load(std::sync::atomic::Ordering::Relaxed))
+            .then(|| {
+                job.queue
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner)
+                    .pop()
+            })
+            .and_then(|next| match next {
+                Some(dir) => Some(scan(job, &dir, done)),
+                None => (job.todo.load(std::sync::atomic::Ordering::Acquire) > 0)
+                    .then(|| std::thread::sleep(std::time::Duration::from_micros(300))),
+            })
+    })
+    .for_each(drop);
+}
+
 fn main() {
     std::iter::once(
         (if cfg!(target_os = "windows") {
@@ -331,12 +441,13 @@ fn main() {
                 Vec<(usize, Vec<u8>)>,
                 (
                     std::path::PathBuf,
-                    Vec<(String, bool, u64)>,
+                    Vec<(String, bool, u64, bool)>,
                     usize,
                     usize,
                     bool,
                     Option<usize>,
-                    Option<(std::sync::mpsc::Receiver<(usize, u64)>, std::sync::Arc<std::sync::atomic::AtomicBool>)>,
+                    Option<(std::sync::mpsc::Receiver<(usize, std::path::PathBuf, u64, bool)>, std::sync::Arc<Walk>, bool)>,
+                    std::collections::HashMap<std::path::PathBuf, u64>,
                 ),
             )>,
              pt: bevy::ecs::system::Local<(
@@ -1316,6 +1427,62 @@ fn main() {
                               ..........................\
                               .........................."
                                 .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              .........9cbbbbc9.........\
+                              ........7ffffffff7........\
+                              .....266bfb9999bfb662.....\
+                              ....6fffffa7777afffff6....\
+                              ....efbadfcbbbbcfdabfe....\
+                              ....ff327ffffffff722ff1...\
+                              ....ff2227a9999a7222ef1...\
+                              ....ff22222222222222ef1...\
+                              ....ff22222222222222ef1...\
+                              ....ff22222222222222ef1...\
+                              ....ff228ffffffff822ef1...\
+                              ....ff225aaaaaaaa522ef1...\
+                              ....ff22222222222222ef1...\
+                              ....ff22222222222222ef1...\
+                              ....ff225a9999932222ef1...\
+                              ....ff229ffffff42222ef1...\
+                              ....ff22233333322222ef1...\
+                              ....ff22222222222222ef1...\
+                              ....ff32222222222222ff1...\
+                              ....efbaaaaaaaaaaaabfe....\
+                              ....6ffffffffffffffff6....\
+                              .....2666666666666662.....\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              .........25555552.........\
+                              .........cffffffd.........\
+                              .........df8888ee.........\
+                              ....88899ef8888ef99888....\
+                              ...3ffffffffffffffffff3...\
+                              ....59fd8888888888df95....\
+                              .....4fc2222222222cf4.....\
+                              .....3fd2242332422df3.....\
+                              .....1fe24f6bc6f42ef1.....\
+                              ......ff23f8bd7f42ff......\
+                              ......ef32f8bd7f33fe......\
+                              ......df42f9bd8f34fd......\
+                              ......cf52e9bd9f25fc......\
+                              ......af62eabd9e26fa......\
+                              ......9f72dbbdae27f9......\
+                              ......8f82a8898a28f8......\
+                              ......7fa22222222af7......\
+                              ......5fd88888888df5......\
+                              ......1effffffffffe1......\
+                              .......289888888982.......\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
                         ]
                         .map(|art: &[u8]| {
                             images.add(bevy::image::Image::new(
@@ -1467,7 +1634,7 @@ fn main() {
                             (
                                 (view, hud, modal, picker, esc, moving, ed, edit),
                                 (name, icon, kind, dim, dir, entries, pscroll, dirty, wacc, pending),
-                                (store, lscroll, jobs, (xdir, xlist, xscroll, xsel, xdirty, xhit, xjob)),
+                                (store, lscroll, jobs, (xdir, xlist, xscroll, xsel, xdirty, xhit, xjob, xcache)),
                                 (hover, focus, press, anim, fades, bt, machine, (kc, kh, kact, km, ptr)),
                                 icons,
                             ),
@@ -1823,7 +1990,7 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
     spr(cs(col - 24.0, 120.0, 18.0, 18.0), 6.0, gr(0.46, a), 29);
     txt(col, 120.0, 0, "SIZE", 12.0, 6.5, gr(0.42, a));
     spr(rc(left, 140.0, right, 141.0), 1.8, gr(0.1, a), 2);
-    for (k, (name, folder, size)) in xlist.iter().skip(*xscroll).take(vis).enumerate() {
+    for (k, (name, folder, size, fin)) in xlist.iter().skip(*xscroll).take(vis).enumerate() {
         for (rr, on, img) in [(
             rc(left, 152.0 + k as f32 * 36.0, right, 184.0 + k as f32 * 36.0),
             (*xsel == *xscroll + k + 1) as u8 as f32,
@@ -1858,7 +2025,14 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
                     6.5,
                     gr(if *folder { 0.95 } else { 0.72 }, a),
                 );
-                for (id, label, glyph, x0, x1) in [(26_usize, "Open", 20_usize, -520.0_f32, -444.0_f32), (27, "Rename", 30, -436.0, -346.0), (28, "Copy", 33, -338.0, -262.0), (29, "Cut", 34, -254.0, -188.0)]
+                for (id, label, glyph, x0, x1) in [
+                    (26_usize, "Open", 20_usize, -710.0_f32, -634.0_f32),
+                    (27, "Cut", 34, -626.0, -558.0),
+                    (28, "Copy", 33, -550.0, -474.0),
+                    (29, "Paste", 35, -466.0, -384.0),
+                    (30, "Rename", 30, -376.0, -286.0),
+                    (31, "Delete", 36, -278.0, -188.0),
+                ]
                     .into_iter()
                     .filter(|_| hov > 0.0)
                 {
@@ -1872,18 +2046,15 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
                         }
                     }
                 }
-                for (number, unit) in [[(1_u64 << 30, "GB"), (1 << 20, "MB"), (1 << 10, "KB")]
+                for (number, unit, f) in [[(1_u64 << 40, "TB"), (1 << 30, "GB"), (1 << 20, "MB"), (1 << 10, "KB")]
                     .iter()
-                    .find(|(unit, _)| *size >= *unit)
+                    .find(|(unit, _)| *size as f64 >= *unit as f64 * (1.0 - 1.0 / 20480.0))
                     .map_or((size.to_string(), "B"), |(unit, tag)| (format!("{:.1}", *size as f64 / *unit as f64), *tag))]
                 .into_iter()
-                .filter(|_| *size != u64::MAX)
+                .map(|(number, unit)| (number, unit, *fin as u8 as f32))
                 {
-                    txt(col, rr.center().y, 0, number.as_str(), 13.0, 6.5, gr(0.62, a));
-                    txt(col + 7.8 * (number.len() as f32 + 1.0), rr.center().y, 0, unit, 13.0, 6.5, gr(0.34, a));
-                }
-                for note in ["..."].into_iter().filter(|_| *size == u64::MAX) {
-                    txt(col, rr.center().y, 0, note, 13.0, 6.5, gr(0.3, a));
+                    txt(col, rr.center().y, 0, number.as_str(), 13.0, 6.5, gr(0.42 + 0.2 * f, a));
+                    txt(col + 7.8 * (number.len() as f32 + 1.0), rr.center().y, 0, unit, 13.0, 6.5, gr(0.24 + 0.1 * f, a));
                 }
             }
         }
@@ -2322,7 +2493,7 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
                                             for (r, id, _, z, _, al) in bt.iter() {
                                                 for ([hv, fc, pr, sl], ga) in [(
                                                     anim[*id],
-                                                    if (16..30).contains(id) { *al * anim[*id][0].max(anim[*id][1]) } else { *al },
+                                                    if (16..32).contains(id) { *al * anim[*id][0].max(anim[*id][1]) } else { *al },
                                                 )] {
                                                     if ga > 0.0 {
                                                         spr(
@@ -2347,7 +2518,7 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
                                             }
                                         }
                                         if *view == 4 {
-                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 35);
+                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 37);
                                         }
                                     });
                                     sit.for_each(|(_, _, v)| {
@@ -2389,12 +2560,28 @@ for dir in [bevy::math::Vec2::new(
     *moving |= dir != bevy::math::Vec2::ZERO;
 }
 *ptr = if *kact { Some(*kc) } else { window.cursor_position() };
-xjob.as_ref().into_iter().for_each(|(rx, stop)| {
-    stop.fetch_or(*view != 5, std::sync::atomic::Ordering::Relaxed);
-    rx.try_iter().for_each(|(i, size)| {
-        xlist.get_mut(i).into_iter().for_each(|e| e.2 = size);
-        *moving = true;
-    });
+xjob.as_mut().into_iter().for_each(|(rx, job, working)| {
+    job.stop.fetch_or(*view != 5, std::sync::atomic::Ordering::Relaxed);
+    *working = job.todo.load(std::sync::atomic::Ordering::Acquire) > 0 && !job.stop.load(std::sync::atomic::Ordering::Relaxed);
+    *moving |= rx
+        .try_iter()
+        .map(|(row, path, total, top)| {
+            (xcache.len() > 400_000).then(|| xcache.clear());
+            xcache.insert(path, total);
+            xlist.get_mut(row).filter(|_| top).into_iter().for_each(|e| {
+                e.2 = total;
+                e.3 = true;
+            });
+        })
+        .count()
+        > 0;
+    *moving |= xlist
+        .iter_mut()
+        .zip(job.live.iter())
+        .filter(|(e, live)| e.1 && !e.3 && e.2 != live.load(std::sync::atomic::Ordering::Relaxed))
+        .map(|(e, live)| e.2 = live.load(std::sync::atomic::Ordering::Relaxed))
+        .count()
+        > 0;
 });
 *xhit = ptr
     .filter(|c| {
@@ -2606,7 +2793,7 @@ Some(i @ 16..=25) if *view == 5 => {
                                                         std::sync::mpsc::channel::<u8>(),
                                                         store[project].5.clone(),
                                                     )] {
-                                                        icons[35] = images.add(bevy::image::Image::new(
+                                                        icons[37] = images.add(bevy::image::Image::new(
                                                             bevy::render::render_resource::Extent3d {
                                                                 width: width as u32,
                                                                 height: height as u32,
@@ -2672,41 +2859,54 @@ Some(i @ 16..=25) if *view == 5 => {
                                     .flatten()
                                     .flatten()
                                     .filter(|e| !e.file_name().to_string_lossy().starts_with('.'))
-                                    .map(|e| (e.file_name().to_string_lossy().into_owned(), e.path().is_dir(), e.metadata().map_or(0, |m| m.len())))
+                                    .map(|e| (e.file_name().to_string_lossy().into_owned(), e.path().metadata().ok().map(|m| (m.is_dir(), m.len()))))
+                                    .map(|(name, meta)| match meta {
+                                        Some((true, _)) => match xcache.get(&xdir.join(&name)) {
+                                            Some(&size) => (name, true, size, true),
+                                            None => (name, true, 0, false),
+                                        },
+                                        Some((_, len)) => (name, false, len, true),
+                                        None => (name, false, 0, true),
+                                    })
                                     .collect();
                                 xlist.sort_by_cached_key(|e| (!e.1, e.0.to_lowercase()));
-xlist.iter_mut().filter(|e| e.1).for_each(|e| e.2 = u64::MAX);
-xjob.as_ref().into_iter().for_each(|(_, stop)| stop.store(true, std::sync::atomic::Ordering::Relaxed));
-for ((tx, rx), stop, dirs) in [(
-    std::sync::mpsc::channel::<(usize, u64)>(),
-    std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
-    xlist.iter().enumerate().filter(|(_, e)| e.1).map(|(i, e)| (i, xdir.join(&e.0))).collect::<Vec<_>>(),
-)] {
-    for (dirs, tx, flag) in [(dirs, tx, stop.clone())] {
-        std::thread::spawn(move || {
-            dirs.into_iter().take_while(|_| !flag.load(std::sync::atomic::Ordering::Relaxed)).for_each(|(i, root)| {
-                tx.send((
-                    i,
-                    std::iter::successors(Some(vec![(Some(root), 0_u64)]), |level| {
-                        Some(
-                            level
-                                .iter()
-                                .filter_map(|e| e.0.as_ref())
-                                .flat_map(|dir| std::fs::read_dir(dir).into_iter().flatten().flatten())
-                                .filter_map(|entry| entry.metadata().ok().map(|meta| (Some(entry.path()).filter(|_| meta.is_dir()), meta.len() * !meta.is_dir() as u64)))
-                                .collect::<Vec<_>>(),
-                        )
-                        .filter(|next| !next.is_empty() && !flag.load(std::sync::atomic::Ordering::Relaxed))
-                    })
-                    .map(|level| level.iter().map(|e| e.1).sum::<u64>())
-                    .sum::<u64>(),
-                ))
-                .ok();
-            });
-        });
-    }
-    *xjob = Some((rx, stop));
-}
+                                xjob.as_ref().into_iter().for_each(|(_, job, _)| job.stop.store(true, std::sync::atomic::Ordering::Relaxed));
+                                for ((tx, rx), roots) in [(
+                                    std::sync::mpsc::channel(),
+                                    xlist
+                                        .iter()
+                                        .enumerate()
+                                        .filter(|(_, e)| e.1)
+                                        .map(|(row, e)| {
+                                            std::sync::Arc::new(Dir {
+                                                path: xdir.join(&e.0),
+                                                parent: None,
+                                                row,
+                                                sum: std::sync::atomic::AtomicU64::new(0),
+                                                open: std::sync::atomic::AtomicUsize::new(1),
+                                            })
+                                        })
+                                        .rev()
+                                        .collect::<Vec<_>>(),
+                                )] {
+                                    for (job, workers, rx) in [(
+                                        std::sync::Arc::new(Walk {
+                                            todo: std::sync::atomic::AtomicUsize::new(roots.len()),
+                                            stop: std::sync::atomic::AtomicBool::new(false),
+                                            live: xlist.iter().map(|_| std::sync::atomic::AtomicU64::new(0)).collect(),
+                                            queue: std::sync::Mutex::new(roots),
+                                        }),
+                                        std::thread::available_parallelism().map_or(2, std::num::NonZero::get).min(8),
+                                        rx,
+                                    )] {
+                                        (0..workers * xlist.iter().any(|e| e.1) as usize).for_each(|_| {
+                                            for (job, tx) in [(job.clone(), tx.clone())] {
+                                                std::thread::spawn(move || walk(&job, &tx));
+                                            }
+                                        });
+                                        *xjob = Some((rx, job, true));
+                                    }
+                                }
                                 *moving = true;
                             }
                             if *dirty {
@@ -2763,7 +2963,7 @@ for ((tx, rx), stop, dirs) in [(
                                 machine.take().into_iter().for_each(|(_, _, on, thread, _, _)| {
                                     on.store(false, std::sync::atomic::Ordering::Release);
                                     thread.unpark();
-                                    icons[35] = icons[2].clone();
+                                    icons[37] = icons[2].clone();
                                 });
                                 *modal = false;
                                 *picker = false;
@@ -2775,7 +2975,7 @@ for ((tx, rx), stop, dirs) in [(
                                     .into_iter()
                                     .for_each(|g| {
                                         *seen = g;
-                                        images.get_mut(&icons[35]).iter_mut().for_each(|image| {
+                                        images.get_mut(&icons[37]).iter_mut().for_each(|image| {
                                             image.data.iter_mut().for_each(|data| {
                                                 data.chunks_exact_mut(4).zip(pixels.iter()).for_each(|(rgba, pixel)| {
                                                     rgba.copy_from_slice(&pixel.load(std::sync::atomic::Ordering::Relaxed).to_le_bytes())
@@ -2815,7 +3015,7 @@ for ((tx, rx), stop, dirs) in [(
                             Some(if *moving || *esc != 0.0 || press.is_some() {
                                 bevy::winit::UpdateMode::Continuous
                             } else {
-                                bevy::winit::UpdateMode::reactive_low_power(std::time::Duration::from_millis(if machine.is_some() { 16 } else if *view == 5 && xlist.iter().any(|e| e.2 == u64::MAX) { 100 } else { 60_000 }))
+                                bevy::winit::UpdateMode::reactive_low_power(std::time::Duration::from_millis(if machine.is_some() { 16 } else if *view == 5 && xjob.as_ref().is_some_and(|j| j.2) { 50 } else { 60_000 }))
                             })
                             .filter(|mode| winit.focused_mode != *mode)
                             .into_iter()

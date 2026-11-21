@@ -329,7 +329,7 @@ fn main() {
                 )>,
                 usize,
                 Vec<(usize, Vec<u8>)>,
-                (std::path::PathBuf, Vec<(String, bool, u64)>, usize, usize, bool, String, u8, bool),
+                (std::path::PathBuf, Vec<(String, bool, u64)>, usize, usize, bool, String, u8, bool, Option<(bevy::math::Rect, usize, Option<usize>, u8)>, Option<usize>),
             )>,
              pt: bevy::ecs::system::Local<(
                 Option<usize>,
@@ -344,9 +344,7 @@ fn main() {
                     std::sync::Arc<std::sync::atomic::AtomicBool>,
                     std::thread::Thread,
                     u32,
-                    std::sync::mpsc::Sender<u8>,
-                )>,
-            )>,
+                    std::sync::mpsc::Sender<u8>, )>, (bevy::math::Vec2, f32, bool, bevy::math::Vec2, Option<bevy::math::Vec2>), )>,
              ic: bevy::ecs::system::Local<Vec<bevy::asset::Handle<bevy::image::Image>>>| {
                 Some((kb, wheel, images, commands, sprites, texts, winit, ma, fo, st, pt, ic))
                     .iter_mut()
@@ -1292,8 +1290,8 @@ fn main() {
                             (
                                 (view, hud, modal, picker, esc, moving, ed, edit),
                                 (name, icon, kind, dim, dir, entries, pscroll, dirty, wacc, pending),
-                                (store, lscroll, jobs, (xdir, xlist, xscroll, xsel, xdirty, xname, xmode, xerr)),
-                                (hover, focus, press, anim, fades, bt, machine),
+                                (store, lscroll, jobs, (xdir, xlist, xscroll, xsel, xdirty, xname, xmode, xerr, xmenu, xhit)),
+                                (hover, focus, press, anim, fades, bt, machine, (kc, kh, kact, km, ptr)),
                                 icons,
                             ),
                             w,
@@ -1319,7 +1317,7 @@ fn main() {
                                 })
                                 .sum::<f32>();
                             for e in kb.read() {
-                                if e.state.is_pressed() && *view == 4 {
+                                if e.state.is_pressed() && *view == 4 && !keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) {
                                     machine
                                         .iter()
                                         .filter(|_| store.get(*ed).is_some_and(|pr| pr.2 == 2))
@@ -1341,52 +1339,28 @@ fn main() {
                                         });
                                 }
                                 if e.state.is_pressed() && *view == 5 && !*hud {
-                *moving = true;
-                for (ctrl, start) in [(
-                    keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft),
-                    match e.key_code {
-                        bevy::input::keyboard::KeyCode::KeyD => 1_u8,
-                        bevy::input::keyboard::KeyCode::KeyF => 2,
-                        _ => 0,
-                    },
-                )] {
-                    if ctrl && start > 0 && !e.repeat {
-                        if *xmode == 0 {
-                            xname.clear();
-                        }
-                        *xmode = start;
-                        *xerr = false;
-                    } else if *xmode > 0 && !ctrl {
-                        if e.logical_key == bevy::input::keyboard::Key::Escape {
-                            *xmode = 0;
-                            *xerr = false;
-                            xname.clear();
-                        } else if e.logical_key == bevy::input::keyboard::Key::Enter {
-                            *xerr = xname.is_empty()
-                                || xname.starts_with('.')
-                                || !match *xmode {
-                                    1 => std::fs::create_dir(xdir.join(&*xname)).is_ok(),
-                                    _ => std::fs::File::create_new(xdir.join(&*xname)).is_ok(),
-                                };
-                            *xmode *= *xerr as u8;
-                            *xdirty |= !*xerr;
-                        } else {
-                            *xerr = false;
-                            if e.logical_key == bevy::input::keyboard::Key::Backspace {
-                                xname.pop();
-                            }
-                            xname.extend(
-                                e.text
-                                    .iter()
-                                    .flat_map(|t| t.chars())
-                                    .filter(|c| (c.is_ascii_graphic() && !"/\\:*?\"<>|".contains(*c)) || *c == ' ')
-                                    .take(40_usize.saturating_sub(xname.len())),
-                            );
-                        }
-                    }
-                }
+    *moving = true;
+    if *xmode > 0 && !keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) {
+        if e.logical_key == bevy::input::keyboard::Key::Escape {
+            *xmode = 0;
+            *xerr = false;
+            xname.clear();
+        } else {
+            *xerr = false;
+            if e.logical_key == bevy::input::keyboard::Key::Backspace {
+                xname.pop();
             }
-            if e.state.is_pressed() && *edit > 0 && *view == 3 && !*hud {
+            xname.extend(
+                e.text
+                    .iter()
+                    .flat_map(|t| t.chars())
+                    .filter(|c| (c.is_ascii_graphic() && !"/\\:*?\"<>|".contains(*c)) || *c == ' ')
+                    .take(40_usize.saturating_sub(xname.len())),
+            );
+        }
+    }
+}
+if e.state.is_pressed() && *edit > 0 && *view == 3 && !*hud && !keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) {
                                     *moving = true;
                                     store.get_mut(*ed).into_iter().for_each(|pr| {
                                         for (id, key) in [(pr.4, if *edit == 11 { "line" } else { "prompt" })] {
@@ -1415,7 +1389,7 @@ fn main() {
                                         }
                                     });
                                 }
-                                if e.state.is_pressed() && *modal && !*picker && !*hud {
+                                if e.state.is_pressed() && *modal && !*picker && !*hud && !keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) {
                                     *moving = true;
                                     if e.logical_key == bevy::input::keyboard::Key::Backspace {
                                         name.pop();
@@ -1536,6 +1510,9 @@ fn main() {
                                     .iter_mut()
                                     .for_each(|(spr, txt, gr, rc, cs)| {
                                         if !*hud && (*view < 4 || *view == 5) {
+for dot in [bevy::math::Vec2::new(kc.x.floor(), kc.y.floor())].into_iter().filter(|_| *kact) {
+    spr(rc(dot.x, dot.y, dot.x + 1.0, dot.y + 1.0), 9.9, gr(1.0, 1.0), 2);
+}
                                           if *view != 3 && *view != 5 {
                                             spr(rc(24.0, 24.0, side - 4.0, (h - 24.0).max(48.0)), 1.0, gr(0.071, 1.0), 0);
                                             spr(rc(24.0, 24.0, side - 4.0, (h - 24.0).max(48.0)), 1.1, gr(0.133, 1.0), 1);
@@ -1577,7 +1554,7 @@ fn main() {
                 (rc(side + 44.0, 48.0, xr, 192.0), 6, "Laboratory", "OS, CLI and GUI projects", 2),
                 (rc(side + 44.0, 208.0, xr, 352.0), 27, "Explorer", "Files and folders", 13),
             ] {
-                                                            for hv in [window.cursor_position().is_some_and(|c| cd.contains(c) && !*modal && !*picker) as u8 as f32] {
+                                                            for hv in [ptr.is_some_and(|c| cd.contains(c) && !*modal && !*picker) as u8 as f32] {
                                                                 spr(cd, 1.6, gr(0.102 + 0.012 * hv, a), 0);
                                                                 spr(cd, 1.7, gr(0.157 + 0.06 * hv, a), 1);
                                                             }
@@ -1664,7 +1641,7 @@ fn main() {
                                                                             {
                                                                                 for (j, label, x, body) in segs.iter().copied() {
                                                                                     for idx in [segs.len() - 1 - j] {
-                                                                                        bt.push((rc(x, 42.0, x + body + 8.0, 70.0), 16 + idx, 0.0, 5.0, *xmode == 0 && idx > 0, a));
+                                                                                        bt.push((rc(x, 42.0, x + body + 8.0, 70.0), 16 + idx, 0.0, 5.0, *xmode == 0 && xmenu.is_none() && idx > 0, a));
                                                                                         for (shade, ink) in [match (j, idx) {
                                                                                             (0, _) => (0.9, 0.07),
                                                                                             (_, 0) => (0.3, 0.96),
@@ -1702,7 +1679,7 @@ fn main() {
                                                                 rc(side + 40.0, 132.0 + k as f32 * 32.0, (w - 44.0).max(side + 41.0), 160.0 + k as f32 * 32.0),
                                                                 (*xsel == *xscroll + k + 1) as u8 as f32,
                                                             )] {
-                                                                for hov in [window.cursor_position().is_some_and(|c| rr.contains(c)) as u8 as f32] {
+                                                                for hov in [(ptr.is_some_and(|c| rr.contains(c)) && xmenu.is_none() || xmenu.is_some_and(|menu| menu.2 == Some(*xscroll + k))) as u8 as f32] {
                                                                     for pill in [rc(rr.min.x + 4.0, rr.min.y, rr.max.x - 4.0, rr.max.y)] {
                                                                         spr(pill, 2.0, gr(1.0, a * (0.01 * hov + 0.012 * on)), 0);
                                                                         spr(pill, 2.1, gr(1.0, a * (0.012 * hov + 0.03 * on)), 1);
@@ -1752,7 +1729,27 @@ fn main() {
                                                                 spr(rc(w - 36.0, top, w - 33.0, top + thumb), 2.3, gr(0.3, a), 2);
                                                             }
                                                         }
-                                                        for bar in [rc(side + 40.0, h - 80.0, (w - 44.0).max(side + 41.0), h - 30.0)].into_iter().filter(|_| *xmode > 0) {
+                                                        for (rect, sel, bits) in xmenu.map(|menu| (menu.0, menu.1, menu.3)).into_iter() {
+    spr(rect, 8.0, gr(0.098, a), 0);
+    spr(rect, 8.1, gr(0.22, a), 1);
+    for (k, label) in ["Open", "Up", "Home", "New folder", "New file"].into_iter().enumerate() {
+        for row in [rc(rect.min.x + 8.0, rect.min.y + 8.0 + 32.0 * k as f32, rect.max.x - 8.0, rect.min.y + 36.0 + 32.0 * k as f32)] {
+            bt.push((row, 16 + k, 0.0, 5.0, bits >> k & 1 == 1, a));
+            spr(row, 8.2, gr(1.0, a * (0.03 * (sel == k) as u8 as f32 + 0.012 * anim[16 + k][0])), 0);
+            spr(row, 8.3, gr(1.0, a * 0.03 * (sel == k) as u8 as f32), 1);
+            txt(
+                row.min.x + 14.0,
+                row.center().y,
+                0,
+                label,
+                14.0,
+                8.5,
+                gr(if bits >> k & 1 == 0 { 0.26 } else if sel == k { 0.96 } else { 0.66 }, a),
+            );
+        }
+    }
+}
+for bar in [rc(side + 40.0, h - 80.0, (w - 44.0).max(side + 41.0), h - 30.0)].into_iter().filter(|_| *xmode > 0) {
                                                             spr(bar, 7.0, gr(0.071, a), 2);
                                                             spr(rc(bar.min.x, bar.min.y, bar.max.x, bar.min.y + 1.0), 7.05, gr(0.133, a), 2);
                                                             for (icon, caption) in [if *xmode == 1 { (21, "New folder") } else { (22, "New file") }] {
@@ -1817,7 +1814,7 @@ fn main() {
                                                                 for pc in [(side + 40.0 + (i % cols) as f32 * 396.0, 108.0 + (i / cols - *lscroll) as f32 * 160.0)]
                                                                     .map(|(x, y)| rc(x, y, x + 380.0, y + 144.0))
                                                                 {
-                                                                    for hv in [window.cursor_position().is_some_and(|c| pc.contains(c) && !*modal && !*picker) as u8 as f32] {
+                                                                    for hv in [ptr.is_some_and(|c| pc.contains(c) && !*modal && !*picker) as u8 as f32] {
                                                                         spr(pc, 2.0, gr(0.102 + 0.012 * hv, a), 0);
                                                                         spr(pc, 2.1, gr(0.157 + 0.06 * hv, a), 1);
                                                                     }
@@ -2241,8 +2238,99 @@ fn main() {
                                         });
                                     });
                                 });
-                            *hover = window
-                                .cursor_position()
+for ke in [keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) && !*hud && *view != 4 && *xmode == 0 && xmenu.is_none()] {
+for (mdn, mup, mhd) in [(
+    mdn || (ke && keys.just_pressed(bevy::input::keyboard::KeyCode::KeyE)),
+    mup || (keys.just_released(bevy::input::keyboard::KeyCode::KeyE) && !*hud && *view != 4),
+    mhd || (ke && keys.pressed(bevy::input::keyboard::KeyCode::KeyE)),
+)] {
+                            *kact = *kact
+    && !mouse.just_pressed(bevy::input::mouse::MouseButton::Left)
+    && window.cursor_position().is_none_or(|c| c == *km);
+*km = window.cursor_position().unwrap_or(*km);
+for dir in [bevy::math::Vec2::new(
+    keys.pressed(bevy::input::keyboard::KeyCode::KeyD) as u8 as f32 - keys.pressed(bevy::input::keyboard::KeyCode::KeyA) as u8 as f32,
+    keys.pressed(bevy::input::keyboard::KeyCode::KeyS) as u8 as f32 - keys.pressed(bevy::input::keyboard::KeyCode::KeyW) as u8 as f32,
+) * (keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) && !*hud && *view != 4 && xmenu.is_none()) as u8 as f32]
+{
+    *kh = (*kh + dt) * (dir != bevy::math::Vec2::ZERO) as u8 as f32;
+    *kc = if dir != bevy::math::Vec2::ZERO && !*kact {
+        window.cursor_position().unwrap_or(bevy::math::Vec2::new(w / 2.0, h / 2.0))
+    } else {
+        *kc
+    };
+    *kact |= dir != bevy::math::Vec2::ZERO;
+    *kc = (*kc + dir.normalize_or_zero() * (140.0 + 1500.0 * (*kh / 0.9).min(1.0).powi(2)) * dt)
+        .clamp(bevy::math::Vec2::ZERO, bevy::math::Vec2::new(w - 1.0, h - 1.0));
+    *moving |= dir != bevy::math::Vec2::ZERO;
+}
+*ptr = if *kact { Some(*kc) } else { window.cursor_position() };
+*xhit = ptr
+    .filter(|c| {
+        *view == 5
+            && c.x > side + 40.0
+            && c.x < w - 44.0
+            && c.y >= 132.0
+            && (*xmode == 0 || c.y < h - 80.0)
+            && (c.y - 132.0) / 32.0 < vis as f32
+    })
+    .map(|c| *xscroll + ((c.y - 132.0) / 32.0) as usize)
+    .filter(|row| *row < xlist.len());
+for (ctrl, anchor, mask) in [(
+    keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) && *view == 5 && !*hud,
+    (ptr.unwrap_or(bevy::math::Vec2::new(w / 2.0, h / 2.0)) + bevy::math::Vec2::splat(8.0))
+        .min(bevy::math::Vec2::new(w - 212.0, h - 200.0)),
+    (xhit.is_some_and(|row| xlist[row].1) as u8) | ((xdir.parent().is_some() as u8) << 1) | 0b11100,
+)] {
+    *xmenu = match (xmenu.is_some(), ctrl && keys.just_pressed(bevy::input::keyboard::KeyCode::KeyQ) && *xmode == 0) {
+        (true, true) => None,
+        (false, true) => Some((
+            bevy::math::Rect::from_corners(anchor, anchor + bevy::math::Vec2::new(188.0, 176.0)),
+            mask.trailing_zeros() as usize,
+            *xhit,
+            mask,
+        )),
+        _ => *xmenu,
+    };
+    *xmenu = xmenu.map(|(rect, sel, target, bits)| {
+        (
+            rect,
+            if ctrl && (keys.just_pressed(bevy::input::keyboard::KeyCode::KeyS) || keys.just_pressed(bevy::input::keyboard::KeyCode::KeyW)) {
+                (1..5)
+                    .map(|k| (sel + if keys.just_pressed(bevy::input::keyboard::KeyCode::KeyS) { k } else { 5 - k }) % 5)
+                    .find(|i| bits >> i & 1 == 1)
+                    .unwrap_or(sel)
+            } else {
+                sel
+            },
+            target,
+            bits,
+        )
+    });
+}
+Some(*xmode)
+    .filter(|m| {
+        *m > 0
+            && (keys.just_pressed(bevy::input::keyboard::KeyCode::Enter)
+                || (keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) && keys.just_pressed(bevy::input::keyboard::KeyCode::KeyE)))
+    })
+    .into_iter()
+    .for_each(|m| {
+        *xerr = xname.is_empty()
+            || xname.starts_with('.')
+            || !match m {
+                1 => std::fs::create_dir(xdir.join(&*xname)).is_ok(),
+                _ => std::fs::File::create_new(xdir.join(&*xname)).is_ok(),
+            };
+        *xmode *= *xerr as u8;
+        *xdirty |= !*xerr;
+    });
+*wacc += 14.0
+    * dt
+    * (*kact && keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) && *view == 5 && xmenu.is_none() && !*hud) as u8 as f32
+    * ((kc.y < 156.0 && keys.pressed(bevy::input::keyboard::KeyCode::KeyW)) as u8 as f32
+        - (kc.y > 108.0 + 32.0 * vis as f32 && keys.pressed(bevy::input::keyboard::KeyCode::KeyS)) as u8 as f32);
+*hover = ptr
                                 .filter(|_| window.focused && !*hud)
                                 .and_then(|c| bt.iter().find(|b| b.4 && b.0.contains(c)).map(|b| b.1));
                             *focus = if keys.just_pressed(bevy::input::keyboard::KeyCode::Tab) {
@@ -2281,8 +2369,7 @@ fn main() {
                                         keys.just_pressed(bevy::input::keyboard::KeyCode::Enter)
                                             || (keys.just_pressed(bevy::input::keyboard::KeyCode::Space)
                                                 && !(*modal && !*picker)
-                                                && *edit == 0)
-                                    })),
+                                                && *edit == 0) })).or(xmenu.filter(|_| keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) && keys.just_pressed(bevy::input::keyboard::KeyCode::KeyE)).map(|m| 16 + m.1)),
                             )
                             .into_iter()
                             .for_each(|act| {
@@ -2290,26 +2377,13 @@ fn main() {
                                 *moving |= act.is_some() || mdn || mup || keys.get_just_pressed().len() > 0;
                                 if keys.just_pressed(bevy::input::keyboard::KeyCode::Escape)
                                     || (mdn
-                                        && window
-                                            .cursor_position()
+                                        && ptr
                                             .is_some_and(|c| !(if *picker { prect } else { mrect }).contains(c)))
                                 {
                                     *modal &= *picker;
                                     *picker = false;
                                 }
-                                window
-                                    .cursor_position()
-                                    .filter(|c| {
-                                        mdn && *view == 5
-                                            && c.x > side + 40.0
-                                            && c.x < w - 44.0
-                                            && c.y >= 132.0
-                            && (*xmode == 0 || c.y < h - 80.0)
-                                            && (c.y - 132.0) / 32.0 < vis as f32
-                                    })
-                                    .map(|c| *xscroll + ((c.y - 132.0) / 32.0) as usize)
-                                    .filter(|row| *row < xlist.len())
-                                    .into_iter()
+                                xhit.filter(|_| mdn && xmenu.is_none()).into_iter()
                                     .for_each(|row| {
                                         *xsel = row + 1;
                                         if xlist[row].1 {
@@ -2327,7 +2401,7 @@ fn main() {
                                                 || keys.just_pressed(bevy::input::keyboard::KeyCode::Enter)
                                                 || *view != 3
                                                 || (mdn
-                                                    && !window.cursor_position().is_some_and(|c| {
+                                                    && !ptr.is_some_and(|c| {
                                                         bt.iter().any(|b| b.1 == *edit as usize && b.0.contains(c))
                                                     }))) as u8
                                     }
@@ -2335,7 +2409,8 @@ fn main() {
                                 match act {
                                     Some(i @ 0..=2) => *view = i as u8,
                                     Some(3) => *modal = true,
-                                    Some(13) => {
+                                    Some(i @ (13 | 18)) if i == 13 || (*view == 5 && xmenu.is_some()) => {
+*xmenu = None;
                                         *view = 5;
                                         *xdirty = true;
                                         *xscroll = 0;
@@ -2346,7 +2421,26 @@ fn main() {
                                             .or_else(|| std::env::var_os("USERPROFILE"))
                                             .map_or(".".into(), Into::into);
                                     }
-                                    Some(i @ 16..=25) if *view == 5 => {
+                                    Some(i @ (16 | 17 | 19 | 20)) if *view == 5 && xmenu.is_some() => {
+    xmenu
+        .and_then(|menu| menu.2)
+        .and_then(|row| xlist.get(row))
+        .filter(|e| i == 16 && e.1)
+        .map(|e| e.0.clone())
+        .into_iter()
+        .for_each(|name| xdir.push(name));
+    if i == 17 {
+        xdir.pop();
+    }
+    *xdirty |= i < 19;
+    *xscroll *= (i >= 19) as usize;
+    *xsel *= (i >= 19) as usize;
+    *xmode = (i as u8).saturating_sub(18);
+    *xerr = false;
+    xname.clear();
+    *xmenu = None;
+}
+Some(i @ 16..=25) if *view == 5 => {
                                         xdir.ancestors()
                                             .nth(i - 16)
                                             .map(std::path::Path::to_path_buf)
@@ -2633,7 +2727,12 @@ fn main() {
                             .filter(|mode| winit.focused_mode != *mode)
                             .into_iter()
                             .for_each(|mode| winit.focused_mode = mode);
-                            *moving = false;
+                            *xmenu = xmenu.filter(|menu| {
+    *view == 5 && !keys.just_pressed(bevy::input::keyboard::KeyCode::Escape) && !(mdn && ptr.is_some_and(|c| !menu.0.contains(c)))
+});
+*moving = false;
+}
+}
                         },
                     );
                     });

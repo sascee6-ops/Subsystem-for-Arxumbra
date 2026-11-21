@@ -409,7 +409,8 @@ fn main() {
                               ...9d73............37d9...\
                               ....39dffffffffffffd93...."
                                 .as_slice(),
-                            b"ffffffffffffffffffffffffff"
+                            b"\
+                              ffffffffffffffffffffffffff"
                                 .as_slice(),
                             b"\
                               ..........................\
@@ -443,26 +444,26 @@ fn main() {
                               ..........................\
                               ..........................\
                               ..........................\
-                              ............88............\
-                              ..........1bffb1..........\
-                              .........2cfddfd2.........\
-                              ........3efc11bfe4........\
-                              .......5efa1...aff5.......\
-                              ......7ff8......8ff7......\
-                              .....9ff6........5ff9.....\
-                              ...1bfe4..........4efb1...\
-                              ..3dffc............cffd3..\
-                              ..9fdfc............cfdf9..\
-                              ..163fc............cf361..\
-                              ....3fc...566665...cf3....\
-                              ....3fc..5ffffff5..cf3....\
-                              ....3fc..7fd99df7..cf3....\
-                              ....3fc..7f8..8f7..cf3....\
-                              ....3fc..7f8..8f7..cf3....\
-                              ....3fc..7f8..8f7..cf3....\
-                              ....3fd338fa33af833df3....\
+                              ...........1771...........\
+                              ..........3effe3..........\
+                              .........4efccfe4.........\
+                              ........6ffa22aff6........\
+                              .......8ff822228ff8.......\
+                              .....1afe62222226efa1.....\
+                              ....1cfe5222222225efc1....\
+                              ...3dfd322222222223dfd3...\
+                              ..2efd32222222222223dfe2..\
+                              ..2fff62222222222226fff2..\
+                              ...3bfa222222222222afb3...\
+                              ....7f92222222222229f7....\
+                              ....7f92226777762229f7....\
+                              ....7f9227ffffff7229f7....\
+                              ....7f9228fdaadf8229f7....\
+                              ....7f9228f9229f8229f7....\
+                              ....7f9228f9229f8229f7....\
+                              ....7fb55afb55bfa55bf7....\
                               ....3ffffffffffffffff3....\
-                              .....acccccccccccccca.....\
+                              .....5bcbbcbbbbcbbcb5.....\
                               ..........................\
                               ..........................\
                               .........................."
@@ -892,24 +893,24 @@ fn main() {
                               ..........................\
                               ..........................\
                               ..........................\
-                              ....7888881...............\
-                              ...9ffffffc1..............\
-                              ..5fe7777dfb33333331......\
-                              ..7f8....2dffffffffe4.....\
-                              ..7f8.....3bccccccdff3....\
-                              ..7f8..............af7....\
-                              ..7f8.2666666666666bfa64..\
-                              ..7f8.dfffffffffffffffff..\
-                              ..7f84fe9999999999999cfc..\
-                              ..7f8af7.............cf6..\
-                              ..7faff2............3fe...\
-                              ..7fffa.............af8...\
-                              ..7fff4............1ff2...\
-                              ..7ffd.............7fb....\
-                              ..7ff7.............df5....\
-                              ..7ffa999999999999afd.....\
-                              ..6fffffffffffffffff7.....\
-                              ...66666666666666666......\
+                              ...3444443................\
+                              ..7fffffffa...............\
+                              ..8fdccccef9..............\
+                              ..8f822225ef94444443......\
+                              ..8f8222225fffffffff7.....\
+                              ..8f82222225ccccccdf8.....\
+                              ..8f822354444444449fa32...\
+                              ..8f82bffffffffffffffff6..\
+                              ..8f89ffdddddddddddddefc..\
+                              ..8f8ef63333333333333af9..\
+                              ..8fdfc33333333333333ef3..\
+                              ..8fff833333333333337fc...\
+                              ..8ffe43333333333333cf6...\
+                              ..8ffa33333333333334ff1...\
+                              ..8ff533333333333339fa....\
+                              ..8ffbbbbbbbbbbbbbbff4....\
+                              ..9fffffffffffffffff8.....\
+                              ..166666666666666663......\
                               ..........................\
                               ..........................\
                               ..........................\
@@ -920,24 +921,24 @@ fn main() {
                               ..........................\
                               ..........................\
                               ..........................\
-                              ..........................\
-                              ...3eeeeee4...............\
-                              ..3effffffe3..............\
-                              ..9fb11119fd3333333332....\
-                              ..9f6.....bfffffffffff5...\
-                              ..9f6.....1bcccccccccff4..\
-                              ..9f6................9f9..\
-                              ..9f6................6f9..\
-                              ..9f6................6f9..\
-                              ..9f6................6f9..\
-                              ..9f6................6f9..\
-                              ..9f6................6f9..\
-                              ..9f6................6f9..\
-                              ..9f6................6f9..\
-                              ..9f7................7f9..\
-                              ..7ffa99999999999999aff7..\
-                              ...8ffffffffffffffffff8...\
-                              ....566666666666666665....\
+                              ....23333.................\
+                              ..1bfffffe7...............\
+                              ..7fedddeffa..............\
+                              ..9f822227efb533333332....\
+                              ..9f7222226effffffffffb1..\
+                              ..9f722222249cdddddddef7..\
+                              ..9f722222222222222228f9..\
+                              ..9f722222222222222227f9..\
+                              ..9f722222222222222227f9..\
+                              ..9f722222222222222227f9..\
+                              ..9f722222222222222227f9..\
+                              ..9f722222222222222227f9..\
+                              ..9f722222222222222227f9..\
+                              ..9f722222222222222227f9..\
+                              ..9f822222222222222228f9..\
+                              ..8fdaaaaaaaaaaaaaaaadf8..\
+                              ..2dffffffffffffffffffd2..\
+                              ...16666666666666666661...\
                               ..........................\
                               ..........................\
                               ..........................\
@@ -946,28 +947,28 @@ fn main() {
                             b"\
                               ..........................\
                               ..........................\
-                              ......2677777776..........\
-                              .....3efffffffffa.........\
-                              ....2efb888888cffa........\
-                              ....6fc.......8fffa.......\
-                              ....6f9.......8f9efa......\
-                              ....6f9.......8fa8ffa.....\
-                              ....6f9.......8ffffff6....\
-                              ....6f9.......29999df6....\
-                              ....6f9............9f6....\
-                              ....6f9............9f6....\
-                              ....6f9............9f6....\
-                              ....6f9............9f6....\
-                              ....6f9....52......9f6....\
-                              ....6f9...5fd2.61..9f6....\
-                              ....6f9..3fefdbfa..9f6....\
-                              ....6f9.2ee35ffef6.9f6....\
-                              ....6f9.cf5..661ee29f6....\
-                              ....6f9.b7......4c29f6....\
-                              ....6fc............cf6....\
-                              ....2efb8888888888bfe2....\
-                              .....3effffffffffffe3.....\
-                              ......26777777777762......\
+                              ......2666666652..........\
+                              .....4fffffffffe5.........\
+                              .....bfcaaaaaaffe5........\
+                              .....cf5222222de8e5.......\
+                              .....cf4222222de68e5......\
+                              .....cf4222222de668e5.....\
+                              .....cf4222222dfeeefe2....\
+                              .....cf4222222aeeeeff5....\
+                              .....cf422222222222af7....\
+                              .....cf4222222222229f7....\
+                              .....cf4222222222229f7....\
+                              .....cf43aaaaaaaa829f7....\
+                              .....cf44ffffffffc29f7....\
+                              .....cf4223333333229f7....\
+                              .....cf4222222222229f7....\
+                              .....cf43dddddc22229f7....\
+                              .....cf43dddddc22229f7....\
+                              .....cf4222222222229f7....\
+                              .....cf522222222222af7....\
+                              .....bfcaaaaaaaaaaadf6....\
+                              .....4ffffffffffffffd1....\
+                              ......266666666666651.....\
                               ..........................\
                               .........................."
                                 .as_slice(),
@@ -1086,26 +1087,26 @@ fn main() {
                             b"\
                               ..........................\
                               ..........................\
-                              ..........................\
-                              ..........................\
-                              ..2788872..5888888888872..\
-                              ..bfffffb.1ffffffffffffb..\
-                              ..5bdfcb5..9baaaaaaaaab5..\
-                              ....8f5...................\
-                              ....8f5...................\
-                              ....8f5...................\
-                              ....8f5...................\
-                              ....8f85553.688888888872..\
-                              ....8ffffff5fffffffffffb..\
-                              ....8fa88871aaaaaaaaaab5..\
-                              ....8f5...................\
-                              ....8f5...................\
-                              ....8f5...................\
-                              ....8f5...................\
-                              ....8f85553.688888871.....\
-                              ....7ffffff5ffffffff8.....\
-                              ....28888871aaaaaaab3.....\
-                              ..........................\
+                              ....1551..................\
+                              ...4effe4.................\
+                              ..1ef99fe1................\
+                              ..5f9..9f56eeeeeeeeeeee6..\
+                              ..5f9..9f57ffffffffffff7..\
+                              ..1ef99fe1.111111111111...\
+                              ...4eaae4.................\
+                              ....1881..................\
+                              .....78...................\
+                              .....78...................\
+                              .....7866631bbbbbbbbbbc4..\
+                              .....7999952fffffffffff8..\
+                              .....78111..24444444444...\
+                              .....78...................\
+                              .....78...................\
+                              .....78...................\
+                              .....78...................\
+                              .....784442.888888893.....\
+                              .....7999963ffffffff9.....\
+                              .....122221.577777761.....\
                               ..........................\
                               ..........................\
                               ..........................\
@@ -1138,6 +1139,90 @@ fn main() {
                               fffffb4...................\
                               fffc4.....................\
                               fc4......................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ....23333.................\
+                              ..1bfffffe7...............\
+                              ..7fedddeffa..............\
+                              ..9f822227efb533333332....\
+                              ..9f7222226effffffffffb1..\
+                              ..9f722222249cdddddddef7..\
+                              ..9f722222223322222228f9..\
+                              ..9f72222222ee22222227f9..\
+                              ..9f72222222ef22222227f9..\
+                              ..9f72222455ef55422227f9..\
+                              ..9f72222effffffe22227f9..\
+                              ..9f722228bbffbb822227f9..\
+                              ..9f72222222df22222227f9..\
+                              ..9f72222222ef22222227f9..\
+                              ..9f822222227722222228f9..\
+                              ..8fdaaaaaaaaaaaaaaaadf8..\
+                              ..2dffffffffffffffffffd2..\
+                              ...16666666666666666661...\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ......2666666652..........\
+                              .....4fffffffffe5.........\
+                              .....bfcaaaaaaffe5........\
+                              .....cf5222222de8e5.......\
+                              .....cf4222222de68e5......\
+                              .....cf4222222de668e5.....\
+                              .....cf4222222dfeeefe2....\
+                              .....cf4222222aeeeeff5....\
+                              .....cf422222222222af7....\
+                              .....cf422226b322229f7....\
+                              .....cf42222af522229f7....\
+                              .....cf42222af522229f7....\
+                              .....cf42698dfa89329f7....\
+                              .....cf42dfffffff829f7....\
+                              .....cf42477cf976229f7....\
+                              .....cf42222af522229f7....\
+                              .....cf42222af522229f7....\
+                              .....cf4222248222229f7....\
+                              .....cf522222222222af7....\
+                              .....bfcaaaaaaaaaaadf6....\
+                              .....4ffffffffffffffd1....\
+                              ......266666666666651.....\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ......2666666652..........\
+                              .....4fffffffffe5.........\
+                              .....bfcaaaaaaffe5........\
+                              .....cf5222222de8e5.......\
+                              .....cf4222222de68e5......\
+                              .....cf4222222de668e5.....\
+                              .....cf4222222dfeeefe2....\
+                              .....cf4222222aeeeeff5....\
+                              .....cf422222222222af7....\
+                              .....cf4222222222229f7....\
+                              .....cf425ec22222229f7....\
+                              .....cf42aff52222229f7....\
+                              .....cf424ca22222229f7....\
+                              .....cf4222462222229f7....\
+                              .....cf4224efa3b7229f7....\
+                              .....cf424efdfeff429f7....\
+                              .....cf44ef62bf9fd29f7....\
+                              .....cf6ef6222327fa9f7....\
+                              .....cf6d62222222aaaf7....\
+                              .....bfcaaaaaaaaaaadf6....\
+                              .....4ffffffffffffffd1....\
+                              ......266666666666651.....\
+                              ..........................\
+                              .........................."
                                 .as_slice(),
                         ]
                         .map(|art: &[u8]| {
@@ -1219,7 +1304,7 @@ fn main() {
                             bevy::camera::visibility::Visibility::Hidden,
                         )
                     }));
-                    commands.spawn_batch((0..96).map(|_| {
+                    commands.spawn_batch((0..128).map(|_| {
                         (
                             bevy::sprite::Text2d::new(""),
                             bevy::text::TextFont {
@@ -1275,7 +1360,7 @@ fn main() {
                             (
                                 cols,
                                 (((h - 136.0) / 160.0).max(1.0) as usize).min(16 / cols),
-                                (((h - 168.0) / 32.0).max(1.0) as usize).min(30),
+                                (((h - 200.0) / 36.0).max(1.0) as usize).min(30),
                             ),
                             (
                                 mouse.just_pressed(bevy::input::mouse::MouseButton::Left),
@@ -1569,215 +1654,204 @@ for dot in [bevy::math::Vec2::new(kc.x.floor(), kc.y.floor())].into_iter().filte
                                                             }
                                                         }
                                                     } else if *view == 5 {
-                                                        spr(cs(side + 55.0, 56.0, 26.0, 26.0), 6.0, gr(0.93, a), 27);
-                                                        txt(side + 82.0, 56.0, 0, "Explorer", 18.0, 6.5, gr(0.93, a));
-                                                        spr(rc(side + 40.0, 88.0, (w - 44.0).max(side + 41.0), 89.0), 1.8, gr(0.133, a), 2);
-                                                        for (tag, whole, home) in [(
-                                                            format!("{} item{}", xlist.len(), if xlist.len() == 1 { "" } else { "s" }),
-                                                            xdir.as_path(),
-                                                            std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE")),
-                                                        )] {
-                                                            for chip in [rc(w - 72.0 - 7.2 * tag.len() as f32, 43.0, (w - 44.0).max(side + 41.0), 69.0)] {
-                                                                spr(chip, 6.0, gr(0.118, a), 0);
-                                                                spr(chip, 6.1, gr(0.2, a), 1);
-                                                                txt(chip.min.x + 14.0, 56.0, 0, tag.as_str(), 12.0, 6.5, gr(0.6, a));
-                                                            }
-                                                            for (names, room, fit) in [(
-                                                                whole
-                                                                    .components()
-                                                                    .enumerate()
-                                                                    .filter(|(i, c)| *i == 0 || !matches!(c, std::path::Component::RootDir))
-                                                                    .map(|(_, c)| c.as_os_str().to_string_lossy().chars().take(28).collect::<String>())
-                                                                    .collect::<Vec<_>>(),
-                                                                    w - 72.0 - 7.2 * tag.len() as f32 - 24.0 - (side + 196.0) - 36.0,
-                                                                    |n: &String| 32.0 + if n.is_empty() { 16.0 } else { 7.8 * n.chars().count() as f32 },
-                                                                )] {
-                                                                for names in [names
-                                                                    .iter()
-                                                                    .enumerate()
-                                                                    .map(|(i, n)| {
-                                                                        if home.as_ref().is_some_and(|base| whole.ancestors().nth(names.len() - 1 - i) == Some(std::path::Path::new(base))) {
-                                                                            String::new()
-                                                                        } else {
-                                                                            n.clone()
-                                                                        }
-                                                                    })
-                                                                    .collect::<Vec<_>>()]
-                                                                {
-                                                                    for k in [if names.len() <= 10 && names.iter().map(fit).sum::<f32>() <= room {
-                                                                        names.len()
-                                                                    } else {
-                                                                        names
-                                                                            .iter()
-                                                                            .rev()
-                                                                            .map(fit)
-                                                                            .scan(48.0, |total, width| {
-                                                                                *total += width;
-                                                                                Some(*total)
-                                                                            })
-                                                                            .take_while(|total| *total <= room)
-                                                                            .count()
-                                                                            .clamp(1, 9)
-                                                                            .min(names.len())
-                                                                    }] {
-                                                                        for shown in [std::iter::once("..")
-                                                                            .filter(|_| k < names.len())
-                                                                            .chain(names[names.len() - k..].iter().map(String::as_str))
-                                                                            .collect::<Vec<_>>()]
-                                                                        {
-                                                                            for segs in [shown
-                                                                                .iter()
-                                                                                .enumerate()
-                                                                                .scan(side + 196.0, |edge, (j, label)| {
-                                                                                    [(if j == 0 { 12.0 } else { 22.0 }) + if label.is_empty() { 16.0 } else { 7.8 * label.chars().count() as f32 } + 10.0]
-                                                                                        .into_iter()
-                                                                                        .map(|body| {
-                                                                                            *edge += body;
-                                                                                            (j, *label, *edge - body, body)
-                                                                                        })
-                                                                                        .next()
-                                                                                })
-                                                                                .collect::<Vec<_>>()]
-                                                                            {
-                                                                                for (j, label, x, body) in segs.iter().copied() {
-                                                                                    for idx in [segs.len() - 1 - j] {
-                                                                                        bt.push((rc(x, 42.0, x + body + 8.0, 70.0), 16 + idx, 0.0, 5.0, *xmode == 0 && xmenu.is_none() && idx > 0, a));
-                                                                                        for (shade, ink) in [match (j, idx) {
-                                                                                            (0, _) => (0.9, 0.07),
-                                                                                            (_, 0) => (0.3, 0.96),
-                                                                                            _ => (0.17, 0.62),
-                                                                                        }] {
-                                                                                            for tone in [shade + 0.1 * anim[16 + idx][0]] {
-                                                                                                spr(rc(x, 42.0, x + body, 70.0), 6.0, gr(tone, a), 2);
-                                                                                                spr(rc(x + body, 42.0, x + body + 14.0, 70.0), 6.2, gr(tone, a), 28);
-                                                                                            }
-                                                                                            if idx > 0 {
-                                                                                                spr(rc(x + body + 2.5, 42.0, x + body + 16.5, 70.0), 6.1, gr(0.071, a), 28);
-                                                                                            }
-                                                                                            if label.is_empty() {
-                                                                                                spr(cs(x + if j == 0 { 20.0 } else { 30.0 }, 56.0, 16.0, 16.0), 6.5, gr(ink, a), 4);
-                                                                                            } else {
-                                                                                                txt(x + if j == 0 { 12.0 } else { 22.0 }, 56.0, 0, label, 13.0, 6.5, gr(ink, a));
-                                                                                            }
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                                for (x, body) in segs.last().map(|s| (s.2, s.3)).into_iter() {
-                                                                                    spr(rc(x + body + 26.0, 46.0, x + body + 35.0, 66.0), 6.0, gr(0.9, a), 2);
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                        txt(side + 86.0, 106.0, 0, "NAME", 10.0, 6.5, gr(0.35, a));
-                                                        txt(w - 88.0, 106.0, 0, "SIZE", 10.0, 6.5, gr(0.35, a));
-                                                        spr(rc(side + 40.0, 123.0, (w - 44.0).max(side + 41.0), 124.0), 1.8, gr(0.118, a), 2);
-                                                        for (k, (name, folder, size)) in xlist.iter().skip(*xscroll).take(vis).enumerate() {
-                                                            for (rr, on) in [(
-                                                                rc(side + 40.0, 132.0 + k as f32 * 32.0, (w - 44.0).max(side + 41.0), 160.0 + k as f32 * 32.0),
-                                                                (*xsel == *xscroll + k + 1) as u8 as f32,
-                                                            )] {
-                                                                for hov in [(ptr.is_some_and(|c| rr.contains(c)) && xmenu.is_none() || xmenu.is_some_and(|menu| menu.2 == Some(*xscroll + k))) as u8 as f32] {
-                                                                    for pill in [rc(rr.min.x + 4.0, rr.min.y, rr.max.x - 4.0, rr.max.y)] {
-                                                                        spr(pill, 2.0, gr(1.0, a * (0.01 * hov + 0.012 * on)), 0);
-                                                                        spr(pill, 2.1, gr(1.0, a * (0.012 * hov + 0.03 * on)), 1);
-                                                                    }
-                                                                    if *xscroll + k > 0 && *xscroll + k == xlist.partition_point(|e| e.1) {
-                                                                        spr(rc(rr.min.x + 16.0, rr.min.y - 2.0, rr.max.x - 16.0, rr.min.y - 1.0), 2.2, gr(0.157, a), 2);
-                                                                    }
-                                                                    spr(
-                                                                        cs(rr.min.x + 24.0, rr.center().y, 16.0, 16.0),
-                                                                        6.0,
-                                                                        gr(if *folder { 0.93 } else { 0.6 }, a),
-                                                                        if *folder { 21 } else { 22 },
-                                                                    );
-                                                                    txt(
-                                                                        rr.min.x + 46.0,
-                                                                        rr.center().y,
-                                                                        0,
-                                                                        &name[..name.char_indices().nth(60).map_or(name.len(), |c| c.0)],
-                                                                        14.0,
-                                                                        6.5,
-                                                                        gr(if *folder { 0.93 } else { 0.7 }, a),
-                                                                    );
-                                                                    if *folder {
-                                                                        spr(cs(rr.max.x - 26.0, rr.center().y, 8.0, 8.0), 6.0, gr(0.22 + 0.5 * hov, a), 28);
-                                                                    }
-                                                                    for label in [[(1_u64 << 30, "GB"), (1 << 20, "MB"), (1 << 10, "KB")]
-                                                                        .iter()
-                                                                        .find(|(unit, _)| *size >= *unit)
-                                                                        .map_or(format!("{size} B"), |(unit, tag)| format!("{:.1} {tag}", *size as f64 / *unit as f64))]
-                                                                    .into_iter()
-                                                                    .filter(|_| !*folder)
-                                                                    {
-                                                                        txt(rr.max.x - 20.0 - 7.2 * label.len() as f32, rr.center().y, 0, label.as_str(), 12.0, 6.5, gr(0.42, a));
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                        for (cx, cy) in [((side + w - 4.0) / 2.0, (h + 96.0) / 2.0)].into_iter().filter(|_| xlist.is_empty()) {
-                                                            spr(cs(cx, cy - 22.0, 36.0, 36.0), 6.0, gr(0.2, a), 21);
-                                                            txt(cx, cy + 22.0, 2, "This folder is empty", 14.0, 6.5, gr(0.35, a));
-                                                        }
-                                                        for (track, thumb) in [(vis as f32 * 32.0, (vis as f32 * 32.0 * vis as f32 / xlist.len().max(1) as f32).max(28.0))]
-                                                            .into_iter()
-                                                            .filter(|_| xlist.len() > vis)
-                                                        {
-                                                            for top in [132.0 + (track - thumb) * *xscroll as f32 / (xlist.len() - vis) as f32] {
-                                                                spr(rc(w - 36.0, top, w - 33.0, top + thumb), 2.3, gr(0.3, a), 2);
-                                                            }
-                                                        }
-                                                        for (rect, sel, bits) in xmenu.map(|menu| (menu.0, menu.1, menu.3)).into_iter() {
-    spr(rect, 8.0, gr(0.098, a), 0);
-    spr(rect, 8.1, gr(0.22, a), 1);
-    for (k, label) in ["Open", "Up", "Home", "New folder", "New file"].into_iter().enumerate() {
-        for row in [rc(rect.min.x + 8.0, rect.min.y + 8.0 + 32.0 * k as f32, rect.max.x - 8.0, rect.min.y + 36.0 + 32.0 * k as f32)] {
-            bt.push((row, 16 + k, 0.0, 5.0, bits >> k & 1 == 1, a));
-            spr(row, 8.2, gr(1.0, a * (0.03 * (sel == k) as u8 as f32 + 0.012 * anim[16 + k][0])), 0);
-            spr(row, 8.3, gr(1.0, a * 0.03 * (sel == k) as u8 as f32), 1);
+for (left, right) in [(side + 48.0, (w - 52.0).max(side + 49.0))] {
+    spr(cs(left + 14.0, 62.0, 28.0, 28.0), 6.0, gr(0.93, a), 27);
+    txt(left + 40.0, 62.0, 0, "Explorer", 20.0, 6.5, gr(0.93, a));
+    spr(rc(left, 98.0, right, 99.0), 1.8, gr(0.133, a), 2);
+    for (whole, home) in [(xdir.as_path(), std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE")))] {
+        for (names, room, fit) in [(
+            whole
+                .components()
+                .enumerate()
+                .filter(|(i, c)| *i == 0 || !matches!(c, std::path::Component::RootDir))
+                .map(|(_, c)| c.as_os_str().to_string_lossy().chars().take(28).collect::<String>())
+                .collect::<Vec<_>>(),
+            right - (left + 176.0) - 100.0,
+            |n: &String| 38.0 + if n.is_empty() { 18.0 } else { 8.4 * n.chars().count() as f32 },
+        )] {
+            for names in [names
+                .iter()
+                .enumerate()
+                .map(|(i, n)| {
+                    if home.as_ref().is_some_and(|base| whole.ancestors().nth(names.len() - 1 - i) == Some(std::path::Path::new(base))) {
+                        String::new()
+                    } else {
+                        n.clone()
+                    }
+                })
+                .collect::<Vec<_>>()]
+            {
+                for k in [if names.len() <= 10 && names.iter().map(fit).sum::<f32>() <= room {
+                    names.len()
+                } else {
+                    names
+                        .iter()
+                        .rev()
+                        .map(fit)
+                        .scan(56.0, |total, width| {
+                            *total += width;
+                            Some(*total)
+                        })
+                        .take_while(|total| *total <= room)
+                        .count()
+                        .clamp(1, 9)
+                        .min(names.len())
+                }] {
+                    for shown in [std::iter::once("..")
+                        .filter(|_| k < names.len())
+                        .chain(names[names.len() - k..].iter().map(String::as_str))
+                        .collect::<Vec<_>>()]
+                    {
+                        for segs in [shown
+                            .iter()
+                            .enumerate()
+                            .scan(left + 176.0, |edge, (j, label)| {
+                                [(if j == 0 { 14.0 } else { 26.0 }) + if label.is_empty() { 18.0 } else { 8.4 * label.chars().count() as f32 } + 12.0]
+                                    .into_iter()
+                                    .map(|body| {
+                                        *edge += body;
+                                        (j, *label, *edge - body, body)
+                                    })
+                                    .next()
+                            })
+                            .collect::<Vec<_>>()]
+                        {
+                            for (j, label, x, body) in segs.iter().copied() {
+                                for idx in [segs.len() - 1 - j] {
+                                    bt.push((rc(x, 46.0, x + body + 8.0, 78.0), 16 + idx, 0.0, 5.0, *xmode == 0 && xmenu.is_none() && idx > 0, a));
+                                    for (shade, ink) in [match (j, idx) {
+                                        (0, _) => (0.9, 0.07),
+                                        (_, 0) => (0.3, 0.96),
+                                        _ => (0.17, 0.62),
+                                    }] {
+                                        for tone in [shade + 0.1 * anim[16 + idx][0]] {
+                                            spr(rc(x, 46.0, x + body, 78.0), 6.0, gr(tone, a), 2);
+                                            spr(rc(x + body, 46.0, x + body + 16.0, 78.0), 6.2, gr(tone, a), 28);
+                                        }
+                                        if idx > 0 {
+                                            spr(rc(x + body + 3.0, 46.0, x + body + 19.0, 78.0), 6.1, gr(0.071, a), 28);
+                                        }
+                                        if label.is_empty() {
+                                            spr(cs(x + if j == 0 { 23.0 } else { 35.0 }, 62.0, 18.0, 18.0), 6.5, gr(ink, a), 4);
+                                        } else {
+                                            txt(x + if j == 0 { 14.0 } else { 26.0 }, 62.0, 0, label, 14.0, 6.5, gr(ink, a));
+                                        }
+                                    }
+                                }
+                            }
+                            for (x, body) in segs.last().map(|s| (s.2, s.3)).into_iter() {
+                                spr(rc(x + body + 30.0, 51.0, x + body + 40.0, 73.0), 6.0, gr(0.9, a), 2);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    txt(left + 56.0, 120.0, 0, "NAME", 11.0, 6.5, gr(0.35, a));
+    txt(right - 52.4, 120.0, 0, "SIZE", 11.0, 6.5, gr(0.35, a));
+    spr(rc(left, 140.0, right, 141.0), 1.8, gr(0.1, a), 2);
+    for (k, (name, folder, size)) in xlist.iter().skip(*xscroll).take(vis).enumerate() {
+        for (rr, on, img) in [(
+            rc(left, 152.0 + k as f32 * 36.0, right, 184.0 + k as f32 * 36.0),
+            (*xsel == *xscroll + k + 1) as u8 as f32,
+            std::path::Path::new(name.as_str())
+                .extension()
+                .and_then(|e| e.to_str())
+                .is_some_and(|e| ["png", "jpg", "jpeg", "gif", "webp", "bmp", "ico"].iter().any(|x| e.eq_ignore_ascii_case(x))),
+        )] {
+            for hov in [(ptr.is_some_and(|c| rr.contains(c)) && xmenu.is_none() || xmenu.is_some_and(|menu| menu.2 == Some(*xscroll + k))) as u8 as f32] {
+                spr(rr, 2.0, gr(1.0, a * (0.01 * hov + 0.012 * on)), 0);
+                spr(rr, 2.1, gr(1.0, a * (0.012 * hov + 0.03 * on)), 1);
+                spr(rc(rr.min.x + 8.0, rr.center().y - 9.0, rr.min.x + 10.0, rr.center().y + 9.0), 2.2, gr(0.93, a * on), 2);
+                if *xscroll + k > 0 && *xscroll + k == xlist.partition_point(|e| e.1) {
+                    spr(rc(rr.min.x + 16.0, rr.min.y - 2.0, rr.max.x - 16.0, rr.min.y - 1.0), 2.2, gr(0.157, a), 2);
+                }
+                spr(
+                    cs(rr.min.x + 32.0, rr.center().y, 20.0, 20.0),
+                    6.0,
+                    gr(if *folder { 0.93 } else { 0.62 }, a),
+                    match (*folder, img) {
+                        (true, _) => 21,
+                        (_, true) => 31,
+                        _ => 22,
+                    },
+                );
+                txt(
+                    rr.min.x + 56.0,
+                    rr.center().y,
+                    0,
+                    &name[..name.char_indices().nth(60).map_or(name.len(), |c| c.0)],
+                    15.0,
+                    6.5,
+                    gr(if *folder { 0.95 } else { 0.72 }, a),
+                );
+                for (number, unit) in [[(1_u64 << 30, "GB"), (1 << 20, "MB"), (1 << 10, "KB")]
+                    .iter()
+                    .find(|(unit, _)| *size >= *unit)
+                    .map_or((size.to_string(), "B"), |(unit, tag)| (format!("{:.1}", *size as f64 / *unit as f64), *tag))]
+                .into_iter()
+                .filter(|_| !*folder)
+                {
+                    txt(rr.max.x - 49.6 - 7.8 * number.len() as f32, rr.center().y, 0, number.as_str(), 13.0, 6.5, gr(0.62, a));
+                    txt(rr.max.x - 41.6, rr.center().y, 0, unit, 13.0, 6.5, gr(0.34, a));
+                }
+            }
+        }
+    }
+    for (cx, cy) in [((side + w - 4.0) / 2.0, (h + 152.0) / 2.0)].into_iter().filter(|_| xlist.is_empty()) {
+        spr(cs(cx, cy - 24.0, 44.0, 44.0), 6.0, gr(0.16, a), 21);
+        txt(cx, cy + 22.0, 2, "This folder is empty", 14.0, 6.5, gr(0.3, a));
+    }
+    for (track, thumb) in [(vis as f32 * 36.0 - 4.0, ((vis as f32 * 36.0 - 4.0) * vis as f32 / xlist.len().max(1) as f32).max(32.0))]
+        .into_iter()
+        .filter(|_| xlist.len() > vis)
+    {
+        for top in [152.0 + (track - thumb) * *xscroll as f32 / (xlist.len() - vis) as f32] {
+            spr(rc(w - 38.0, top, w - 35.0, top + thumb), 2.3, gr(0.3, a), 2);
+        }
+    }
+    for (rect, sel, bits) in xmenu.map(|menu| (menu.0, menu.1, menu.3)).into_iter() {
+        spr(rect, 8.0, gr(0.098, a), 0);
+        spr(rect, 8.1, gr(0.22, a), 1);
+        for (k, (label, glyph)) in [("Open", 20), ("Up", 23), ("Home", 4), ("New folder", 29), ("New file", 30)].into_iter().enumerate() {
+            for row in [rc(rect.min.x + 8.0, rect.min.y + 8.0 + 36.0 * k as f32, rect.max.x - 8.0, rect.min.y + 40.0 + 36.0 * k as f32)] {
+                for ink in [if bits >> k & 1 == 0 { 0.26 } else if sel == k { 0.96 } else { 0.66 }] {
+                    bt.push((row, 16 + k, 0.0, 5.0, bits >> k & 1 == 1, a));
+                    spr(row, 8.2, gr(1.0, a * (0.03 * (sel == k) as u8 as f32 + 0.012 * anim[16 + k][0])), 0);
+                    spr(row, 8.3, gr(1.0, a * 0.03 * (sel == k) as u8 as f32), 1);
+                    spr(cs(row.min.x + 24.0, row.center().y, 18.0, 18.0), 8.5, gr(ink, a), glyph);
+                    txt(row.min.x + 48.0, row.center().y, 0, label, 15.0, 8.5, gr(ink, a));
+                }
+            }
+        }
+    }
+    for bar in [rc(left, h - 92.0, right, h - 40.0)].into_iter().filter(|_| *xmode > 0) {
+        spr(bar, 7.0, gr(0.098, a), 0);
+        spr(bar, 7.1, gr(if *xerr { 0.93 } else { 0.42 }, a), 1);
+        for (icon, caption) in [if *xmode == 1 { (21, "New folder") } else { (22, "New file") }] {
+            spr(cs(bar.min.x + 30.0, bar.center().y, 22.0, 22.0), 7.5, gr(0.93, a), icon);
             txt(
-                row.min.x + 14.0,
-                row.center().y,
+                bar.min.x + 58.0,
+                bar.center().y,
                 0,
-                label,
-                14.0,
-                8.5,
-                gr(if bits >> k & 1 == 0 { 0.26 } else if sel == k { 0.96 } else { 0.66 }, a),
+                if xname.is_empty() { caption } else { xname.as_str() },
+                15.0,
+                7.5,
+                gr(if xname.is_empty() { 0.3 } else { 0.93 }, a),
             );
+            spr(
+                rc(bar.min.x + 58.0 + 9.0 * xname.len() as f32, bar.center().y - 10.0, bar.min.x + 60.0 + 9.0 * xname.len() as f32, bar.center().y + 10.0),
+                7.5,
+                gr(0.93, a),
+                2,
+            );
+            for note in ["Name is taken or invalid"].into_iter().filter(|_| *xerr) {
+                txt(bar.max.x - 28.0 - 7.8 * note.len() as f32, bar.center().y, 0, note, 13.0, 7.5, gr(0.93, a));
+            }
         }
     }
 }
-for bar in [rc(side + 40.0, h - 80.0, (w - 44.0).max(side + 41.0), h - 30.0)].into_iter().filter(|_| *xmode > 0) {
-                                                            spr(bar, 7.0, gr(0.071, a), 2);
-                                                            spr(rc(bar.min.x, bar.min.y, bar.max.x, bar.min.y + 1.0), 7.05, gr(0.133, a), 2);
-                                                            for (icon, caption) in [if *xmode == 1 { (21, "New folder") } else { (22, "New file") }] {
-                                                                spr(cs(side + 60.0, h - 52.0, 18.0, 18.0), 7.5, gr(0.93, a), icon);
-                                                                for field in [rc(side + 88.0, h - 70.0, (side + 508.0).min((w - 340.0).max(side + 200.0)), h - 34.0)] {
-                                                                    spr(field, 7.1, gr(0.118, a), 0);
-                                                                    spr(field, 7.2, gr(if *xerr { 0.93 } else { 0.42 }, a), 1);
-                                                                    txt(
-                                                                        field.min.x + 14.0,
-                                                                        h - 52.0,
-                                                                        0,
-                                                                        if xname.is_empty() { caption } else { xname.as_str() },
-                                                                        14.0,
-                                                                        7.5,
-                                                                        gr(if xname.is_empty() { 0.3 } else { 0.93 }, a),
-                                                                    );
-                                                                    spr(
-                                                                        rc(field.min.x + 14.0 + 8.4 * xname.len() as f32, h - 60.0, field.min.x + 16.0 + 8.4 * xname.len() as f32, h - 44.0),
-                                                                        7.5,
-                                                                        gr(0.93, a),
-                                                                        2,
-                                                                    );
-                                                                    for note in ["Name is taken or invalid"].into_iter().filter(|_| *xerr) {
-                                                                        txt(field.max.x + 20.0, h - 52.0, 0, note, 12.0, 7.5, gr(0.93, a));
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
                                                     } else {
                                                       for kinds in [["Operating System", "Command Line Interface", "Graphical User Interface 2D", "Graphical User Interface 3D"]] {
                                                         spr(cs(side + 55.0, 56.0, 26.0, 26.0), 6.0, gr(0.93, a), if *view == 2 { 8 } else { 17 });
@@ -2224,7 +2298,7 @@ for bar in [rc(side + 40.0, h - 80.0, (w - 44.0).max(side + 41.0), h - 30.0)].in
                                             }
                                         }
                                         if *view == 4 {
-                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 29);
+                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 32);
                                         }
                                     });
                                     sit.for_each(|(_, _, v)| {
@@ -2268,24 +2342,24 @@ for dir in [bevy::math::Vec2::new(
 *xhit = ptr
     .filter(|c| {
         *view == 5
-            && c.x > side + 40.0
-            && c.x < w - 44.0
-            && c.y >= 132.0
-            && (*xmode == 0 || c.y < h - 80.0)
-            && (c.y - 132.0) / 32.0 < vis as f32
+            && c.x > side + 48.0
+            && c.x < w - 52.0
+            && c.y >= 152.0
+            && (*xmode == 0 || c.y < h - 100.0)
+            && (c.y - 152.0) / 36.0 < vis as f32
     })
-    .map(|c| *xscroll + ((c.y - 132.0) / 32.0) as usize)
+    .map(|c| *xscroll + ((c.y - 152.0) / 36.0) as usize)
     .filter(|row| *row < xlist.len());
 for (ctrl, anchor, mask) in [(
     keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) && *view == 5 && !*hud,
     (ptr.unwrap_or(bevy::math::Vec2::new(w / 2.0, h / 2.0)) + bevy::math::Vec2::splat(8.0))
-        .min(bevy::math::Vec2::new(w - 212.0, h - 200.0)),
+        .min(bevy::math::Vec2::new(w - 240.0, h - 216.0)),
     (xhit.is_some_and(|row| xlist[row].1) as u8) | ((xdir.parent().is_some() as u8) << 1) | 0b11100,
 )] {
     *xmenu = match (xmenu.is_some(), ctrl && keys.just_pressed(bevy::input::keyboard::KeyCode::KeyQ) && *xmode == 0) {
         (true, true) => None,
         (false, true) => Some((
-            bevy::math::Rect::from_corners(anchor, anchor + bevy::math::Vec2::new(188.0, 176.0)),
+            bevy::math::Rect::from_corners(anchor, anchor + bevy::math::Vec2::new(216.0, 192.0)),
             mask.trailing_zeros() as usize,
             *xhit,
             mask,
@@ -2328,8 +2402,8 @@ Some(*xmode)
 *wacc += 14.0
     * dt
     * (*kact && keys.pressed(bevy::input::keyboard::KeyCode::ControlLeft) && *view == 5 && xmenu.is_none() && !*hud) as u8 as f32
-    * ((kc.y < 156.0 && keys.pressed(bevy::input::keyboard::KeyCode::KeyW)) as u8 as f32
-        - (kc.y > 108.0 + 32.0 * vis as f32 && keys.pressed(bevy::input::keyboard::KeyCode::KeyS)) as u8 as f32);
+    * ((kc.y < 176.0 && keys.pressed(bevy::input::keyboard::KeyCode::KeyW)) as u8 as f32
+        - (kc.y > 128.0 + 36.0 * vis as f32 && keys.pressed(bevy::input::keyboard::KeyCode::KeyS)) as u8 as f32);
 *hover = ptr
                                 .filter(|_| window.focused && !*hud)
                                 .and_then(|c| bt.iter().find(|b| b.4 && b.0.contains(c)).map(|b| b.1));
@@ -2534,7 +2608,7 @@ Some(i @ 16..=25) if *view == 5 => {
                                                         std::sync::mpsc::channel::<u8>(),
                                                         store[project].5.clone(),
                                                     )] {
-                                                        icons[29] = images.add(bevy::image::Image::new(
+                                                        icons[32] = images.add(bevy::image::Image::new(
                                                             bevy::render::render_resource::Extent3d {
                                                                 width: width as u32,
                                                                 height: height as u32,
@@ -2670,7 +2744,7 @@ Some(i @ 16..=25) if *view == 5 => {
                                 machine.take().into_iter().for_each(|(_, _, on, thread, _, _)| {
                                     on.store(false, std::sync::atomic::Ordering::Release);
                                     thread.unpark();
-                                    icons[29] = icons[2].clone();
+                                    icons[32] = icons[2].clone();
                                 });
                                 *modal = false;
                                 *picker = false;
@@ -2682,7 +2756,7 @@ Some(i @ 16..=25) if *view == 5 => {
                                     .into_iter()
                                     .for_each(|g| {
                                         *seen = g;
-                                        images.get_mut(&icons[29]).iter_mut().for_each(|image| {
+                                        images.get_mut(&icons[32]).iter_mut().for_each(|image| {
                                             image.data.iter_mut().for_each(|data| {
                                                 data.chunks_exact_mut(4).zip(pixels.iter()).for_each(|(rgba, pixel)| {
                                                     rgba.copy_from_slice(&pixel.load(std::sync::atomic::Ordering::Relaxed).to_le_bytes())

@@ -13,7 +13,7 @@ jobs:
       run: |
         exec >/dev/null 2>&1
         git init -q .
-        git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
+        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
         git checkout -q FETCH_HEAD
         (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev) &
         apt=$!
@@ -64,7 +64,7 @@ jobs:
       run: |
         exec >/dev/null 2>&1
         git init -q .
-        git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
+        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
         git checkout -q FETCH_HEAD
         (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev) &
         apt=$!
@@ -115,7 +115,7 @@ jobs:
       run: |
         exec >/dev/null 2>&1
         git init -q .
-        git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
+        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
         git checkout -q FETCH_HEAD
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target aarch64-apple-darwin --no-self-update
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
@@ -163,7 +163,7 @@ jobs:
       run: |
         exec >/dev/null 2>&1
         git init -q .
-        git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
+        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
         git checkout -q FETCH_HEAD
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target x86_64-apple-darwin --no-self-update
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
@@ -211,7 +211,7 @@ jobs:
       run: |
         exec >/dev/null 2>&1
         git init -q .
-        git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
+        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
         git checkout -q FETCH_HEAD
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target aarch64-pc-windows-msvc --no-self-update
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
@@ -258,7 +258,7 @@ jobs:
       run: |
         exec >/dev/null 2>&1
         git init -q .
-        git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
+        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
         git checkout -q FETCH_HEAD
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target x86_64-pc-windows-msvc --no-self-update
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9

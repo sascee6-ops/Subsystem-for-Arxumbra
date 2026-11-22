@@ -113,6 +113,24 @@ fn walk(job: &Walk, done: &Done) {
     .for_each(drop);
 }
 
+fn rank(name: &str, folder: bool) -> u8 {
+    if folder {
+        1
+    } else if std::path::Path::new(name)
+        .extension()
+        .and_then(|e| e.to_str())
+        .is_some_and(|e| {
+            ["zip", "tar", "gz", "tgz", "bz2", "xz", "zst", "rar", "7z"]
+                .iter()
+                .any(|x| e.eq_ignore_ascii_case(x))
+        })
+    {
+        0
+    } else {
+        2
+    }
+}
+
 fn main() {
     std::iter::once(
         (if cfg!(target_os = "windows") {
@@ -2114,16 +2132,13 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
                 .extension()
                 .and_then(|e| e.to_str())
                 .is_some_and(|e| ["mp3", "wav", "flac", "ogg", "opus", "m4a", "aac"].iter().any(|x| e.eq_ignore_ascii_case(x))),
-            std::path::Path::new(name.as_str())
-                .extension()
-                .and_then(|e| e.to_str())
-                .is_some_and(|e| ["zip", "tar", "gz", "tgz", "bz2", "xz", "zst", "rar", "7z"].iter().any(|x| e.eq_ignore_ascii_case(x))),
+            rank(name, *folder) == 0,
         )] {
             for hov in [(ptr.is_some_and(|c| rr.contains(c)) && !*xmenu) as u8 as f32] {
                 spr(rr, 2.0, gr(1.0, a * (0.01 * hov + 0.012 * on)), 0);
                 spr(rr, 2.1, gr(1.0, a * (0.012 * hov + 0.03 * on)), 1);
                 spr(rc(rr.min.x + 8.0, rr.center().y - 9.0, rr.min.x + 10.0, rr.center().y + 9.0), 2.2, gr(0.93, a * on), 2);
-                if *xscroll + k > 0 && *xscroll + k == xlist.partition_point(|e| e.1) {
+                if (*xscroll + k).checked_sub(1).and_then(|prev| xlist.get(prev)).is_some_and(|prev| rank(&prev.0, prev.1) != rank(name, *folder)) {
                     spr(rc(rr.min.x + 16.0, rr.min.y - 2.0, rr.max.x - 16.0, rr.min.y - 1.0), 2.2, gr(0.157, a), 2);
                 }
                 spr(
@@ -3013,7 +3028,7 @@ Some(i @ 16..=25) if *view == 5 => {
                                         None => (name, false, 0, true),
                                     })
                                     .collect();
-                                xlist.sort_by_cached_key(|e| (!e.1, e.0.to_lowercase()));
+                                xlist.sort_by_cached_key(|e| (rank(&e.0, e.1), e.0.to_lowercase()));
                                 xjob.as_ref().into_iter().for_each(|(_, job, _)| job.stop.store(true, std::sync::atomic::Ordering::Relaxed));
                                 for ((tx, rx), roots) in [(
                                     std::sync::mpsc::channel(),

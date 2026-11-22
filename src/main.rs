@@ -2041,12 +2041,13 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
                                         txt(nb.min.x + 38.0, 62.0, 0, "New", 13.0, 6.5, gr(ink, a));
                                     }
                                     if *xmenu {
-                                        spr(rc(nb.min.x - 8.0, 94.0, nb.min.x + 176.0, 292.0), 7.8, gr(0.0, a * 0.4), 0);
-                                        spr(rc(nb.min.x, 86.0, nb.min.x + 168.0, 278.0), 8.0, gr(0.09, a), 0);
-                                        spr(rc(nb.min.x, 86.0, nb.min.x + 168.0, 278.0), 8.1, gr(1.0, a * 0.05), 1);
+                                        spr(rc(nb.min.x - 8.0, 94.0, nb.min.x + 176.0, 302.0), 7.8, gr(0.0, a * 0.4), 0);
+                                        spr(rc(nb.min.x, 86.0, nb.min.x + 168.0, 288.0), 8.0, gr(0.09, a), 0);
+                                        spr(rc(nb.min.x, 86.0, nb.min.x + 168.0, 288.0), 8.1, gr(1.0, a * 0.05), 1);
+                                        spr(rc(nb.min.x + 16.0, 167.0, nb.min.x + 152.0, 168.0), 8.1, gr(0.2, a), 2);
                                         for (k, (label, glyph)) in [("Folder", 21_usize), ("Text file", 22), ("Video", 37), ("Image", 31), ("Music", 38)].into_iter().enumerate() {
                                             for (er, hv) in [(
-                                                rc(nb.min.x + 6.0, 92.0 + 36.0 * k as f32, nb.min.x + 162.0, 124.0 + 36.0 * k as f32),
+                                                rc(nb.min.x + 6.0, 92.0 + 36.0 * k as f32 + 10.0 * (k > 1) as u8 as f32, nb.min.x + 162.0, 124.0 + 36.0 * k as f32 + 10.0 * (k > 1) as u8 as f32),
                                                 anim[32 + k][0],
                                             )] {
                                                 bt.push((er, 32 + k, 0.0, 8.2, true, a));
@@ -2147,10 +2148,6 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
                 }
             }
         }
-    }
-    for (cx, cy) in [((side + w - 4.0) / 2.0, (h + 152.0) / 2.0)].into_iter().filter(|_| xlist.is_empty()) {
-        spr(cs(cx, cy - 24.0, 44.0, 44.0), 6.0, gr(0.16, a), 21);
-        txt(cx, cy + 22.0, 2, "This folder is empty", 14.0, 6.5, gr(0.3, a));
     }
     for (track, thumb) in [(vis as f32 * 36.0 - 4.0, ((vis as f32 * 36.0 - 4.0) * vis as f32 / xlist.len().max(1) as f32).max(32.0))]
         .into_iter()

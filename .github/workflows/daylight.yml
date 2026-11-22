@@ -8,16 +8,28 @@ jobs:
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 120
     steps:
-    - shell: bash
+    - id: toolchain
+      shell: bash
       run: |
         exec >/dev/null 2>&1
-        sudo apt-get update -qq
-        sudo apt-get install -y -qq --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev
         git init -q .
         git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
         git checkout -q FETCH_HEAD
+        (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev) &
+        apt=$!
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target aarch64-unknown-linux-gnu --no-self-update
-        cargo +nightly-2026-11-06 build --locked --release --quiet \
+        wait $apt
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: AArch64-Linux-Daylight-nightly-2026-11-06-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
+    - shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        cargo +nightly-2026-11-06 build -Zgit=shallow-deps --locked --release --quiet \
           --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \
@@ -33,28 +45,42 @@ jobs:
           --target aarch64-unknown-linux-gnu --bin subsystem-for-arxumbra
         mkdir -p dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
         cp target/aarch64-unknown-linux-gnu/release/subsystem-for-arxumbra dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
-        tar -czf dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz -C dist AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
+        tar -cf - -C dist AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1 | gzip -1 > dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz
+        find target/aarch64-unknown-linux-gnu/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
         path: dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz
         if-no-files-found: error
         retention-days: 14
+        compression-level: 0
   x86_64-Linux:
     name: x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
-    - shell: bash
+    - id: toolchain
+      shell: bash
       run: |
         exec >/dev/null 2>&1
-        sudo apt-get update -qq
-        sudo apt-get install -y -qq --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev
         git init -q .
         git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
         git checkout -q FETCH_HEAD
+        (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev) &
+        apt=$!
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target x86_64-unknown-linux-gnu --no-self-update
-        cargo +nightly-2026-11-06 build --locked --release --quiet \
+        wait $apt
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: x86_64-Linux-Daylight-nightly-2026-11-06-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
+    - shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        cargo +nightly-2026-11-06 build -Zgit=shallow-deps --locked --release --quiet \
           --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \
@@ -70,26 +96,39 @@ jobs:
           --target x86_64-unknown-linux-gnu --bin subsystem-for-arxumbra
         mkdir -p dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
         cp target/x86_64-unknown-linux-gnu/release/subsystem-for-arxumbra dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
-        tar -czf dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz -C dist x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
+        tar -cf - -C dist x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1 | gzip -1 > dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz
+        find target/x86_64-unknown-linux-gnu/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
         path: dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz
         if-no-files-found: error
         retention-days: 14
+        compression-level: 0
   AArch64-macOS:
     name: AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
     runs-on: macos-15
     timeout-minutes: 120
     steps:
-    - shell: bash
+    - id: toolchain
+      shell: bash
       run: |
         exec >/dev/null 2>&1
         git init -q .
         git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
         git checkout -q FETCH_HEAD
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target aarch64-apple-darwin --no-self-update
-        cargo +nightly-2026-11-06 build --locked --release --quiet \
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: AArch64-macOS-Daylight-nightly-2026-11-06-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
+    - shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        cargo +nightly-2026-11-06 build -Zgit=shallow-deps --locked --release --quiet \
           --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \
@@ -105,26 +144,39 @@ jobs:
           --target aarch64-apple-darwin --bin subsystem-for-arxumbra
         mkdir -p dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
         cp target/aarch64-apple-darwin/release/subsystem-for-arxumbra dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
-        tar -czf dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz -C dist AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
+        tar -cf - -C dist AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1 | gzip -1 > dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz
+        find target/aarch64-apple-darwin/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
         path: dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz
         if-no-files-found: error
         retention-days: 14
+        compression-level: 0
   x86_64-macOS:
     name: x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
     runs-on: macos-15-intel
     timeout-minutes: 120
     steps:
-    - shell: bash
+    - id: toolchain
+      shell: bash
       run: |
         exec >/dev/null 2>&1
         git init -q .
         git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
         git checkout -q FETCH_HEAD
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target x86_64-apple-darwin --no-self-update
-        cargo +nightly-2026-11-06 build --locked --release --quiet \
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: x86_64-macOS-Daylight-nightly-2026-11-06-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
+    - shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        cargo +nightly-2026-11-06 build -Zgit=shallow-deps --locked --release --quiet \
           --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \
@@ -140,26 +192,39 @@ jobs:
           --target x86_64-apple-darwin --bin subsystem-for-arxumbra
         mkdir -p dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
         cp target/x86_64-apple-darwin/release/subsystem-for-arxumbra dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
-        tar -czf dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz -C dist x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
+        tar -cf - -C dist x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1 | gzip -1 > dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz
+        find target/x86_64-apple-darwin/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
         path: dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz
         if-no-files-found: error
         retention-days: 14
+        compression-level: 0
   AArch64-Windows:
     name: AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
     runs-on: windows-11-arm
     timeout-minutes: 120
     steps:
-    - shell: bash
+    - id: toolchain
+      shell: bash
       run: |
         exec >/dev/null 2>&1
         git init -q .
         git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
         git checkout -q FETCH_HEAD
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target aarch64-pc-windows-msvc --no-self-update
-        cargo +nightly-2026-11-06 build --locked --release --quiet \
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: AArch64-Windows-Daylight-nightly-2026-11-06-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
+    - shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        cargo +nightly-2026-11-06 build -Zgit=shallow-deps --locked --release --quiet \
           --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \
@@ -175,25 +240,38 @@ jobs:
           --target aarch64-pc-windows-msvc --bin subsystem-for-arxumbra
         mkdir dist
         cp target/aarch64-pc-windows-msvc/release/subsystem-for-arxumbra.exe dist/AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.exe
+        find target/aarch64-pc-windows-msvc/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
         path: dist/AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.exe
         if-no-files-found: error
         retention-days: 14
+        compression-level: 1
   x86_64-Windows:
     name: x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
     runs-on: windows-2025
     timeout-minutes: 120
     steps:
-    - shell: bash
+    - id: toolchain
+      shell: bash
       run: |
         exec >/dev/null 2>&1
         git init -q .
         git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
         git checkout -q FETCH_HEAD
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target x86_64-pc-windows-msvc --no-self-update
-        cargo +nightly-2026-11-06 build --locked --release --quiet \
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: x86_64-Windows-Daylight-nightly-2026-11-06-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
+    - shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        cargo +nightly-2026-11-06 build -Zgit=shallow-deps --locked --release --quiet \
           --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \
@@ -209,9 +287,11 @@ jobs:
           --target x86_64-pc-windows-msvc --bin subsystem-for-arxumbra
         mkdir dist
         cp target/x86_64-pc-windows-msvc/release/subsystem-for-arxumbra.exe dist/x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.exe
+        find target/x86_64-pc-windows-msvc/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
         path: dist/x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.exe
         if-no-files-found: error
         retention-days: 14
+        compression-level: 1

@@ -8,16 +8,30 @@ jobs:
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 120
     steps:
-    - shell: bash
+    - id: toolchain
+      shell: bash
       run: |
         exec >/dev/null 2>&1
-        sudo apt-get update -qq
-        sudo apt-get install -y -qq --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev
         git init -q .
         git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
         git checkout -q FETCH_HEAD
-        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly --profile minimal --target aarch64-unknown-linux-gnu --no-self-update
-        cargo +nightly build --locked --quiet \
+        (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev) &
+        apt=$!
+        d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
+        echo "date=$d" >> "$GITHUB_OUTPUT"
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-$d --profile minimal --target aarch64-unknown-linux-gnu --no-self-update
+        wait $apt
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: AArch64-Linux-Nightly-${{ steps.toolchain.outputs.date }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/nightly.yml') }}
+    - shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        cargo +nightly-${{ steps.toolchain.outputs.date }} build -Zgit=shallow-deps --locked --quiet \
           --config 'net.retry=10' \
           --config 'profile.dev.opt-level=0' \
           --config 'profile.dev.lto=false' \
@@ -33,28 +47,44 @@ jobs:
           --target aarch64-unknown-linux-gnu --bin subsystem-for-arxumbra
         mkdir -p dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
         cp target/aarch64-unknown-linux-gnu/debug/subsystem-for-arxumbra dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
-        tar -czf dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz -C dist AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
+        tar -cf - -C dist AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1 | gzip -1 > dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz
+        find target/aarch64-unknown-linux-gnu/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
         path: dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz
         if-no-files-found: error
         retention-days: 14
+        compression-level: 0
   x86_64-Linux:
     name: x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
-    - shell: bash
+    - id: toolchain
+      shell: bash
       run: |
         exec >/dev/null 2>&1
-        sudo apt-get update -qq
-        sudo apt-get install -y -qq --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev
         git init -q .
         git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
         git checkout -q FETCH_HEAD
-        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly --profile minimal --target x86_64-unknown-linux-gnu --no-self-update
-        cargo +nightly build --locked --quiet \
+        (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev) &
+        apt=$!
+        d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
+        echo "date=$d" >> "$GITHUB_OUTPUT"
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-$d --profile minimal --target x86_64-unknown-linux-gnu --no-self-update
+        wait $apt
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: x86_64-Linux-Nightly-${{ steps.toolchain.outputs.date }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/nightly.yml') }}
+    - shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        cargo +nightly-${{ steps.toolchain.outputs.date }} build -Zgit=shallow-deps --locked --quiet \
           --config 'net.retry=10' \
           --config 'profile.dev.opt-level=0' \
           --config 'profile.dev.lto=false' \
@@ -70,26 +100,41 @@ jobs:
           --target x86_64-unknown-linux-gnu --bin subsystem-for-arxumbra
         mkdir -p dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
         cp target/x86_64-unknown-linux-gnu/debug/subsystem-for-arxumbra dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
-        tar -czf dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz -C dist x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
+        tar -cf - -C dist x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1 | gzip -1 > dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz
+        find target/x86_64-unknown-linux-gnu/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
         path: dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz
         if-no-files-found: error
         retention-days: 14
+        compression-level: 0
   AArch64-macOS:
     name: AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
     runs-on: macos-15
     timeout-minutes: 120
     steps:
-    - shell: bash
+    - id: toolchain
+      shell: bash
       run: |
         exec >/dev/null 2>&1
         git init -q .
         git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
         git checkout -q FETCH_HEAD
-        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly --profile minimal --target aarch64-apple-darwin --no-self-update
-        cargo +nightly build --locked --quiet \
+        d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
+        echo "date=$d" >> "$GITHUB_OUTPUT"
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-$d --profile minimal --target aarch64-apple-darwin --no-self-update
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: AArch64-macOS-Nightly-${{ steps.toolchain.outputs.date }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/nightly.yml') }}
+    - shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        cargo +nightly-${{ steps.toolchain.outputs.date }} build -Zgit=shallow-deps --locked --quiet \
           --config 'net.retry=10' \
           --config 'profile.dev.opt-level=0' \
           --config 'profile.dev.lto=false' \
@@ -105,26 +150,41 @@ jobs:
           --target aarch64-apple-darwin --bin subsystem-for-arxumbra
         mkdir -p dist/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
         cp target/aarch64-apple-darwin/debug/subsystem-for-arxumbra dist/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
-        tar -czf dist/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz -C dist AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
+        tar -cf - -C dist AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1 | gzip -1 > dist/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz
+        find target/aarch64-apple-darwin/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
         path: dist/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz
         if-no-files-found: error
         retention-days: 14
+        compression-level: 0
   x86_64-macOS:
     name: x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
     runs-on: macos-15-intel
     timeout-minutes: 120
     steps:
-    - shell: bash
+    - id: toolchain
+      shell: bash
       run: |
         exec >/dev/null 2>&1
         git init -q .
         git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
         git checkout -q FETCH_HEAD
-        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly --profile minimal --target x86_64-apple-darwin --no-self-update
-        cargo +nightly build --locked --quiet \
+        d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
+        echo "date=$d" >> "$GITHUB_OUTPUT"
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-$d --profile minimal --target x86_64-apple-darwin --no-self-update
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: x86_64-macOS-Nightly-${{ steps.toolchain.outputs.date }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/nightly.yml') }}
+    - shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        cargo +nightly-${{ steps.toolchain.outputs.date }} build -Zgit=shallow-deps --locked --quiet \
           --config 'net.retry=10' \
           --config 'profile.dev.opt-level=0' \
           --config 'profile.dev.lto=false' \
@@ -140,26 +200,41 @@ jobs:
           --target x86_64-apple-darwin --bin subsystem-for-arxumbra
         mkdir -p dist/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
         cp target/x86_64-apple-darwin/debug/subsystem-for-arxumbra dist/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
-        tar -czf dist/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz -C dist x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
+        tar -cf - -C dist x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1 | gzip -1 > dist/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz
+        find target/x86_64-apple-darwin/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
         path: dist/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.tar.gz
         if-no-files-found: error
         retention-days: 14
+        compression-level: 0
   AArch64-Windows:
     name: AArch64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
     runs-on: windows-11-arm
     timeout-minutes: 120
     steps:
-    - shell: bash
+    - id: toolchain
+      shell: bash
       run: |
         exec >/dev/null 2>&1
         git init -q .
         git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
         git checkout -q FETCH_HEAD
-        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly --profile minimal --target aarch64-pc-windows-msvc --no-self-update
-        cargo +nightly build --locked --quiet \
+        d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
+        echo "date=$d" >> "$GITHUB_OUTPUT"
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-$d --profile minimal --target aarch64-pc-windows-msvc --no-self-update
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: AArch64-Windows-Nightly-${{ steps.toolchain.outputs.date }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/nightly.yml') }}
+    - shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        cargo +nightly-${{ steps.toolchain.outputs.date }} build -Zgit=shallow-deps --locked --quiet \
           --config 'net.retry=10' \
           --config 'profile.dev.opt-level=0' \
           --config 'profile.dev.lto=false' \
@@ -175,25 +250,40 @@ jobs:
           --target aarch64-pc-windows-msvc --bin subsystem-for-arxumbra
         mkdir dist
         cp target/aarch64-pc-windows-msvc/debug/subsystem-for-arxumbra.exe dist/AArch64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.exe
+        find target/aarch64-pc-windows-msvc/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: AArch64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
         path: dist/AArch64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.exe
         if-no-files-found: error
         retention-days: 14
+        compression-level: 1
   x86_64-Windows:
     name: x86_64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
     runs-on: windows-2025
     timeout-minutes: 120
     steps:
-    - shell: bash
+    - id: toolchain
+      shell: bash
       run: |
         exec >/dev/null 2>&1
         git init -q .
         git fetch -q --depth 1 https://github.com/sascee6-ops/Subsystem-for-Arxumbra ${{ github.sha }}
         git checkout -q FETCH_HEAD
-        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly --profile minimal --target x86_64-pc-windows-msvc --no-self-update
-        cargo +nightly build --locked --quiet \
+        d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
+        echo "date=$d" >> "$GITHUB_OUTPUT"
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-$d --profile minimal --target x86_64-pc-windows-msvc --no-self-update
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: x86_64-Windows-Nightly-${{ steps.toolchain.outputs.date }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/nightly.yml') }}
+    - shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        cargo +nightly-${{ steps.toolchain.outputs.date }} build -Zgit=shallow-deps --locked --quiet \
           --config 'net.retry=10' \
           --config 'profile.dev.opt-level=0' \
           --config 'profile.dev.lto=false' \
@@ -209,9 +299,11 @@ jobs:
           --target x86_64-pc-windows-msvc --bin subsystem-for-arxumbra
         mkdir dist
         cp target/x86_64-pc-windows-msvc/debug/subsystem-for-arxumbra.exe dist/x86_64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.exe
+        find target/x86_64-pc-windows-msvc/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: x86_64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1
         path: dist/x86_64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s1.exe
         if-no-files-found: error
         retention-days: 14
+        compression-level: 1

@@ -448,6 +448,7 @@ fn main() {
                     Option<usize>,
                     Option<(std::sync::mpsc::Receiver<(usize, std::path::PathBuf, u64, bool)>, std::sync::Arc<Walk>, bool)>,
                     std::collections::HashMap<std::path::PathBuf, u64>,
+                    bool,
                 ),
             )>,
              pt: bevy::ecs::system::Local<(
@@ -1483,6 +1484,34 @@ fn main() {
                               ..........................\
                               .........................."
                                 .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ...2acbbbbbbbbcc7.........\
+                              ..2efffffffffffffa...781..\
+                              ..8fc55555555557ff13cff8..\
+                              ..9f822373222222dfbffff9..\
+                              ..9f722bfe622222cfffbaf9..\
+                              ..9f722dfffc5222cfe97af9..\
+                              ..9f722dfdfff522df977af9..\
+                              ..9f722dfdfff522df977af9..\
+                              ..9f722dfffc5222cfe97af9..\
+                              ..9f722bfe622222cfffbaf9..\
+                              ..9f822373222222dfbffff9..\
+                              ..8fc55555555557ff13cff8..\
+                              ..2efffffffffffffa...781..\
+                              ...2acbbbbbbbbcc7.........\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
                         ]
                         .map(|art: &[u8]| {
                             images.add(bevy::image::Image::new(
@@ -1584,7 +1613,7 @@ fn main() {
                     }));
                     ma.5 = true;
                 }
-                pt.3.resize(34 + 2 * st.0.len(), [0.0; 4]);
+                pt.3.resize(38 + 2 * st.0.len(), [0.0; 4]);
                 Some((
                     (
                         std::ops::DerefMut::deref_mut(ma),
@@ -1634,7 +1663,7 @@ fn main() {
                             (
                                 (view, hud, modal, picker, esc, moving, ed, edit),
                                 (name, icon, kind, dim, dir, entries, pscroll, dirty, wacc, pending),
-                                (store, lscroll, jobs, (xdir, xlist, xscroll, xsel, xdirty, xhit, xjob, xcache)),
+                                (store, lscroll, jobs, (xdir, xlist, xscroll, xsel, xdirty, xhit, xjob, xcache, xmenu)),
                                 (hover, focus, press, anim, fades, bt, machine, (kc, kh, kact, km, ptr)),
                                 icons,
                             ),
@@ -1903,7 +1932,7 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
                 .filter(|(i, c)| *i == 0 || !matches!(c, std::path::Component::RootDir))
                 .map(|(_, c)| c.as_os_str().to_string_lossy().chars().take(28).collect::<String>())
                 .collect::<Vec<_>>(),
-            right - (left + 176.0) - 100.0,
+            right - (left + 176.0) - 140.0,
             |n: &String| 38.0 + if n.is_empty() { 18.0 } else { 8.4 * n.chars().count() as f32 },
         )] {
             for names in [names
@@ -1977,7 +2006,29 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
                                 }
                             }
                             for (x, body) in segs.last().map(|s| (s.2, s.3)).into_iter() {
-                                spr(rc(x + body + 30.0, 51.0, x + body + 40.0, 73.0), 6.0, gr(0.9, a), 2);
+                                for (nb, open) in [(rc(x + body + 30.0, 46.0, x + body + 108.0, 78.0), *xmenu as u8 as f32)] {
+                                    bt.push((nb, 14, open, 5.0, true, a));
+                                    for ink in [0.62 + 0.3 * anim[14][0].max(open)] {
+                                        spr(cs(nb.min.x + 20.0, 62.0, 16.0, 16.0), 6.0, gr(ink, a), 9);
+                                        txt(nb.min.x + 38.0, 62.0, 0, "New", 13.0, 6.5, gr(ink, a));
+                                    }
+                                    if *xmenu {
+                                        spr(rc(nb.min.x - 8.0, 94.0, nb.min.x + 176.0, 256.0), 7.8, gr(0.0, a * 0.4), 0);
+                                        spr(rc(nb.min.x, 86.0, nb.min.x + 168.0, 242.0), 8.0, gr(0.09, a), 0);
+                                        spr(rc(nb.min.x, 86.0, nb.min.x + 168.0, 242.0), 8.1, gr(1.0, a * 0.05), 1);
+                                        for (k, (label, glyph)) in [("Folder", 21_usize), ("File", 22), ("Image", 31), ("Video", 37)].into_iter().enumerate() {
+                                            for (er, hv) in [(
+                                                rc(nb.min.x + 6.0, 92.0 + 36.0 * k as f32, nb.min.x + 162.0, 124.0 + 36.0 * k as f32),
+                                                anim[32 + k][0],
+                                            )] {
+                                                bt.push((er, 32 + k, 0.0, 8.2, true, a));
+                                                spr(er, 8.15, gr(1.0, a * 0.03 * hv), 0);
+                                                spr(cs(er.min.x + 22.0, er.center().y, 18.0, 18.0), 8.5, gr(0.62 + 0.31 * hv, a), glyph);
+                                                txt(er.min.x + 44.0, er.center().y, 0, label, 14.0, 8.6, gr(0.7 + 0.25 * hv, a));
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -1991,15 +2042,19 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
     txt(col, 120.0, 0, "SIZE", 12.0, 6.5, gr(0.42, a));
     spr(rc(left, 140.0, right, 141.0), 1.8, gr(0.1, a), 2);
     for (k, (name, folder, size, fin)) in xlist.iter().skip(*xscroll).take(vis).enumerate() {
-        for (rr, on, img) in [(
+        for (rr, on, img, vid) in [(
             rc(left, 152.0 + k as f32 * 36.0, right, 184.0 + k as f32 * 36.0),
             (*xsel == *xscroll + k + 1) as u8 as f32,
             std::path::Path::new(name.as_str())
                 .extension()
                 .and_then(|e| e.to_str())
                 .is_some_and(|e| ["png", "jpg", "jpeg", "gif", "webp", "bmp", "ico"].iter().any(|x| e.eq_ignore_ascii_case(x))),
+            std::path::Path::new(name.as_str())
+                .extension()
+                .and_then(|e| e.to_str())
+                .is_some_and(|e| ["mp4", "mkv", "mov", "avi", "webm", "m4v"].iter().any(|x| e.eq_ignore_ascii_case(x))),
         )] {
-            for hov in [ptr.is_some_and(|c| rr.contains(c)) as u8 as f32] {
+            for hov in [(ptr.is_some_and(|c| rr.contains(c)) && !*xmenu) as u8 as f32] {
                 spr(rr, 2.0, gr(1.0, a * (0.01 * hov + 0.012 * on)), 0);
                 spr(rr, 2.1, gr(1.0, a * (0.012 * hov + 0.03 * on)), 1);
                 spr(rc(rr.min.x + 8.0, rr.center().y - 9.0, rr.min.x + 10.0, rr.center().y + 9.0), 2.2, gr(0.93, a * on), 2);
@@ -2013,6 +2068,7 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
                     match (*folder, img) {
                         (true, _) => 21,
                         (_, true) => 31,
+                        (_, _) if vid => 37,
                         _ => 22,
                     },
                 );
@@ -2139,7 +2195,7 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
                                                                     .into_iter()
                                                                     .enumerate()
                                                                     {
-                                                                        bt.push((lr, 32 + 2 * i + k, 0.0, 5.0, !*modal && !*picker, a));
+                                                                        bt.push((lr, 36 + 2 * i + k, 0.0, 5.0, !*modal && !*picker, a));
                                                                         spr(
                                                                             cs(if k == 0 { lr.center().x } else { lr.min.x + 22.0 }, lr.center().y, 18.0, 18.0),
                                                                             6.0,
@@ -2493,7 +2549,7 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
                                             for (r, id, _, z, _, al) in bt.iter() {
                                                 for ([hv, fc, pr, sl], ga) in [(
                                                     anim[*id],
-                                                    if (16..32).contains(id) { *al * anim[*id][0].max(anim[*id][1]) } else { *al },
+                                                    if (16..36).contains(id) { *al * anim[*id][0].max(anim[*id][1]) } else { *al },
                                                 )] {
                                                     if ga > 0.0 {
                                                         spr(
@@ -2518,7 +2574,7 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
                                             }
                                         }
                                         if *view == 4 {
-                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 37);
+                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 38);
                                         }
                                     });
                                     sit.for_each(|(_, _, v)| {
@@ -2588,6 +2644,7 @@ xjob.as_mut().into_iter().for_each(|(rx, job, working)| {
         *view == 5
             && c.x > side + 48.0
             && c.x < w - 52.0
+            && !*xmenu
             && c.y >= 152.0
             && (c.y - 152.0) / 36.0 < vis as f32
     })
@@ -2651,6 +2708,8 @@ xjob.as_mut().into_iter().for_each(|(rx, job, working)| {
                                     *modal &= *picker;
                                     *picker = false;
                                 }
+                                *xmenu &= !(keys.just_pressed(bevy::input::keyboard::KeyCode::Escape)
+                                    || (mdn && !hover.is_some_and(|id| id == 14 || (32..36).contains(&id))));
                                 xhit.filter(|_| mdn && hover.is_none()).into_iter()
                                     .for_each(|row| {
                                         *xsel = row + 1;
@@ -2679,6 +2738,7 @@ xjob.as_mut().into_iter().for_each(|(rx, job, working)| {
                                     Some(3) => *modal = true,
                                     Some(13) => {
                                         *view = 5;
+                                        *xmenu = false;
                                         *xdirty = true;
                                         *xscroll = 0;
                                         *xsel = 0;
@@ -2699,6 +2759,27 @@ xjob.as_mut().into_iter().for_each(|(rx, job, working)| {
                                             });
                                     }
                                     Some(27) if *view == 5 => {}
+                                    Some(14) if *view == 5 => *xmenu = !*xmenu,
+                                    Some(i @ 32..=35) if *view == 5 => {
+                                        for (name, ext, data) in [[
+                                            ("New folder", "", None),
+                                            ("New file", ".txt", Some(&b""[..])),
+                                            ("New image", ".png", Some(&b"\x89\x50\x4e\x47\x0d\x0a\x1a\x0a\x00\x00\x00\x0d\x49\x48\x44\x52\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\x0d\x49\x44\x41\x54\x78\x9c\x63\x60\x60\x60\x60\x00\x00\x00\x05\x00\x01\xa5\xf6\x45\x40\x00\x00\x00\x00\x49\x45\x4e\x44\xae\x42\x60\x82"[..])),
+                                            ("New video", ".mp4", Some(&b""[..])),
+                                        ][i - 32]] {
+                                            (1_u32..)
+                                                .map(|n| {
+                                                    xdir.join(if n == 1 { format!("{name}{ext}") } else { format!("{name} {n}{ext}") })
+                                                })
+                                                .find(|path| !path.exists())
+                                                .into_iter()
+                                                .for_each(|path| {
+                                                    data.map_or_else(|| std::fs::create_dir(&path), |bytes| std::fs::write(&path, bytes)).ok();
+                                                });
+                                        }
+                                        *xmenu = false;
+                                        *xdirty = true;
+                                    }
 Some(i @ 16..=25) if *view == 5 => {
                                         xdir.ancestors()
                                             .nth(i - 16)
@@ -2776,8 +2857,8 @@ Some(i @ 16..=25) if *view == 5 => {
                                             }
                                         }
                                     }
-                                    Some(i @ 32..) => {
-                                        for (project, gear) in [((i - 32) / 2, i % 2 == 0)] {
+                                    Some(i @ 36..) => {
+                                        for (project, gear) in [((i - 36) / 2, i % 2 == 0)] {
                                             *ed = project;
                                             if gear {
                                                 *view = 3;
@@ -2793,7 +2874,7 @@ Some(i @ 16..=25) if *view == 5 => {
                                                         std::sync::mpsc::channel::<u8>(),
                                                         store[project].5.clone(),
                                                     )] {
-                                                        icons[37] = images.add(bevy::image::Image::new(
+                                                        icons[38] = images.add(bevy::image::Image::new(
                                                             bevy::render::render_resource::Extent3d {
                                                                 width: width as u32,
                                                                 height: height as u32,
@@ -2963,7 +3044,7 @@ Some(i @ 16..=25) if *view == 5 => {
                                 machine.take().into_iter().for_each(|(_, _, on, thread, _, _)| {
                                     on.store(false, std::sync::atomic::Ordering::Release);
                                     thread.unpark();
-                                    icons[37] = icons[2].clone();
+                                    icons[38] = icons[2].clone();
                                 });
                                 *modal = false;
                                 *picker = false;
@@ -2975,7 +3056,7 @@ Some(i @ 16..=25) if *view == 5 => {
                                     .into_iter()
                                     .for_each(|g| {
                                         *seen = g;
-                                        images.get_mut(&icons[37]).iter_mut().for_each(|image| {
+                                        images.get_mut(&icons[38]).iter_mut().for_each(|image| {
                                             image.data.iter_mut().for_each(|data| {
                                                 data.chunks_exact_mut(4).zip(pixels.iter()).for_each(|(rgba, pixel)| {
                                                     rgba.copy_from_slice(&pixel.load(std::sync::atomic::Ordering::Relaxed).to_le_bytes())

@@ -1540,6 +1540,34 @@ fn main() {
                               ..........................\
                               .........................."
                                 .as_slice(),
+                            b"\
+                              ..........................\
+                              ..........................\
+                              ..........................\
+                              ....333333333333333333....\
+                              ..2dffffffffffffffffffd2..\
+                              ..8feddddddddddddddddef8..\
+                              ..9f844444444444444448f9..\
+                              ..9f844444444444444448f9..\
+                              ..9f844444444444444448f9..\
+                              ..8feddddddddddddddddef8..\
+                              ..2dffffffffffffffffffd2..\
+                              ....df85555555555558fd....\
+                              ....cf42222222222224fc....\
+                              ....cf42247777774224fc....\
+                              ....cf422cffffffc224fc....\
+                              ....cf4226aaaaaa6224fc....\
+                              ....cf42222222222224fc....\
+                              ....cf42222222222224fc....\
+                              ....cf42222222222224fc....\
+                              ....cf52222222222225fc....\
+                              ....cfa888888888888afc....\
+                              ....6ffffffffffffffff6....\
+                              .....5988888888888895.....\
+                              ..........................\
+                              ..........................\
+                              .........................."
+                                .as_slice(),
                         ]
                         .map(|art: &[u8]| {
                             images.add(bevy::image::Image::new(
@@ -2041,13 +2069,13 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
                                         txt(nb.min.x + 38.0, 62.0, 0, "New", 13.0, 6.5, gr(ink, a));
                                     }
                                     if *xmenu {
-                                        spr(rc(nb.min.x - 8.0, 94.0, nb.min.x + 176.0, 302.0), 7.8, gr(0.0, a * 0.4), 0);
-                                        spr(rc(nb.min.x, 86.0, nb.min.x + 168.0, 288.0), 8.0, gr(0.09, a), 0);
-                                        spr(rc(nb.min.x, 86.0, nb.min.x + 168.0, 288.0), 8.1, gr(1.0, a * 0.05), 1);
-                                        spr(rc(nb.min.x + 16.0, 167.0, nb.min.x + 152.0, 168.0), 8.1, gr(0.2, a), 2);
-                                        for (k, (label, glyph)) in [("Folder", 21_usize), ("Text file", 22), ("Video", 37), ("Image", 31), ("Music", 38)].into_iter().enumerate() {
+                                        spr(rc(nb.min.x - 8.0, 94.0, nb.min.x + 176.0, 338.0), 7.8, gr(0.0, a * 0.4), 0);
+                                        spr(rc(nb.min.x, 86.0, nb.min.x + 168.0, 324.0), 8.0, gr(0.09, a), 0);
+                                        spr(rc(nb.min.x, 86.0, nb.min.x + 168.0, 324.0), 8.1, gr(1.0, a * 0.05), 1);
+                                        spr(rc(nb.min.x + 16.0, 203.0, nb.min.x + 152.0, 204.0), 8.1, gr(0.2, a), 2);
+                                        for (k, (label, glyph)) in [("Archive", 39_usize), ("Folder", 21), ("Text file", 22), ("Video", 37), ("Image", 31), ("Music", 38)].into_iter().enumerate() {
                                             for (er, hv) in [(
-                                                rc(nb.min.x + 6.0, 92.0 + 36.0 * k as f32 + 10.0 * (k > 1) as u8 as f32, nb.min.x + 162.0, 124.0 + 36.0 * k as f32 + 10.0 * (k > 1) as u8 as f32),
+                                                rc(nb.min.x + 6.0, 92.0 + 36.0 * k as f32 + 10.0 * (k > 2) as u8 as f32, nb.min.x + 162.0, 124.0 + 36.0 * k as f32 + 10.0 * (k > 2) as u8 as f32),
                                                 anim[32 + k][0],
                                             )] {
                                                 bt.push((er, 32 + k, 0.0, 8.2, true, a));
@@ -2071,7 +2099,7 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
     txt(col, 120.0, 0, "SIZE", 12.0, 6.5, gr(0.42, a));
     spr(rc(left, 140.0, right, 141.0), 1.8, gr(0.1, a), 2);
     for (k, (name, folder, size, fin)) in xlist.iter().skip(*xscroll).take(vis).enumerate() {
-        for (rr, on, img, vid, mus) in [(
+        for (rr, on, img, vid, mus, arc) in [(
             rc(left, 152.0 + k as f32 * 36.0, right, 184.0 + k as f32 * 36.0),
             (*xsel == *xscroll + k + 1) as u8 as f32,
             std::path::Path::new(name.as_str())
@@ -2086,6 +2114,10 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
                 .extension()
                 .and_then(|e| e.to_str())
                 .is_some_and(|e| ["mp3", "wav", "flac", "ogg", "opus", "m4a", "aac"].iter().any(|x| e.eq_ignore_ascii_case(x))),
+            std::path::Path::new(name.as_str())
+                .extension()
+                .and_then(|e| e.to_str())
+                .is_some_and(|e| ["zip", "tar", "gz", "tgz", "bz2", "xz", "zst", "rar", "7z"].iter().any(|x| e.eq_ignore_ascii_case(x))),
         )] {
             for hov in [(ptr.is_some_and(|c| rr.contains(c)) && !*xmenu) as u8 as f32] {
                 spr(rr, 2.0, gr(1.0, a * (0.01 * hov + 0.012 * on)), 0);
@@ -2103,6 +2135,7 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
                         (_, true) => 31,
                         (_, _) if vid => 37,
                         (_, _) if mus => 38,
+                        (_, _) if arc => 39,
                         _ => 22,
                     },
                 );
@@ -2604,7 +2637,7 @@ for (left, right, col) in [(side + 48.0, (w - 52.0).max(side + 49.0), (w - 52.0)
                                             }
                                         }
                                         if *view == 4 {
-                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 39);
+                                            spr(rc(0.0, 0.0, w, h), 1.0, gr(1.0, 1.0), 40);
                                         }
                                     });
                                     sit.for_each(|(_, _, v)| {
@@ -2739,7 +2772,7 @@ xjob.as_mut().into_iter().for_each(|(rx, job, working)| {
                                     *picker = false;
                                 }
                                 *xmenu &= !(keys.just_pressed(bevy::input::keyboard::KeyCode::Escape)
-                                    || (mdn && !hover.is_some_and(|id| id == 14 || (32..37).contains(&id))));
+                                    || (mdn && !hover.is_some_and(|id| id == 14 || (32..38).contains(&id))));
                                 xhit.filter(|_| mdn && hover.is_none()).into_iter()
                                     .for_each(|row| {
                                         *xsel = row + 1;
@@ -2790,8 +2823,9 @@ xjob.as_mut().into_iter().for_each(|(rx, job, working)| {
                                     }
                                     Some(27) if *view == 5 => {}
                                     Some(14) if *view == 5 => *xmenu = !*xmenu,
-                                    Some(i @ 32..=36) if *view == 5 => {
+                                    Some(i @ 32..=37) if *view == 5 => {
                                         for (name, folder) in [[
+                                            ("New archive", false),
                                             ("New folder", true),
                                             ("New text file", false),
                                             ("New video", false),
@@ -2903,7 +2937,7 @@ Some(i @ 16..=25) if *view == 5 => {
                                                         std::sync::mpsc::channel::<u8>(),
                                                         store[project].5.clone(),
                                                     )] {
-                                                        icons[39] = images.add(bevy::image::Image::new(
+                                                        icons[40] = images.add(bevy::image::Image::new(
                                                             bevy::render::render_resource::Extent3d {
                                                                 width: width as u32,
                                                                 height: height as u32,
@@ -3073,7 +3107,7 @@ Some(i @ 16..=25) if *view == 5 => {
                                 machine.take().into_iter().for_each(|(_, _, on, thread, _, _)| {
                                     on.store(false, std::sync::atomic::Ordering::Release);
                                     thread.unpark();
-                                    icons[39] = icons[2].clone();
+                                    icons[40] = icons[2].clone();
                                 });
                                 *modal = false;
                                 *picker = false;
@@ -3085,7 +3119,7 @@ Some(i @ 16..=25) if *view == 5 => {
                                     .into_iter()
                                     .for_each(|g| {
                                         *seen = g;
-                                        images.get_mut(&icons[39]).iter_mut().for_each(|image| {
+                                        images.get_mut(&icons[40]).iter_mut().for_each(|image| {
                                             image.data.iter_mut().for_each(|data| {
                                                 data.chunks_exact_mut(4).zip(pixels.iter()).for_each(|(rgba, pixel)| {
                                                     rgba.copy_from_slice(&pixel.load(std::sync::atomic::Ordering::Relaxed).to_le_bytes())

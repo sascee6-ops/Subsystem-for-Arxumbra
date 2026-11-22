@@ -1,0 +1,55 @@
+name: Probe
+on:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  probe:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - { os: ubuntu-24.04-arm, triple: aarch64-unknown-linux-gnu, exe: "" }
+        - { os: ubuntu-24.04, triple: x86_64-unknown-linux-gnu, exe: "" }
+        - { os: macos-15, triple: aarch64-apple-darwin, exe: "" }
+        - { os: macos-15-intel, triple: x86_64-apple-darwin, exe: "" }
+        - { os: windows-11-arm, triple: aarch64-pc-windows-msvc, exe: ".exe" }
+        - { os: windows-2025, triple: x86_64-pc-windows-msvc, exe: ".exe" }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+    - shell: bash
+      run: |
+        T=${{ matrix.triple }}
+        E=${{ matrix.exe }}
+        d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
+        N=nightly-$d
+        echo "PROBE INFO date=$d nproc=$(nproc 2>/dev/null || sysctl -n hw.ncpu) uname=$(uname -sm)"
+        rustup toolchain install $N --profile minimal --target $T --no-self-update > /dev/null 2>&1
+        cargo +$N -V
+        rustc +$N -vV | grep -E "host|LLVM|release"
+        t() { n=$1; shift; if "$@" > o.txt 2>&1; then echo "PROBE OK   $n"; else echo "PROBE FAIL $n :: $(tail -n 4 o.txt | tr '\n' '|' | cut -c1-400)"; fi; }
+        cargo init --name h --vcs none h > /dev/null 2>&1
+        cd h
+        t base cargo +$N build --target $T
+        t no-embed-metadata cargo +$N -Zno-embed-metadata build --target $T
+        t component-cranelift rustup component add rustc-codegen-cranelift-preview --toolchain $N
+        t build-cranelift cargo +$N -Zcodegen-backend build --target $T --config 'profile.dev.codegen-backend="cranelift"'
+        t run-cranelift ./target/$T/debug/h$E
+        t component-rust-src rustup component add rust-src --toolchain $N
+        t component-llvm-tools rustup component add llvm-tools --toolchain $N
+        t fmt-debug-none cargo +$N build --release --target $T --config "target.$T.rustflags=[\"-Zfmt-debug=none\"]"
+        t location-detail-none cargo +$N build --release --target $T --config "target.$T.rustflags=[\"-Zlocation-detail=none\"]"
+        t threads cargo +$N build --release --target $T --config "target.$T.rustflags=[\"-Zthreads=4\"]"
+        t vfe-fat-lto cargo +$N build --release --target $T --config 'profile.release.lto="fat"' --config "target.$T.rustflags=[\"-Zvirtual-function-elimination\"]"
+        t lld-linker-feature cargo +$N build --target $T --config "target.$T.rustflags=[\"-Zlinker-features=+lld\",\"-Zunstable-options\"]"
+        t lld-self-contained cargo +$N build --target $T --config "target.$T.rustflags=[\"-Zlinker-features=+lld\",\"-Clink-self-contained=+linker\",\"-Zunstable-options\"]"
+        t lld-rust-lld cargo +$N build --target $T --config "target.$T.rustflags=[\"-Clinker=rust-lld\"]"
+        t buildstd-abort cargo +$N -Zbuild-std=std,panic_abort build --release --target $T --config 'profile.release.panic="abort"'
+        t buildstd-immediate-abort cargo +$N -Zbuild-std=std,panic_abort build --release --target $T --config 'profile.release.panic="immediate-abort"' --config 'unstable.panic-immediate-abort=true'
+        t buildstd-immediate-rustflag cargo +$N -Zbuild-std=std,panic_abort build --release --target $T --config "target.$T.rustflags=[\"-Zunstable-options\",\"-Cpanic=immediate-abort\"]"
+        t buildstd-feature cargo +$N -Zbuild-std=std,panic_abort -Zbuild-std-features=panic_immediate_abort build --release --target $T --config 'profile.release.panic="abort"'
+        t hint-mostly-unused cargo +$N -Zprofile-hint-mostly-unused build --target $T --config 'profile.dev.hint-mostly-unused=true'
+        t build-dir cargo +$N -Zbuild-dir build --target $T
+        t trim-paths cargo +$N -Ztrim-paths build --release --target $T --config 'profile.release.trim-paths="all"'
+        t pgo-instrument cargo +$N build --release --target $T --config "target.$T.rustflags=[\"-Cprofile-generate=pgo\"]"
+        echo "PROBE INFO tools: $(which xvfb-run xdotool import weston openbox 2>/dev/null | tr '\n' ' ')"

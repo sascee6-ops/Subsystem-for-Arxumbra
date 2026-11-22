@@ -148,7 +148,10 @@ fn main() {
     .inspect(|home| std::fs::create_dir_all(home).unwrap())
     .map(|home| {
         (
-            redb::Database::create(home.join("projects.redb")).unwrap(),
+            redb::Builder::new()
+                .set_cache_size(8 << 20)
+                .create(home.join("projects.redb"))
+                .unwrap(),
             if cfg!(target_os = "linux") {
                 "Linux-Subsystem-for-Arxumbra"
             } else if cfg!(target_os = "macos") {
@@ -164,24 +167,24 @@ fn main() {
             bevy::app::TaskPoolPlugin {
                 task_pool_options: bevy::app::TaskPoolOptions {
                     min_total_threads: 1,
-                    max_total_threads: usize::MAX,
+                    max_total_threads: 5,
                     io: bevy::app::TaskPoolThreadAssignmentPolicy {
                         min_threads: 1,
-                        max_threads: 4,
+                        max_threads: 1,
                         percent: 0.25,
                         on_thread_spawn: None,
                         on_thread_destroy: None,
                     },
                     async_compute: bevy::app::TaskPoolThreadAssignmentPolicy {
                         min_threads: 1,
-                        max_threads: 4,
+                        max_threads: 1,
                         percent: 0.25,
                         on_thread_spawn: None,
                         on_thread_destroy: None,
                     },
                     compute: bevy::app::TaskPoolThreadAssignmentPolicy {
                         min_threads: 1,
-                        max_threads: usize::MAX,
+                        max_threads: 3,
                         percent: 1.0,
                         on_thread_spawn: None,
                         on_thread_destroy: None,

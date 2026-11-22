@@ -4,7 +4,7 @@ on:
 permissions: {}
 jobs:
   AArch64-Linux:
-    name: AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
+    name: AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 120
     steps:
@@ -17,7 +17,7 @@ jobs:
         git checkout -q FETCH_HEAD
         (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev) &
         apt=$!
-        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target aarch64-unknown-linux-gnu --no-self-update
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target aarch64-unknown-linux-gnu --no-self-update
         wait $apt
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
@@ -25,11 +25,11 @@ jobs:
           ~/.cargo/registry
           ~/.cargo/git
           target
-        key: AArch64-Linux-Daylight-nightly-2026-11-06-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
+        key: AArch64-Linux-Daylight-nightly-2026-11-22-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
     - shell: bash
       run: |
         exec >/dev/null 2>&1
-        cargo +nightly-2026-11-06 build -Zgit=shallow-deps --locked --release --quiet \
+        cargo +nightly-2026-11-22 build -Zgit=shallow-deps -Zbuild-std=std,panic_abort -Ztrim-paths --locked --release --quiet \
           --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \
@@ -40,22 +40,27 @@ jobs:
           --config 'profile.release.incremental=false' \
           --config 'profile.release.rpath=false' \
           --config 'profile.release.strip=true' \
-          --config 'profile.release.panic="abort"' \
-          --config 'target.aarch64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none"]' \
+          --config 'profile.release.panic="immediate-abort"' \
+          --config 'profile.release.trim-paths="all"' \
+          --config 'profile.release.build-override.opt-level=0' \
+          --config 'profile.release.build-override.codegen-units=256' \
+          --config 'profile.release.build-override.debug=false' \
+          --config 'unstable.panic-immediate-abort=true' \
+          --config 'target.aarch64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-Z","fmt-debug=none","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
           --target aarch64-unknown-linux-gnu --bin subsystem-for-arxumbra
-        mkdir -p dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
-        cp target/aarch64-unknown-linux-gnu/release/subsystem-for-arxumbra dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
-        tar -cf - -C dist AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1 | gzip -1 > dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz
+        mkdir -p dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        cp target/aarch64-unknown-linux-gnu/release/subsystem-for-arxumbra dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        tar -cf - -C dist AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2 | gzip -1 > dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.tar.gz
         find target/aarch64-unknown-linux-gnu/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
-        name: AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
-        path: dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz
+        name: AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        path: dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.tar.gz
         if-no-files-found: error
         retention-days: 14
         compression-level: 0
   x86_64-Linux:
-    name: x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
+    name: x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
@@ -68,7 +73,7 @@ jobs:
         git checkout -q FETCH_HEAD
         (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev) &
         apt=$!
-        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target x86_64-unknown-linux-gnu --no-self-update
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target x86_64-unknown-linux-gnu --no-self-update
         wait $apt
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
@@ -76,11 +81,11 @@ jobs:
           ~/.cargo/registry
           ~/.cargo/git
           target
-        key: x86_64-Linux-Daylight-nightly-2026-11-06-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
+        key: x86_64-Linux-Daylight-nightly-2026-11-22-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
     - shell: bash
       run: |
         exec >/dev/null 2>&1
-        cargo +nightly-2026-11-06 build -Zgit=shallow-deps --locked --release --quiet \
+        cargo +nightly-2026-11-22 build -Zgit=shallow-deps -Zbuild-std=std,panic_abort -Ztrim-paths --locked --release --quiet \
           --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \
@@ -91,22 +96,27 @@ jobs:
           --config 'profile.release.incremental=false' \
           --config 'profile.release.rpath=false' \
           --config 'profile.release.strip=true' \
-          --config 'profile.release.panic="abort"' \
-          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none"]' \
+          --config 'profile.release.panic="immediate-abort"' \
+          --config 'profile.release.trim-paths="all"' \
+          --config 'profile.release.build-override.opt-level=0' \
+          --config 'profile.release.build-override.codegen-units=256' \
+          --config 'profile.release.build-override.debug=false' \
+          --config 'unstable.panic-immediate-abort=true' \
+          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-Z","fmt-debug=none","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
           --target x86_64-unknown-linux-gnu --bin subsystem-for-arxumbra
-        mkdir -p dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
-        cp target/x86_64-unknown-linux-gnu/release/subsystem-for-arxumbra dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
-        tar -cf - -C dist x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1 | gzip -1 > dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz
+        mkdir -p dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        cp target/x86_64-unknown-linux-gnu/release/subsystem-for-arxumbra dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        tar -cf - -C dist x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2 | gzip -1 > dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.tar.gz
         find target/x86_64-unknown-linux-gnu/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
-        name: x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
-        path: dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz
+        name: x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        path: dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.tar.gz
         if-no-files-found: error
         retention-days: 14
         compression-level: 0
   AArch64-macOS:
-    name: AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
+    name: AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
     runs-on: macos-15
     timeout-minutes: 120
     steps:
@@ -117,18 +127,18 @@ jobs:
         git init -q .
         git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
         git checkout -q FETCH_HEAD
-        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target aarch64-apple-darwin --no-self-update
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target aarch64-apple-darwin --no-self-update
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
         path: |
           ~/.cargo/registry
           ~/.cargo/git
           target
-        key: AArch64-macOS-Daylight-nightly-2026-11-06-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
+        key: AArch64-macOS-Daylight-nightly-2026-11-22-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
     - shell: bash
       run: |
         exec >/dev/null 2>&1
-        cargo +nightly-2026-11-06 build -Zgit=shallow-deps --locked --release --quiet \
+        cargo +nightly-2026-11-22 build -Zgit=shallow-deps -Zbuild-std=std,panic_abort -Ztrim-paths --locked --release --quiet \
           --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \
@@ -139,22 +149,27 @@ jobs:
           --config 'profile.release.incremental=false' \
           --config 'profile.release.rpath=false' \
           --config 'profile.release.strip=true' \
-          --config 'profile.release.panic="abort"' \
-          --config 'target.aarch64-apple-darwin.rustflags=["-C","target-cpu=generic","-Z","location-detail=none"]' \
+          --config 'profile.release.panic="immediate-abort"' \
+          --config 'profile.release.trim-paths="all"' \
+          --config 'profile.release.build-override.opt-level=0' \
+          --config 'profile.release.build-override.codegen-units=256' \
+          --config 'profile.release.build-override.debug=false' \
+          --config 'unstable.panic-immediate-abort=true' \
+          --config 'target.aarch64-apple-darwin.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-Z","fmt-debug=none"]' \
           --target aarch64-apple-darwin --bin subsystem-for-arxumbra
-        mkdir -p dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
-        cp target/aarch64-apple-darwin/release/subsystem-for-arxumbra dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
-        tar -cf - -C dist AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1 | gzip -1 > dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz
+        mkdir -p dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        cp target/aarch64-apple-darwin/release/subsystem-for-arxumbra dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        tar -cf - -C dist AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2 | gzip -1 > dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.tar.gz
         find target/aarch64-apple-darwin/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
-        name: AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
-        path: dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz
+        name: AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        path: dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.tar.gz
         if-no-files-found: error
         retention-days: 14
         compression-level: 0
   x86_64-macOS:
-    name: x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
+    name: x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
     runs-on: macos-15-intel
     timeout-minutes: 120
     steps:
@@ -165,18 +180,18 @@ jobs:
         git init -q .
         git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
         git checkout -q FETCH_HEAD
-        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target x86_64-apple-darwin --no-self-update
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target x86_64-apple-darwin --no-self-update
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
         path: |
           ~/.cargo/registry
           ~/.cargo/git
           target
-        key: x86_64-macOS-Daylight-nightly-2026-11-06-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
+        key: x86_64-macOS-Daylight-nightly-2026-11-22-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
     - shell: bash
       run: |
         exec >/dev/null 2>&1
-        cargo +nightly-2026-11-06 build -Zgit=shallow-deps --locked --release --quiet \
+        cargo +nightly-2026-11-22 build -Zgit=shallow-deps -Zbuild-std=std,panic_abort -Ztrim-paths --locked --release --quiet \
           --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \
@@ -187,22 +202,27 @@ jobs:
           --config 'profile.release.incremental=false' \
           --config 'profile.release.rpath=false' \
           --config 'profile.release.strip=true' \
-          --config 'profile.release.panic="abort"' \
-          --config 'target.x86_64-apple-darwin.rustflags=["-C","target-cpu=generic","-Z","location-detail=none"]' \
+          --config 'profile.release.panic="immediate-abort"' \
+          --config 'profile.release.trim-paths="all"' \
+          --config 'profile.release.build-override.opt-level=0' \
+          --config 'profile.release.build-override.codegen-units=256' \
+          --config 'profile.release.build-override.debug=false' \
+          --config 'unstable.panic-immediate-abort=true' \
+          --config 'target.x86_64-apple-darwin.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-Z","fmt-debug=none"]' \
           --target x86_64-apple-darwin --bin subsystem-for-arxumbra
-        mkdir -p dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
-        cp target/x86_64-apple-darwin/release/subsystem-for-arxumbra dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
-        tar -cf - -C dist x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1 | gzip -1 > dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz
+        mkdir -p dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        cp target/x86_64-apple-darwin/release/subsystem-for-arxumbra dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        tar -cf - -C dist x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2 | gzip -1 > dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.tar.gz
         find target/x86_64-apple-darwin/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
-        name: x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
-        path: dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.tar.gz
+        name: x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        path: dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.tar.gz
         if-no-files-found: error
         retention-days: 14
         compression-level: 0
   AArch64-Windows:
-    name: AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
+    name: AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
     runs-on: windows-11-arm
     timeout-minutes: 120
     steps:
@@ -213,18 +233,18 @@ jobs:
         git init -q .
         git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
         git checkout -q FETCH_HEAD
-        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target aarch64-pc-windows-msvc --no-self-update
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target aarch64-pc-windows-msvc --no-self-update
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
         path: |
           ~/.cargo/registry
           ~/.cargo/git
           target
-        key: AArch64-Windows-Daylight-nightly-2026-11-06-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
+        key: AArch64-Windows-Daylight-nightly-2026-11-22-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
     - shell: bash
       run: |
         exec >/dev/null 2>&1
-        cargo +nightly-2026-11-06 build -Zgit=shallow-deps --locked --release --quiet \
+        cargo +nightly-2026-11-22 build -Zgit=shallow-deps -Zbuild-std=std,panic_abort -Ztrim-paths --locked --release --quiet \
           --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \
@@ -235,21 +255,26 @@ jobs:
           --config 'profile.release.incremental=false' \
           --config 'profile.release.rpath=false' \
           --config 'profile.release.strip=true' \
-          --config 'profile.release.panic="abort"' \
-          --config 'target.aarch64-pc-windows-msvc.rustflags=["-C","target-cpu=generic","-Z","location-detail=none"]' \
+          --config 'profile.release.panic="immediate-abort"' \
+          --config 'profile.release.trim-paths="all"' \
+          --config 'profile.release.build-override.opt-level=0' \
+          --config 'profile.release.build-override.codegen-units=256' \
+          --config 'profile.release.build-override.debug=false' \
+          --config 'unstable.panic-immediate-abort=true' \
+          --config 'target.aarch64-pc-windows-msvc.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-Z","fmt-debug=none","-C","linker=rust-lld","-C","target-feature=+crt-static"]' \
           --target aarch64-pc-windows-msvc --bin subsystem-for-arxumbra
         mkdir dist
-        cp target/aarch64-pc-windows-msvc/release/subsystem-for-arxumbra.exe dist/AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.exe
+        cp target/aarch64-pc-windows-msvc/release/subsystem-for-arxumbra.exe dist/AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.exe
         find target/aarch64-pc-windows-msvc/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
-        name: AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
-        path: dist/AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.exe
+        name: AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        path: dist/AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.exe
         if-no-files-found: error
         retention-days: 14
         compression-level: 1
   x86_64-Windows:
-    name: x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
+    name: x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
     runs-on: windows-2025
     timeout-minutes: 120
     steps:
@@ -260,18 +285,18 @@ jobs:
         git init -q .
         git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
         git checkout -q FETCH_HEAD
-        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-06 --profile minimal --target x86_64-pc-windows-msvc --no-self-update
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target x86_64-pc-windows-msvc --no-self-update
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
         path: |
           ~/.cargo/registry
           ~/.cargo/git
           target
-        key: x86_64-Windows-Daylight-nightly-2026-11-06-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
+        key: x86_64-Windows-Daylight-nightly-2026-11-22-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
     - shell: bash
       run: |
         exec >/dev/null 2>&1
-        cargo +nightly-2026-11-06 build -Zgit=shallow-deps --locked --release --quiet \
+        cargo +nightly-2026-11-22 build -Zgit=shallow-deps -Zbuild-std=std,panic_abort -Ztrim-paths --locked --release --quiet \
           --config 'net.retry=10' \
           --config 'profile.release.opt-level=3' \
           --config 'profile.release.lto="fat"' \
@@ -282,16 +307,21 @@ jobs:
           --config 'profile.release.incremental=false' \
           --config 'profile.release.rpath=false' \
           --config 'profile.release.strip=true' \
-          --config 'profile.release.panic="abort"' \
-          --config 'target.x86_64-pc-windows-msvc.rustflags=["-C","target-cpu=generic","-Z","location-detail=none"]' \
+          --config 'profile.release.panic="immediate-abort"' \
+          --config 'profile.release.trim-paths="all"' \
+          --config 'profile.release.build-override.opt-level=0' \
+          --config 'profile.release.build-override.codegen-units=256' \
+          --config 'profile.release.build-override.debug=false' \
+          --config 'unstable.panic-immediate-abort=true' \
+          --config 'target.x86_64-pc-windows-msvc.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-Z","fmt-debug=none","-C","linker=rust-lld","-C","target-feature=+crt-static"]' \
           --target x86_64-pc-windows-msvc --bin subsystem-for-arxumbra
         mkdir dist
-        cp target/x86_64-pc-windows-msvc/release/subsystem-for-arxumbra.exe dist/x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.exe
+        cp target/x86_64-pc-windows-msvc/release/subsystem-for-arxumbra.exe dist/x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.exe
         find target/x86_64-pc-windows-msvc/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
-        name: x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1
-        path: dist/x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s1.exe
+        name: x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        path: dist/x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.exe
         if-no-files-found: error
         retention-days: 14
         compression-level: 1

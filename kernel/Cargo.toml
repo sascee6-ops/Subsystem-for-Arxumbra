@@ -1,4 +1,4 @@
 [package]
 name = "kernel"
-version = "0.0.0-s1"
+version = "0.0.0-s2"
 edition = "2024"

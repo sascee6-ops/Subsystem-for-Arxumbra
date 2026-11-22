@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "Subsystem-for-Arxumbra"
-version = "0.0.0-s1"
+version = "0.0.0-s2"
 dependencies = [
  "bevy",
  "kernel",
@@ -2577,7 +2577,7 @@ dependencies = [
 
 [[package]]
 name = "kernel"
-version = "0.0.0-s1"
+version = "0.0.0-s2"
 
 [[package]]
 name = "lalrpop-util"

@@ -49,7 +49,7 @@ jobs:
           --config 'profile.dev.codegen-backend="cranelift"' \
           --config 'profile.dev.package."*".codegen-backend="llvm"' \
           --config 'profile.dev.build-override.codegen-backend="llvm"' \
-          --config 'target.aarch64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
+          --config 'target.aarch64-unknown-linux-gnu.rustflags=["-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
           --target aarch64-unknown-linux-gnu --bin subsystem-for-arxumbra
         mkdir -p dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
         cp target/aarch64-unknown-linux-gnu/debug/subsystem-for-arxumbra dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
@@ -108,7 +108,7 @@ jobs:
           --config 'profile.dev.codegen-backend="cranelift"' \
           --config 'profile.dev.package."*".codegen-backend="llvm"' \
           --config 'profile.dev.build-override.codegen-backend="llvm"' \
-          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
+          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
           --target x86_64-unknown-linux-gnu --bin subsystem-for-arxumbra
         mkdir -p dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
         cp target/x86_64-unknown-linux-gnu/debug/subsystem-for-arxumbra dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
@@ -164,7 +164,7 @@ jobs:
           --config 'profile.dev.codegen-backend="cranelift"' \
           --config 'profile.dev.package."*".codegen-backend="llvm"' \
           --config 'profile.dev.build-override.codegen-backend="llvm"' \
-          --config 'target.aarch64-apple-darwin.rustflags=["-C","target-cpu=generic"]' \
+          --config 'target.aarch64-apple-darwin.rustflags=[]' \
           --target aarch64-apple-darwin --bin subsystem-for-arxumbra
         mkdir -p dist/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
         cp target/aarch64-apple-darwin/debug/subsystem-for-arxumbra dist/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
@@ -220,7 +220,7 @@ jobs:
           --config 'profile.dev.codegen-backend="cranelift"' \
           --config 'profile.dev.package."*".codegen-backend="llvm"' \
           --config 'profile.dev.build-override.codegen-backend="llvm"' \
-          --config 'target.x86_64-apple-darwin.rustflags=["-C","target-cpu=generic"]' \
+          --config 'target.x86_64-apple-darwin.rustflags=[]' \
           --target x86_64-apple-darwin --bin subsystem-for-arxumbra
         mkdir -p dist/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
         cp target/x86_64-apple-darwin/debug/subsystem-for-arxumbra dist/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
@@ -328,7 +328,7 @@ jobs:
           --config 'profile.dev.codegen-backend="cranelift"' \
           --config 'profile.dev.package."*".codegen-backend="llvm"' \
           --config 'profile.dev.build-override.codegen-backend="llvm"' \
-          --config 'target.x86_64-pc-windows-msvc.rustflags=["-C","target-cpu=generic","-C","linker=rust-lld"]' \
+          --config 'target.x86_64-pc-windows-msvc.rustflags=["-C","linker=rust-lld"]' \
           --target x86_64-pc-windows-msvc --bin subsystem-for-arxumbra
         mkdir dist
         cp target/x86_64-pc-windows-msvc/debug/subsystem-for-arxumbra.exe dist/x86_64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2.exe

@@ -36,11 +36,11 @@ jobs:
           --config 'profile.dev.codegen-backend="cranelift"' \
           --config 'profile.dev.package."*".codegen-backend="llvm"' \
           --config 'profile.dev.build-override.codegen-backend="llvm"' \
-          --config 'target.aarch64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
+          --config 'target.aarch64-unknown-linux-gnu.rustflags=["-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
           --target aarch64-unknown-linux-gnu --bin subsystem-for-arxumbra > build.log 2>&1
         echo "PROBE rc=$?"
-        grep -n -E '^error|panicked|unsupported|not supported|failed' build.log | head -20 | cut -c1-300
-        tail -n 25 build.log | cut -c1-300
+        grep -n -E '^error' build.log | head -20 | cut -c1-300
+        tail -n 12 build.log | cut -c1-300
   x86_64-Linux:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -74,8 +74,145 @@ jobs:
           --config 'profile.dev.codegen-backend="cranelift"' \
           --config 'profile.dev.package."*".codegen-backend="llvm"' \
           --config 'profile.dev.build-override.codegen-backend="llvm"' \
-          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
+          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
           --target x86_64-unknown-linux-gnu --bin subsystem-for-arxumbra > build.log 2>&1
         echo "PROBE rc=$?"
-        grep -n -E '^error|panicked|unsupported|not supported|failed' build.log | head -20 | cut -c1-300
-        tail -n 25 build.log | cut -c1-300
+        grep -n -E '^error' build.log | head -20 | cut -c1-300
+        tail -n 12 build.log | cut -c1-300
+  AArch64-macOS:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+    - shell: bash
+      run: |
+        git init -q .
+        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
+        git checkout -q FETCH_HEAD
+        d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
+        rustup toolchain install nightly-$d --profile minimal --component rustc-codegen-cranelift-preview --target aarch64-apple-darwin --no-self-update > /dev/null 2>&1
+        set +e
+        cargo +nightly-$d build -Zgit=shallow-deps -Zcodegen-backend --locked --quiet \
+          --config 'net.retry=10' \
+          --config 'profile.dev.opt-level=0' \
+          --config 'profile.dev.lto=false' \
+          --config 'profile.dev.codegen-units=256' \
+          --config 'profile.dev.debug=false' \
+          --config 'profile.dev.debug-assertions=true' \
+          --config 'profile.dev.overflow-checks=true' \
+          --config 'profile.dev.incremental=false' \
+          --config 'profile.dev.rpath=false' \
+          --config 'profile.dev.strip="none"' \
+          --config 'profile.dev.panic="unwind"' \
+          --config 'profile.dev.build-override.opt-level=0' \
+          --config 'profile.dev.build-override.codegen-units=256' \
+          --config 'profile.dev.build-override.debug=false' \
+          --config 'profile.dev.codegen-backend="cranelift"' \
+          --config 'profile.dev.package."*".codegen-backend="llvm"' \
+          --config 'profile.dev.build-override.codegen-backend="llvm"' \
+          --config 'target.aarch64-apple-darwin.rustflags=[]' \
+          --target aarch64-apple-darwin --bin subsystem-for-arxumbra > build.log 2>&1
+        echo "PROBE rc=$?"
+        grep -n -E '^error' build.log | head -20 | cut -c1-300
+        tail -n 12 build.log | cut -c1-300
+  x86_64-macOS:
+    runs-on: macos-15-intel
+    timeout-minutes: 60
+    steps:
+    - shell: bash
+      run: |
+        git init -q .
+        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
+        git checkout -q FETCH_HEAD
+        d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
+        rustup toolchain install nightly-$d --profile minimal --component rustc-codegen-cranelift-preview --target x86_64-apple-darwin --no-self-update > /dev/null 2>&1
+        set +e
+        cargo +nightly-$d build -Zgit=shallow-deps -Zcodegen-backend --locked --quiet \
+          --config 'net.retry=10' \
+          --config 'profile.dev.opt-level=0' \
+          --config 'profile.dev.lto=false' \
+          --config 'profile.dev.codegen-units=256' \
+          --config 'profile.dev.debug=false' \
+          --config 'profile.dev.debug-assertions=true' \
+          --config 'profile.dev.overflow-checks=true' \
+          --config 'profile.dev.incremental=false' \
+          --config 'profile.dev.rpath=false' \
+          --config 'profile.dev.strip="none"' \
+          --config 'profile.dev.panic="unwind"' \
+          --config 'profile.dev.build-override.opt-level=0' \
+          --config 'profile.dev.build-override.codegen-units=256' \
+          --config 'profile.dev.build-override.debug=false' \
+          --config 'profile.dev.codegen-backend="cranelift"' \
+          --config 'profile.dev.package."*".codegen-backend="llvm"' \
+          --config 'profile.dev.build-override.codegen-backend="llvm"' \
+          --config 'target.x86_64-apple-darwin.rustflags=[]' \
+          --target x86_64-apple-darwin --bin subsystem-for-arxumbra > build.log 2>&1
+        echo "PROBE rc=$?"
+        grep -n -E '^error' build.log | head -20 | cut -c1-300
+        tail -n 12 build.log | cut -c1-300
+  AArch64-Windows:
+    runs-on: windows-11-arm
+    timeout-minutes: 60
+    steps:
+    - shell: bash
+      run: |
+        git init -q .
+        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
+        git checkout -q FETCH_HEAD
+        d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
+        rustup toolchain install nightly-$d --profile minimal --target aarch64-pc-windows-msvc --no-self-update > /dev/null 2>&1
+        set +e
+        cargo +nightly-$d build -Zgit=shallow-deps --locked --quiet \
+          --config 'net.retry=10' \
+          --config 'profile.dev.opt-level=0' \
+          --config 'profile.dev.lto=false' \
+          --config 'profile.dev.codegen-units=256' \
+          --config 'profile.dev.debug=false' \
+          --config 'profile.dev.debug-assertions=true' \
+          --config 'profile.dev.overflow-checks=true' \
+          --config 'profile.dev.incremental=false' \
+          --config 'profile.dev.rpath=false' \
+          --config 'profile.dev.strip="none"' \
+          --config 'profile.dev.panic="unwind"' \
+          --config 'profile.dev.build-override.opt-level=0' \
+          --config 'profile.dev.build-override.codegen-units=256' \
+          --config 'profile.dev.build-override.debug=false' \
+          --config 'target.aarch64-pc-windows-msvc.rustflags=["-C","target-cpu=generic","-C","linker=rust-lld"]' \
+          --target aarch64-pc-windows-msvc --bin subsystem-for-arxumbra > build.log 2>&1
+        echo "PROBE rc=$?"
+        grep -n -E '^error' build.log | head -20 | cut -c1-300
+        tail -n 12 build.log | cut -c1-300
+  x86_64-Windows:
+    runs-on: windows-2025
+    timeout-minutes: 60
+    steps:
+    - shell: bash
+      run: |
+        git init -q .
+        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
+        git checkout -q FETCH_HEAD
+        d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
+        rustup toolchain install nightly-$d --profile minimal --component rustc-codegen-cranelift-preview --target x86_64-pc-windows-msvc --no-self-update > /dev/null 2>&1
+        set +e
+        cargo +nightly-$d build -Zgit=shallow-deps -Zcodegen-backend --locked --quiet \
+          --config 'net.retry=10' \
+          --config 'profile.dev.opt-level=0' \
+          --config 'profile.dev.lto=false' \
+          --config 'profile.dev.codegen-units=256' \
+          --config 'profile.dev.debug=false' \
+          --config 'profile.dev.debug-assertions=true' \
+          --config 'profile.dev.overflow-checks=true' \
+          --config 'profile.dev.incremental=false' \
+          --config 'profile.dev.rpath=false' \
+          --config 'profile.dev.strip="none"' \
+          --config 'profile.dev.panic="unwind"' \
+          --config 'profile.dev.build-override.opt-level=0' \
+          --config 'profile.dev.build-override.codegen-units=256' \
+          --config 'profile.dev.build-override.debug=false' \
+          --config 'profile.dev.codegen-backend="cranelift"' \
+          --config 'profile.dev.package."*".codegen-backend="llvm"' \
+          --config 'profile.dev.build-override.codegen-backend="llvm"' \
+          --config 'target.x86_64-pc-windows-msvc.rustflags=["-C","linker=rust-lld"]' \
+          --target x86_64-pc-windows-msvc --bin subsystem-for-arxumbra > build.log 2>&1
+        echo "PROBE rc=$?"
+        grep -n -E '^error' build.log | head -20 | cut -c1-300
+        tail -n 12 build.log | cut -c1-300

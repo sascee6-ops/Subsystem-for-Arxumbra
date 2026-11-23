@@ -3,38 +3,79 @@ on:
   workflow_dispatch:
 permissions: {}
 jobs:
-  probe:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-        - { os: ubuntu-24.04-arm, triple: aarch64-unknown-linux-gnu, exe: "" }
-        - { os: ubuntu-24.04, triple: x86_64-unknown-linux-gnu, exe: "" }
-
-
-
-
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+  AArch64-Linux:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
     steps:
     - shell: bash
       run: |
-        T=${{ matrix.triple }}
-        E=${{ matrix.exe }}
+        git init -q .
+        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
+        git checkout -q FETCH_HEAD
+        (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev) > /dev/null 2>&1 &
+        apt=$!
         d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
-        N=nightly-$d
-        echo "PROBE INFO date=$d nproc=$(nproc 2>/dev/null || sysctl -n hw.ncpu) uname=$(uname -sm)"
-        rustup toolchain install $N --profile minimal --target $T --no-self-update > /dev/null 2>&1
-        cargo +$N -V
-        rustc +$N -vV | grep -E "host|LLVM|release"
-        t() { n=$1; shift; if "$@" > o.txt 2>&1; then echo "PROBE OK   $n"; else echo "PROBE FAIL $n :: $(tail -n 4 o.txt | tr '\n' '|' | cut -c1-400)"; fi; }
-        cargo init --name h --vcs none h > /dev/null 2>&1
-        cd h
-        t base cargo +$N build --target $T
-        for f in '"-Clinker-features=+lld","-Zunstable-options"' '"-Zlinker-features=+lld","-Zunstable-options"' '"-Clinker-features=+lld","-Clink-self-contained=+linker","-Zunstable-options"' '"-Zlinker-features=+lld","-Clink-self-contained=+linker","-Zunstable-options"' '"-Clink-arg=-fuse-ld=lld"' '"-Clink-arg=-fuse-ld=mold"' '"-Clink-arg=-fuse-ld=gold"'; do
-          cargo +$N build --target $T --config "target.$T.rustflags=[$f]" > o.txt 2>&1 && echo "PROBE OK   linker $f" || echo "PROBE FAIL linker $f :: $(grep -m2 -E '^error|error:' o.txt | tr '\n' '|' | cut -c1-300)"
-        done
-        echo "PROBE INFO linkers: $(which ld.lld lld ld.gold mold ld.bfd clang gcc 2>/dev/null | tr '\n' ' ')"
-        cargo +$N build --target $T -v 2>&1 | grep -o 'linker=[^ ]*' | head -2
-        cargo +$N rustc --target $T -- --print link-args 2>&1 | tr ' ' '\n' | grep -E "fuse-ld|^cc$|rust-lld|gcc-ld|-B" | head -5
-        echo "PROBE INFO tools: $(which xvfb-run xdotool import weston openbox 2>/dev/null | tr '\n' ' ')"
+        rustup toolchain install nightly-$d --profile minimal --component rustc-codegen-cranelift-preview --target aarch64-unknown-linux-gnu --no-self-update > /dev/null 2>&1
+        wait $apt
+        set +e
+        cargo +nightly-$d build -Zgit=shallow-deps -Zcodegen-backend --locked --quiet \
+          --config 'net.retry=10' \
+          --config 'profile.dev.opt-level=0' \
+          --config 'profile.dev.lto=false' \
+          --config 'profile.dev.codegen-units=256' \
+          --config 'profile.dev.debug=false' \
+          --config 'profile.dev.debug-assertions=true' \
+          --config 'profile.dev.overflow-checks=true' \
+          --config 'profile.dev.incremental=false' \
+          --config 'profile.dev.rpath=false' \
+          --config 'profile.dev.strip="none"' \
+          --config 'profile.dev.panic="unwind"' \
+          --config 'profile.dev.build-override.opt-level=0' \
+          --config 'profile.dev.build-override.codegen-units=256' \
+          --config 'profile.dev.build-override.debug=false' \
+          --config 'profile.dev.codegen-backend="cranelift"' \
+          --config 'profile.dev.package."*".codegen-backend="llvm"' \
+          --config 'profile.dev.build-override.codegen-backend="llvm"' \
+          --config 'target.aarch64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
+          --target aarch64-unknown-linux-gnu --bin subsystem-for-arxumbra > build.log 2>&1
+        echo "PROBE rc=$?"
+        grep -n -E '^error|panicked|unsupported|not supported|failed' build.log | head -20 | cut -c1-300
+        tail -n 25 build.log | cut -c1-300
+  x86_64-Linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+    - shell: bash
+      run: |
+        git init -q .
+        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
+        git checkout -q FETCH_HEAD
+        (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev) > /dev/null 2>&1 &
+        apt=$!
+        d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
+        rustup toolchain install nightly-$d --profile minimal --component rustc-codegen-cranelift-preview --target x86_64-unknown-linux-gnu --no-self-update > /dev/null 2>&1
+        wait $apt
+        set +e
+        cargo +nightly-$d build -Zgit=shallow-deps -Zcodegen-backend --locked --quiet \
+          --config 'net.retry=10' \
+          --config 'profile.dev.opt-level=0' \
+          --config 'profile.dev.lto=false' \
+          --config 'profile.dev.codegen-units=256' \
+          --config 'profile.dev.debug=false' \
+          --config 'profile.dev.debug-assertions=true' \
+          --config 'profile.dev.overflow-checks=true' \
+          --config 'profile.dev.incremental=false' \
+          --config 'profile.dev.rpath=false' \
+          --config 'profile.dev.strip="none"' \
+          --config 'profile.dev.panic="unwind"' \
+          --config 'profile.dev.build-override.opt-level=0' \
+          --config 'profile.dev.build-override.codegen-units=256' \
+          --config 'profile.dev.build-override.debug=false' \
+          --config 'profile.dev.codegen-backend="cranelift"' \
+          --config 'profile.dev.package."*".codegen-backend="llvm"' \
+          --config 'profile.dev.build-override.codegen-backend="llvm"' \
+          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
+          --target x86_64-unknown-linux-gnu --bin subsystem-for-arxumbra > build.log 2>&1
+        echo "PROBE rc=$?"
+        grep -n -E '^error|panicked|unsupported|not supported|failed' build.log | head -20 | cut -c1-300
+        tail -n 25 build.log | cut -c1-300

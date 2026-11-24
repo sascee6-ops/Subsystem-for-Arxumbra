@@ -13,7 +13,7 @@ jobs:
       run: |
         exec >/dev/null 2>&1
         git init -q .
-        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
+        for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
         git checkout -q FETCH_HEAD
         (export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a; timeout 120 sudo -E apt-get update -qq && timeout 300 sudo -E apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev) &
         apt=$!
@@ -69,7 +69,7 @@ jobs:
       run: |
         exec >/dev/null 2>&1
         git init -q .
-        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
+        for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
         git checkout -q FETCH_HEAD
         (export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a; timeout 120 sudo -E apt-get update -qq && timeout 300 sudo -E apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev) &
         apt=$!
@@ -125,7 +125,7 @@ jobs:
       run: |
         exec >/dev/null 2>&1
         git init -q .
-        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
+        for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
         git checkout -q FETCH_HEAD
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target aarch64-apple-darwin --no-self-update
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
@@ -178,7 +178,7 @@ jobs:
       run: |
         exec >/dev/null 2>&1
         git init -q .
-        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
+        for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
         git checkout -q FETCH_HEAD
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target x86_64-apple-darwin --no-self-update
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
@@ -231,7 +231,7 @@ jobs:
       run: |
         exec >/dev/null 2>&1
         git init -q .
-        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
+        for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
         git checkout -q FETCH_HEAD
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target aarch64-pc-windows-msvc --no-self-update
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
@@ -283,7 +283,7 @@ jobs:
       run: |
         exec >/dev/null 2>&1
         git init -q .
-        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
+        for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
         git checkout -q FETCH_HEAD
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target x86_64-pc-windows-msvc --no-self-update
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9

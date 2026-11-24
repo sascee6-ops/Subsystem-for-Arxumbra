@@ -13,7 +13,7 @@ jobs:
       run: |
         exec >/dev/null 2>&1
         git init -q .
-        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
+        for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
         git checkout -q FETCH_HEAD
         (export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a; timeout 120 sudo -E apt-get update -qq && timeout 300 sudo -E apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev) &
         apt=$!
@@ -72,7 +72,7 @@ jobs:
       run: |
         exec >/dev/null 2>&1
         git init -q .
-        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
+        for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
         git checkout -q FETCH_HEAD
         (export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a; timeout 120 sudo -E apt-get update -qq && timeout 300 sudo -E apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev) &
         apt=$!
@@ -131,7 +131,7 @@ jobs:
       run: |
         exec >/dev/null 2>&1
         git init -q .
-        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
+        for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
         git checkout -q FETCH_HEAD
         d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
         echo "date=$d" >> "$GITHUB_OUTPUT"
@@ -187,7 +187,7 @@ jobs:
       run: |
         exec >/dev/null 2>&1
         git init -q .
-        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
+        for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
         git checkout -q FETCH_HEAD
         d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
         echo "date=$d" >> "$GITHUB_OUTPUT"
@@ -243,7 +243,7 @@ jobs:
       run: |
         exec >/dev/null 2>&1
         git init -q .
-        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
+        for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
         git checkout -q FETCH_HEAD
         d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
         echo "date=$d" >> "$GITHUB_OUTPUT"
@@ -295,7 +295,7 @@ jobs:
       run: |
         exec >/dev/null 2>&1
         git init -q .
-        git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
+        for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
         git checkout -q FETCH_HEAD
         d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
         echo "date=$d" >> "$GITHUB_OUTPUT"

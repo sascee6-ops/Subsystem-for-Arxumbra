@@ -17,6 +17,7 @@ jobs:
     steps:
     - id: toolchain
       shell: bash
+      name: Toolchain
       run: |
         git init -q .
         git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
@@ -42,9 +43,10 @@ jobs:
         mark runner "$RUNNER_OS $RUNNER_ARCH image=${ImageOS:-}-${ImageVersion:-}"
         mark cpus "$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo $NUMBER_OF_PROCESSORS)"
         mark memory_mb "$( (free -m 2>/dev/null | awk '/Mem:/{print $2}') || true)$( (sysctl -n hw.memsize 2>/dev/null | awk '{print int($1/1048576)}') || true)"
-        mark cpu_model "$( (grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2) || true)$( (sysctl -n machdep.cpu.brand_string 2>/dev/null) || true)$PROCESSOR_IDENTIFIER"
+        mark cpu_model "$( (grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2) || true)$( (lscpu 2>/dev/null | grep -m1 'Model name' | cut -d: -f2) || true)$( (sysctl -n machdep.cpu.brand_string 2>/dev/null) || true)$PROCESSOR_IDENTIFIER"
         mark git_commit "$(git rev-parse --short HEAD)"
     - id: cache
+      name: Cache
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
         path: |
@@ -53,6 +55,7 @@ jobs:
           target
         key: AArch64-Linux-Nightly-${{ steps.toolchain.outputs.date }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/nightly.yml') }}
     - shell: bash
+      name: Build
       run: |
         now() { perl -MTime::HiRes=time -e 'printf("%.3f\n",time)'; }
         dur() { perl -e 'printf("%.1f\n",$ARGV[1]-$ARGV[0])' "$1" "$2"; }
@@ -92,6 +95,7 @@ jobs:
         find target/aarch64-unknown-linux-gnu/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
         [ "$rc" -eq 0 ] || tail -n 60 tel/build.stderr
     - shell: bash
+      name: Static metrics
       env:
         TC: nightly-${{ steps.toolchain.outputs.date }}
         TRIPLE: aarch64-unknown-linux-gnu
@@ -131,9 +135,9 @@ jobs:
               }' > tel/symbols-by-crate.txt
             ;;
         esac
-        cargo +$TC tree --locked --offline --target $TRIPLE -e normal,build --prefix none 2>/dev/null | sort -u > tel/crates.txt
+        cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -e normal,build --prefix none -f '{p}' 2> tel/tree.err | sort -u > tel/crates.txt
         mark crates_in_graph "$(wc -l < tel/crates.txt)"
-        cargo +$TC tree --locked --offline --target $TRIPLE -d --prefix none 2>/dev/null | grep -v '^$' | sort -u | head -40 > tel/duplicates.txt
+        cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -d --prefix none -f '{p}' 2>> tel/tree.err | grep -v '^$' | sort -u | head -40 > tel/duplicates.txt
         mark duplicate_crate_versions "$(wc -l < tel/duplicates.txt)"
         mark lock_packages "$(grep -c '^name = ' Cargo.lock)"
         mark src_main_lines "$(wc -l < src/main.rs)"
@@ -143,9 +147,10 @@ jobs:
         mark cache_registry_mb "$(du -sm ~/.cargo/registry 2>/dev/null | cut -f1)"
         mark cache_git_mb "$(du -sm ~/.cargo/git 2>/dev/null | cut -f1)"
         mark cache_target_mb "$(du -sm target 2>/dev/null | cut -f1)"
-        mark target_deps_files "$(ls target/$TRIPLE/$OUT/deps 2>/dev/null | wc -l)"
-        du -sm target/$TRIPLE/$OUT/* 2>/dev/null | sort -nr | head -8 > tel/target-dirs.txt
+        mark target_files "$(find target/$TRIPLE/$OUT -type f 2>/dev/null | wc -l)"
+        du -sm target/$TRIPLE/$OUT/* target/$TRIPLE/$OUT/build/* 2>/dev/null | sort -nr | head -14 > tel/target-dirs.txt
     - shell: bash
+      name: Runtime
       run: |
         now() { perl -MTime::HiRes=time -e 'printf("%.3f\n",time)'; }
         dur() { perl -e 'printf("%.1f\n",$ARGV[1]-$ARGV[0])' "$1" "$2"; }
@@ -351,6 +356,7 @@ jobs:
         kill $WMPID $XPID 2>/dev/null
         rm -rf "$HOME"
     - shell: bash
+      name: Report
       if: always()
       env:
         GH_TOKEN: ${{ github.token }}
@@ -368,7 +374,7 @@ jobs:
           if [ -f tel/shots.tsv ]; then
             echo "## Screens"
             echo '```'
-            awk -F'|' '{printf "%-26s t=%7ss cpu+%5dms rss=%4sMB thr=%2s lum=%6.2f md5=%s %8sB\n", $1, $2, $3 - p, $4, $5, $6, $7, $8; p = $3}' tel/shots.tsv
+            awk -F'|' '{printf "%-26s t=%7ss cpu+%5dms rss=%4sMB thr=%2s lum=%6.2f md5=%s %8sB\n", $1, $2, ($3 >= p ? $3 - p : $3), $4, $5, $6, $7, $8; p = $3}' tel/shots.tsv
             echo '```'
           fi
           f=$(ls -t target/cargo-timings/cargo-timing-*.html 2>/dev/null | head -1)
@@ -381,7 +387,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt strace-summary.txt loaded-libs.txt; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'
@@ -412,6 +418,7 @@ jobs:
         retention-days: 30
         compression-level: 6
     - shell: bash
+      name: Gate
       if: always()
       run: |
         grep -q "^build_rc|0$" tel/metrics.txt || exit 1
@@ -427,6 +434,7 @@ jobs:
     steps:
     - id: toolchain
       shell: bash
+      name: Toolchain
       run: |
         git init -q .
         git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
@@ -452,9 +460,10 @@ jobs:
         mark runner "$RUNNER_OS $RUNNER_ARCH image=${ImageOS:-}-${ImageVersion:-}"
         mark cpus "$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo $NUMBER_OF_PROCESSORS)"
         mark memory_mb "$( (free -m 2>/dev/null | awk '/Mem:/{print $2}') || true)$( (sysctl -n hw.memsize 2>/dev/null | awk '{print int($1/1048576)}') || true)"
-        mark cpu_model "$( (grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2) || true)$( (sysctl -n machdep.cpu.brand_string 2>/dev/null) || true)$PROCESSOR_IDENTIFIER"
+        mark cpu_model "$( (grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2) || true)$( (lscpu 2>/dev/null | grep -m1 'Model name' | cut -d: -f2) || true)$( (sysctl -n machdep.cpu.brand_string 2>/dev/null) || true)$PROCESSOR_IDENTIFIER"
         mark git_commit "$(git rev-parse --short HEAD)"
     - id: cache
+      name: Cache
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
         path: |
@@ -463,6 +472,7 @@ jobs:
           target
         key: x86_64-Linux-Nightly-${{ steps.toolchain.outputs.date }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/nightly.yml') }}
     - shell: bash
+      name: Build
       run: |
         now() { perl -MTime::HiRes=time -e 'printf("%.3f\n",time)'; }
         dur() { perl -e 'printf("%.1f\n",$ARGV[1]-$ARGV[0])' "$1" "$2"; }
@@ -502,6 +512,7 @@ jobs:
         find target/x86_64-unknown-linux-gnu/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
         [ "$rc" -eq 0 ] || tail -n 60 tel/build.stderr
     - shell: bash
+      name: Static metrics
       env:
         TC: nightly-${{ steps.toolchain.outputs.date }}
         TRIPLE: x86_64-unknown-linux-gnu
@@ -541,9 +552,9 @@ jobs:
               }' > tel/symbols-by-crate.txt
             ;;
         esac
-        cargo +$TC tree --locked --offline --target $TRIPLE -e normal,build --prefix none 2>/dev/null | sort -u > tel/crates.txt
+        cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -e normal,build --prefix none -f '{p}' 2> tel/tree.err | sort -u > tel/crates.txt
         mark crates_in_graph "$(wc -l < tel/crates.txt)"
-        cargo +$TC tree --locked --offline --target $TRIPLE -d --prefix none 2>/dev/null | grep -v '^$' | sort -u | head -40 > tel/duplicates.txt
+        cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -d --prefix none -f '{p}' 2>> tel/tree.err | grep -v '^$' | sort -u | head -40 > tel/duplicates.txt
         mark duplicate_crate_versions "$(wc -l < tel/duplicates.txt)"
         mark lock_packages "$(grep -c '^name = ' Cargo.lock)"
         mark src_main_lines "$(wc -l < src/main.rs)"
@@ -553,9 +564,10 @@ jobs:
         mark cache_registry_mb "$(du -sm ~/.cargo/registry 2>/dev/null | cut -f1)"
         mark cache_git_mb "$(du -sm ~/.cargo/git 2>/dev/null | cut -f1)"
         mark cache_target_mb "$(du -sm target 2>/dev/null | cut -f1)"
-        mark target_deps_files "$(ls target/$TRIPLE/$OUT/deps 2>/dev/null | wc -l)"
-        du -sm target/$TRIPLE/$OUT/* 2>/dev/null | sort -nr | head -8 > tel/target-dirs.txt
+        mark target_files "$(find target/$TRIPLE/$OUT -type f 2>/dev/null | wc -l)"
+        du -sm target/$TRIPLE/$OUT/* target/$TRIPLE/$OUT/build/* 2>/dev/null | sort -nr | head -14 > tel/target-dirs.txt
     - shell: bash
+      name: Runtime
       run: |
         now() { perl -MTime::HiRes=time -e 'printf("%.3f\n",time)'; }
         dur() { perl -e 'printf("%.1f\n",$ARGV[1]-$ARGV[0])' "$1" "$2"; }
@@ -761,6 +773,7 @@ jobs:
         kill $WMPID $XPID 2>/dev/null
         rm -rf "$HOME"
     - shell: bash
+      name: Report
       if: always()
       env:
         GH_TOKEN: ${{ github.token }}
@@ -778,7 +791,7 @@ jobs:
           if [ -f tel/shots.tsv ]; then
             echo "## Screens"
             echo '```'
-            awk -F'|' '{printf "%-26s t=%7ss cpu+%5dms rss=%4sMB thr=%2s lum=%6.2f md5=%s %8sB\n", $1, $2, $3 - p, $4, $5, $6, $7, $8; p = $3}' tel/shots.tsv
+            awk -F'|' '{printf "%-26s t=%7ss cpu+%5dms rss=%4sMB thr=%2s lum=%6.2f md5=%s %8sB\n", $1, $2, ($3 >= p ? $3 - p : $3), $4, $5, $6, $7, $8; p = $3}' tel/shots.tsv
             echo '```'
           fi
           f=$(ls -t target/cargo-timings/cargo-timing-*.html 2>/dev/null | head -1)
@@ -791,7 +804,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt strace-summary.txt loaded-libs.txt; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'
@@ -822,6 +835,7 @@ jobs:
         retention-days: 30
         compression-level: 6
     - shell: bash
+      name: Gate
       if: always()
       run: |
         grep -q "^build_rc|0$" tel/metrics.txt || exit 1
@@ -837,6 +851,7 @@ jobs:
     steps:
     - id: toolchain
       shell: bash
+      name: Toolchain
       run: |
         git init -q .
         git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
@@ -858,9 +873,10 @@ jobs:
         mark runner "$RUNNER_OS $RUNNER_ARCH image=${ImageOS:-}-${ImageVersion:-}"
         mark cpus "$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo $NUMBER_OF_PROCESSORS)"
         mark memory_mb "$( (free -m 2>/dev/null | awk '/Mem:/{print $2}') || true)$( (sysctl -n hw.memsize 2>/dev/null | awk '{print int($1/1048576)}') || true)"
-        mark cpu_model "$( (grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2) || true)$( (sysctl -n machdep.cpu.brand_string 2>/dev/null) || true)$PROCESSOR_IDENTIFIER"
+        mark cpu_model "$( (grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2) || true)$( (lscpu 2>/dev/null | grep -m1 'Model name' | cut -d: -f2) || true)$( (sysctl -n machdep.cpu.brand_string 2>/dev/null) || true)$PROCESSOR_IDENTIFIER"
         mark git_commit "$(git rev-parse --short HEAD)"
     - id: cache
+      name: Cache
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
         path: |
@@ -869,6 +885,7 @@ jobs:
           target
         key: AArch64-macOS-Nightly-${{ steps.toolchain.outputs.date }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/nightly.yml') }}
     - shell: bash
+      name: Build
       run: |
         now() { perl -MTime::HiRes=time -e 'printf("%.3f\n",time)'; }
         dur() { perl -e 'printf("%.1f\n",$ARGV[1]-$ARGV[0])' "$1" "$2"; }
@@ -908,6 +925,7 @@ jobs:
         find target/aarch64-apple-darwin/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
         [ "$rc" -eq 0 ] || tail -n 60 tel/build.stderr
     - shell: bash
+      name: Static metrics
       env:
         TC: nightly-${{ steps.toolchain.outputs.date }}
         TRIPLE: aarch64-apple-darwin
@@ -947,9 +965,9 @@ jobs:
               }' > tel/symbols-by-crate.txt
             ;;
         esac
-        cargo +$TC tree --locked --offline --target $TRIPLE -e normal,build --prefix none 2>/dev/null | sort -u > tel/crates.txt
+        cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -e normal,build --prefix none -f '{p}' 2> tel/tree.err | sort -u > tel/crates.txt
         mark crates_in_graph "$(wc -l < tel/crates.txt)"
-        cargo +$TC tree --locked --offline --target $TRIPLE -d --prefix none 2>/dev/null | grep -v '^$' | sort -u | head -40 > tel/duplicates.txt
+        cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -d --prefix none -f '{p}' 2>> tel/tree.err | grep -v '^$' | sort -u | head -40 > tel/duplicates.txt
         mark duplicate_crate_versions "$(wc -l < tel/duplicates.txt)"
         mark lock_packages "$(grep -c '^name = ' Cargo.lock)"
         mark src_main_lines "$(wc -l < src/main.rs)"
@@ -959,9 +977,10 @@ jobs:
         mark cache_registry_mb "$(du -sm ~/.cargo/registry 2>/dev/null | cut -f1)"
         mark cache_git_mb "$(du -sm ~/.cargo/git 2>/dev/null | cut -f1)"
         mark cache_target_mb "$(du -sm target 2>/dev/null | cut -f1)"
-        mark target_deps_files "$(ls target/$TRIPLE/$OUT/deps 2>/dev/null | wc -l)"
-        du -sm target/$TRIPLE/$OUT/* 2>/dev/null | sort -nr | head -8 > tel/target-dirs.txt
+        mark target_files "$(find target/$TRIPLE/$OUT -type f 2>/dev/null | wc -l)"
+        du -sm target/$TRIPLE/$OUT/* target/$TRIPLE/$OUT/build/* 2>/dev/null | sort -nr | head -14 > tel/target-dirs.txt
     - shell: bash
+      name: Report
       if: always()
       env:
         GH_TOKEN: ${{ github.token }}
@@ -979,7 +998,7 @@ jobs:
           if [ -f tel/shots.tsv ]; then
             echo "## Screens"
             echo '```'
-            awk -F'|' '{printf "%-26s t=%7ss cpu+%5dms rss=%4sMB thr=%2s lum=%6.2f md5=%s %8sB\n", $1, $2, $3 - p, $4, $5, $6, $7, $8; p = $3}' tel/shots.tsv
+            awk -F'|' '{printf "%-26s t=%7ss cpu+%5dms rss=%4sMB thr=%2s lum=%6.2f md5=%s %8sB\n", $1, $2, ($3 >= p ? $3 - p : $3), $4, $5, $6, $7, $8; p = $3}' tel/shots.tsv
             echo '```'
           fi
           f=$(ls -t target/cargo-timings/cargo-timing-*.html 2>/dev/null | head -1)
@@ -992,7 +1011,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt strace-summary.txt loaded-libs.txt; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'
@@ -1023,6 +1042,7 @@ jobs:
         retention-days: 30
         compression-level: 6
     - shell: bash
+      name: Gate
       if: always()
       run: |
         grep -q "^build_rc|0$" tel/metrics.txt || exit 1
@@ -1035,6 +1055,7 @@ jobs:
     steps:
     - id: toolchain
       shell: bash
+      name: Toolchain
       run: |
         git init -q .
         git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
@@ -1056,9 +1077,10 @@ jobs:
         mark runner "$RUNNER_OS $RUNNER_ARCH image=${ImageOS:-}-${ImageVersion:-}"
         mark cpus "$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo $NUMBER_OF_PROCESSORS)"
         mark memory_mb "$( (free -m 2>/dev/null | awk '/Mem:/{print $2}') || true)$( (sysctl -n hw.memsize 2>/dev/null | awk '{print int($1/1048576)}') || true)"
-        mark cpu_model "$( (grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2) || true)$( (sysctl -n machdep.cpu.brand_string 2>/dev/null) || true)$PROCESSOR_IDENTIFIER"
+        mark cpu_model "$( (grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2) || true)$( (lscpu 2>/dev/null | grep -m1 'Model name' | cut -d: -f2) || true)$( (sysctl -n machdep.cpu.brand_string 2>/dev/null) || true)$PROCESSOR_IDENTIFIER"
         mark git_commit "$(git rev-parse --short HEAD)"
     - id: cache
+      name: Cache
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
         path: |
@@ -1067,6 +1089,7 @@ jobs:
           target
         key: x86_64-macOS-Nightly-${{ steps.toolchain.outputs.date }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/nightly.yml') }}
     - shell: bash
+      name: Build
       run: |
         now() { perl -MTime::HiRes=time -e 'printf("%.3f\n",time)'; }
         dur() { perl -e 'printf("%.1f\n",$ARGV[1]-$ARGV[0])' "$1" "$2"; }
@@ -1106,6 +1129,7 @@ jobs:
         find target/x86_64-apple-darwin/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
         [ "$rc" -eq 0 ] || tail -n 60 tel/build.stderr
     - shell: bash
+      name: Static metrics
       env:
         TC: nightly-${{ steps.toolchain.outputs.date }}
         TRIPLE: x86_64-apple-darwin
@@ -1145,9 +1169,9 @@ jobs:
               }' > tel/symbols-by-crate.txt
             ;;
         esac
-        cargo +$TC tree --locked --offline --target $TRIPLE -e normal,build --prefix none 2>/dev/null | sort -u > tel/crates.txt
+        cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -e normal,build --prefix none -f '{p}' 2> tel/tree.err | sort -u > tel/crates.txt
         mark crates_in_graph "$(wc -l < tel/crates.txt)"
-        cargo +$TC tree --locked --offline --target $TRIPLE -d --prefix none 2>/dev/null | grep -v '^$' | sort -u | head -40 > tel/duplicates.txt
+        cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -d --prefix none -f '{p}' 2>> tel/tree.err | grep -v '^$' | sort -u | head -40 > tel/duplicates.txt
         mark duplicate_crate_versions "$(wc -l < tel/duplicates.txt)"
         mark lock_packages "$(grep -c '^name = ' Cargo.lock)"
         mark src_main_lines "$(wc -l < src/main.rs)"
@@ -1157,9 +1181,10 @@ jobs:
         mark cache_registry_mb "$(du -sm ~/.cargo/registry 2>/dev/null | cut -f1)"
         mark cache_git_mb "$(du -sm ~/.cargo/git 2>/dev/null | cut -f1)"
         mark cache_target_mb "$(du -sm target 2>/dev/null | cut -f1)"
-        mark target_deps_files "$(ls target/$TRIPLE/$OUT/deps 2>/dev/null | wc -l)"
-        du -sm target/$TRIPLE/$OUT/* 2>/dev/null | sort -nr | head -8 > tel/target-dirs.txt
+        mark target_files "$(find target/$TRIPLE/$OUT -type f 2>/dev/null | wc -l)"
+        du -sm target/$TRIPLE/$OUT/* target/$TRIPLE/$OUT/build/* 2>/dev/null | sort -nr | head -14 > tel/target-dirs.txt
     - shell: bash
+      name: Report
       if: always()
       env:
         GH_TOKEN: ${{ github.token }}
@@ -1177,7 +1202,7 @@ jobs:
           if [ -f tel/shots.tsv ]; then
             echo "## Screens"
             echo '```'
-            awk -F'|' '{printf "%-26s t=%7ss cpu+%5dms rss=%4sMB thr=%2s lum=%6.2f md5=%s %8sB\n", $1, $2, $3 - p, $4, $5, $6, $7, $8; p = $3}' tel/shots.tsv
+            awk -F'|' '{printf "%-26s t=%7ss cpu+%5dms rss=%4sMB thr=%2s lum=%6.2f md5=%s %8sB\n", $1, $2, ($3 >= p ? $3 - p : $3), $4, $5, $6, $7, $8; p = $3}' tel/shots.tsv
             echo '```'
           fi
           f=$(ls -t target/cargo-timings/cargo-timing-*.html 2>/dev/null | head -1)
@@ -1190,7 +1215,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt strace-summary.txt loaded-libs.txt; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'
@@ -1221,6 +1246,7 @@ jobs:
         retention-days: 30
         compression-level: 6
     - shell: bash
+      name: Gate
       if: always()
       run: |
         grep -q "^build_rc|0$" tel/metrics.txt || exit 1
@@ -1233,6 +1259,7 @@ jobs:
     steps:
     - id: toolchain
       shell: bash
+      name: Toolchain
       run: |
         git init -q .
         git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
@@ -1254,9 +1281,10 @@ jobs:
         mark runner "$RUNNER_OS $RUNNER_ARCH image=${ImageOS:-}-${ImageVersion:-}"
         mark cpus "$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo $NUMBER_OF_PROCESSORS)"
         mark memory_mb "$( (free -m 2>/dev/null | awk '/Mem:/{print $2}') || true)$( (sysctl -n hw.memsize 2>/dev/null | awk '{print int($1/1048576)}') || true)"
-        mark cpu_model "$( (grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2) || true)$( (sysctl -n machdep.cpu.brand_string 2>/dev/null) || true)$PROCESSOR_IDENTIFIER"
+        mark cpu_model "$( (grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2) || true)$( (lscpu 2>/dev/null | grep -m1 'Model name' | cut -d: -f2) || true)$( (sysctl -n machdep.cpu.brand_string 2>/dev/null) || true)$PROCESSOR_IDENTIFIER"
         mark git_commit "$(git rev-parse --short HEAD)"
     - id: cache
+      name: Cache
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
         path: |
@@ -1265,6 +1293,7 @@ jobs:
           target
         key: AArch64-Windows-Nightly-${{ steps.toolchain.outputs.date }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/nightly.yml') }}
     - shell: bash
+      name: Build
       run: |
         now() { perl -MTime::HiRes=time -e 'printf("%.3f\n",time)'; }
         dur() { perl -e 'printf("%.1f\n",$ARGV[1]-$ARGV[0])' "$1" "$2"; }
@@ -1301,6 +1330,7 @@ jobs:
         find target/aarch64-pc-windows-msvc/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
         [ "$rc" -eq 0 ] || tail -n 60 tel/build.stderr
     - shell: bash
+      name: Static metrics
       env:
         TC: nightly-${{ steps.toolchain.outputs.date }}
         TRIPLE: aarch64-pc-windows-msvc
@@ -1340,9 +1370,9 @@ jobs:
               }' > tel/symbols-by-crate.txt
             ;;
         esac
-        cargo +$TC tree --locked --offline --target $TRIPLE -e normal,build --prefix none 2>/dev/null | sort -u > tel/crates.txt
+        cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -e normal,build --prefix none -f '{p}' 2> tel/tree.err | sort -u > tel/crates.txt
         mark crates_in_graph "$(wc -l < tel/crates.txt)"
-        cargo +$TC tree --locked --offline --target $TRIPLE -d --prefix none 2>/dev/null | grep -v '^$' | sort -u | head -40 > tel/duplicates.txt
+        cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -d --prefix none -f '{p}' 2>> tel/tree.err | grep -v '^$' | sort -u | head -40 > tel/duplicates.txt
         mark duplicate_crate_versions "$(wc -l < tel/duplicates.txt)"
         mark lock_packages "$(grep -c '^name = ' Cargo.lock)"
         mark src_main_lines "$(wc -l < src/main.rs)"
@@ -1352,9 +1382,10 @@ jobs:
         mark cache_registry_mb "$(du -sm ~/.cargo/registry 2>/dev/null | cut -f1)"
         mark cache_git_mb "$(du -sm ~/.cargo/git 2>/dev/null | cut -f1)"
         mark cache_target_mb "$(du -sm target 2>/dev/null | cut -f1)"
-        mark target_deps_files "$(ls target/$TRIPLE/$OUT/deps 2>/dev/null | wc -l)"
-        du -sm target/$TRIPLE/$OUT/* 2>/dev/null | sort -nr | head -8 > tel/target-dirs.txt
+        mark target_files "$(find target/$TRIPLE/$OUT -type f 2>/dev/null | wc -l)"
+        du -sm target/$TRIPLE/$OUT/* target/$TRIPLE/$OUT/build/* 2>/dev/null | sort -nr | head -14 > tel/target-dirs.txt
     - shell: bash
+      name: Report
       if: always()
       env:
         GH_TOKEN: ${{ github.token }}
@@ -1372,7 +1403,7 @@ jobs:
           if [ -f tel/shots.tsv ]; then
             echo "## Screens"
             echo '```'
-            awk -F'|' '{printf "%-26s t=%7ss cpu+%5dms rss=%4sMB thr=%2s lum=%6.2f md5=%s %8sB\n", $1, $2, $3 - p, $4, $5, $6, $7, $8; p = $3}' tel/shots.tsv
+            awk -F'|' '{printf "%-26s t=%7ss cpu+%5dms rss=%4sMB thr=%2s lum=%6.2f md5=%s %8sB\n", $1, $2, ($3 >= p ? $3 - p : $3), $4, $5, $6, $7, $8; p = $3}' tel/shots.tsv
             echo '```'
           fi
           f=$(ls -t target/cargo-timings/cargo-timing-*.html 2>/dev/null | head -1)
@@ -1385,7 +1416,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt strace-summary.txt loaded-libs.txt; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'
@@ -1416,6 +1447,7 @@ jobs:
         retention-days: 30
         compression-level: 6
     - shell: bash
+      name: Gate
       if: always()
       run: |
         grep -q "^build_rc|0$" tel/metrics.txt || exit 1
@@ -1428,6 +1460,7 @@ jobs:
     steps:
     - id: toolchain
       shell: bash
+      name: Toolchain
       run: |
         git init -q .
         git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
@@ -1449,9 +1482,10 @@ jobs:
         mark runner "$RUNNER_OS $RUNNER_ARCH image=${ImageOS:-}-${ImageVersion:-}"
         mark cpus "$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo $NUMBER_OF_PROCESSORS)"
         mark memory_mb "$( (free -m 2>/dev/null | awk '/Mem:/{print $2}') || true)$( (sysctl -n hw.memsize 2>/dev/null | awk '{print int($1/1048576)}') || true)"
-        mark cpu_model "$( (grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2) || true)$( (sysctl -n machdep.cpu.brand_string 2>/dev/null) || true)$PROCESSOR_IDENTIFIER"
+        mark cpu_model "$( (grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2) || true)$( (lscpu 2>/dev/null | grep -m1 'Model name' | cut -d: -f2) || true)$( (sysctl -n machdep.cpu.brand_string 2>/dev/null) || true)$PROCESSOR_IDENTIFIER"
         mark git_commit "$(git rev-parse --short HEAD)"
     - id: cache
+      name: Cache
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
         path: |
@@ -1460,6 +1494,7 @@ jobs:
           target
         key: x86_64-Windows-Nightly-${{ steps.toolchain.outputs.date }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/nightly.yml') }}
     - shell: bash
+      name: Build
       run: |
         now() { perl -MTime::HiRes=time -e 'printf("%.3f\n",time)'; }
         dur() { perl -e 'printf("%.1f\n",$ARGV[1]-$ARGV[0])' "$1" "$2"; }
@@ -1499,6 +1534,7 @@ jobs:
         find target/x86_64-pc-windows-msvc/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
         [ "$rc" -eq 0 ] || tail -n 60 tel/build.stderr
     - shell: bash
+      name: Static metrics
       env:
         TC: nightly-${{ steps.toolchain.outputs.date }}
         TRIPLE: x86_64-pc-windows-msvc
@@ -1538,9 +1574,9 @@ jobs:
               }' > tel/symbols-by-crate.txt
             ;;
         esac
-        cargo +$TC tree --locked --offline --target $TRIPLE -e normal,build --prefix none 2>/dev/null | sort -u > tel/crates.txt
+        cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -e normal,build --prefix none -f '{p}' 2> tel/tree.err | sort -u > tel/crates.txt
         mark crates_in_graph "$(wc -l < tel/crates.txt)"
-        cargo +$TC tree --locked --offline --target $TRIPLE -d --prefix none 2>/dev/null | grep -v '^$' | sort -u | head -40 > tel/duplicates.txt
+        cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -d --prefix none -f '{p}' 2>> tel/tree.err | grep -v '^$' | sort -u | head -40 > tel/duplicates.txt
         mark duplicate_crate_versions "$(wc -l < tel/duplicates.txt)"
         mark lock_packages "$(grep -c '^name = ' Cargo.lock)"
         mark src_main_lines "$(wc -l < src/main.rs)"
@@ -1550,9 +1586,10 @@ jobs:
         mark cache_registry_mb "$(du -sm ~/.cargo/registry 2>/dev/null | cut -f1)"
         mark cache_git_mb "$(du -sm ~/.cargo/git 2>/dev/null | cut -f1)"
         mark cache_target_mb "$(du -sm target 2>/dev/null | cut -f1)"
-        mark target_deps_files "$(ls target/$TRIPLE/$OUT/deps 2>/dev/null | wc -l)"
-        du -sm target/$TRIPLE/$OUT/* 2>/dev/null | sort -nr | head -8 > tel/target-dirs.txt
+        mark target_files "$(find target/$TRIPLE/$OUT -type f 2>/dev/null | wc -l)"
+        du -sm target/$TRIPLE/$OUT/* target/$TRIPLE/$OUT/build/* 2>/dev/null | sort -nr | head -14 > tel/target-dirs.txt
     - shell: bash
+      name: Report
       if: always()
       env:
         GH_TOKEN: ${{ github.token }}
@@ -1570,7 +1607,7 @@ jobs:
           if [ -f tel/shots.tsv ]; then
             echo "## Screens"
             echo '```'
-            awk -F'|' '{printf "%-26s t=%7ss cpu+%5dms rss=%4sMB thr=%2s lum=%6.2f md5=%s %8sB\n", $1, $2, $3 - p, $4, $5, $6, $7, $8; p = $3}' tel/shots.tsv
+            awk -F'|' '{printf "%-26s t=%7ss cpu+%5dms rss=%4sMB thr=%2s lum=%6.2f md5=%s %8sB\n", $1, $2, ($3 >= p ? $3 - p : $3), $4, $5, $6, $7, $8; p = $3}' tel/shots.tsv
             echo '```'
           fi
           f=$(ls -t target/cargo-timings/cargo-timing-*.html 2>/dev/null | head -1)
@@ -1583,7 +1620,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt strace-summary.txt loaded-libs.txt; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'
@@ -1614,6 +1651,7 @@ jobs:
         retention-days: 30
         compression-level: 6
     - shell: bash
+      name: Gate
       if: always()
       run: |
         grep -q "^build_rc|0$" tel/metrics.txt || exit 1
@@ -1627,6 +1665,7 @@ jobs:
     steps:
     - id: toolchain
       shell: bash
+      name: Toolchain
       run: |
         git init -q .
         git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
@@ -1650,9 +1689,10 @@ jobs:
         mark runner "$RUNNER_OS $RUNNER_ARCH image=${ImageOS:-}-${ImageVersion:-}"
         mark cpus "$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo $NUMBER_OF_PROCESSORS)"
         mark memory_mb "$( (free -m 2>/dev/null | awk '/Mem:/{print $2}') || true)$( (sysctl -n hw.memsize 2>/dev/null | awk '{print int($1/1048576)}') || true)"
-        mark cpu_model "$( (grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2) || true)$( (sysctl -n machdep.cpu.brand_string 2>/dev/null) || true)$PROCESSOR_IDENTIFIER"
+        mark cpu_model "$( (grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2) || true)$( (lscpu 2>/dev/null | grep -m1 'Model name' | cut -d: -f2) || true)$( (sysctl -n machdep.cpu.brand_string 2>/dev/null) || true)$PROCESSOR_IDENTIFIER"
         mark git_commit "$(git rev-parse --short HEAD)"
     - id: cache
+      name: Cache
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
         path: |
@@ -1661,6 +1701,7 @@ jobs:
           target
         key: x86_64-Linux-TelemetryDaylight-nightly-2026-11-22-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/telemetry.yml') }}
     - shell: bash
+      name: Runtime
       run: |
         now() { perl -MTime::HiRes=time -e 'printf("%.3f\n",time)'; }
         dur() { perl -e 'printf("%.1f\n",$ARGV[1]-$ARGV[0])' "$1" "$2"; }
@@ -1865,6 +1906,7 @@ jobs:
         kill $WMPID $XPID 2>/dev/null
         rm -rf "$HOME"
     - shell: bash
+      name: Static metrics
       env:
         TC: nightly-2026-11-22
         TRIPLE: x86_64-unknown-linux-gnu
@@ -1904,9 +1946,9 @@ jobs:
               }' > tel/symbols-by-crate.txt
             ;;
         esac
-        cargo +$TC tree --locked --offline --target $TRIPLE -e normal,build --prefix none 2>/dev/null | sort -u > tel/crates.txt
+        cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -e normal,build --prefix none -f '{p}' 2> tel/tree.err | sort -u > tel/crates.txt
         mark crates_in_graph "$(wc -l < tel/crates.txt)"
-        cargo +$TC tree --locked --offline --target $TRIPLE -d --prefix none 2>/dev/null | grep -v '^$' | sort -u | head -40 > tel/duplicates.txt
+        cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -d --prefix none -f '{p}' 2>> tel/tree.err | grep -v '^$' | sort -u | head -40 > tel/duplicates.txt
         mark duplicate_crate_versions "$(wc -l < tel/duplicates.txt)"
         mark lock_packages "$(grep -c '^name = ' Cargo.lock)"
         mark src_main_lines "$(wc -l < src/main.rs)"
@@ -1916,9 +1958,10 @@ jobs:
         mark cache_registry_mb "$(du -sm ~/.cargo/registry 2>/dev/null | cut -f1)"
         mark cache_git_mb "$(du -sm ~/.cargo/git 2>/dev/null | cut -f1)"
         mark cache_target_mb "$(du -sm target 2>/dev/null | cut -f1)"
-        mark target_deps_files "$(ls target/$TRIPLE/$OUT/deps 2>/dev/null | wc -l)"
-        du -sm target/$TRIPLE/$OUT/* 2>/dev/null | sort -nr | head -8 > tel/target-dirs.txt
+        mark target_files "$(find target/$TRIPLE/$OUT -type f 2>/dev/null | wc -l)"
+        du -sm target/$TRIPLE/$OUT/* target/$TRIPLE/$OUT/build/* 2>/dev/null | sort -nr | head -14 > tel/target-dirs.txt
     - shell: bash
+      name: Report
       if: always()
       env:
         GH_TOKEN: ${{ github.token }}
@@ -1936,7 +1979,7 @@ jobs:
           if [ -f tel/shots.tsv ]; then
             echo "## Screens"
             echo '```'
-            awk -F'|' '{printf "%-26s t=%7ss cpu+%5dms rss=%4sMB thr=%2s lum=%6.2f md5=%s %8sB\n", $1, $2, $3 - p, $4, $5, $6, $7, $8; p = $3}' tel/shots.tsv
+            awk -F'|' '{printf "%-26s t=%7ss cpu+%5dms rss=%4sMB thr=%2s lum=%6.2f md5=%s %8sB\n", $1, $2, ($3 >= p ? $3 - p : $3), $4, $5, $6, $7, $8; p = $3}' tel/shots.tsv
             echo '```'
           fi
           f=$(ls -t target/cargo-timings/cargo-timing-*.html 2>/dev/null | head -1)
@@ -1949,7 +1992,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt strace-summary.txt loaded-libs.txt; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'
@@ -1980,6 +2023,7 @@ jobs:
         retention-days: 30
         compression-level: 6
     - shell: bash
+      name: Gate
       if: always()
       run: |
         grep -q "^build_x11_rc|0$" tel/metrics.txt || exit 1

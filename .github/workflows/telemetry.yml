@@ -24,7 +24,7 @@ jobs:
         git checkout -q FETCH_HEAD
         mkdir tel
         S0=$(perl -MTime::HiRes=time -e 'printf("%.3f\n",time)')
-        (export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a; timeout 120 sudo -E apt-get update -qq && timeout 300 sudo -E apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev libxkbcommon-x11-0 libx11-xcb1 libxcursor1 libxi6 libxrandr2 xvfb xdotool openbox imagemagick mesa-vulkan-drivers strace jq) > tel/apt.log 2>&1 &
+        (export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a; for i in 1 2 3; do timeout 120 sudo -E apt-get update -qq -o Acquire::Retries=3 -o Acquire::http::Timeout=20 && timeout 420 sudo -E apt-get install -y -qq -o Acquire::Retries=3 -o Acquire::http::Timeout=20 --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev libxkbcommon-x11-0 libx11-xcb1 libxcursor1 libxi6 libxrandr2 xvfb xdotool openbox imagemagick mesa-vulkan-drivers strace jq && exit 0; sleep 3; done; exit 1) > tel/apt.log 2>&1 &
         apt=$!
         d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
         echo "date=$d" >> "$GITHUB_OUTPUT"
@@ -400,6 +400,12 @@ jobs:
             head -n 40 tel/build.stderr
             echo '```'
           fi
+          if [ -s tel/apt.log ]; then
+            echo "## apt.log"
+            echo '```'
+            tail -n 20 tel/apt.log
+            echo '```'
+          fi
           echo "## Step timeline"
           echo '```'
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" --jq ".jobs[] | select(.runner_name == \"$RUNNER_NAME\") | .steps[] | select(.started_at != null and .completed_at != null) | [.name, ((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601))] | @tsv" 2>/dev/null
@@ -440,7 +446,7 @@ jobs:
         git checkout -q FETCH_HEAD
         mkdir tel
         S0=$(perl -MTime::HiRes=time -e 'printf("%.3f\n",time)')
-        (export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a; timeout 120 sudo -E apt-get update -qq && timeout 300 sudo -E apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev libxkbcommon-x11-0 libx11-xcb1 libxcursor1 libxi6 libxrandr2 xvfb xdotool openbox imagemagick mesa-vulkan-drivers strace jq) > tel/apt.log 2>&1 &
+        (export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a; for i in 1 2 3; do timeout 120 sudo -E apt-get update -qq -o Acquire::Retries=3 -o Acquire::http::Timeout=20 && timeout 420 sudo -E apt-get install -y -qq -o Acquire::Retries=3 -o Acquire::http::Timeout=20 --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev libxkbcommon-x11-0 libx11-xcb1 libxcursor1 libxi6 libxrandr2 xvfb xdotool openbox imagemagick mesa-vulkan-drivers strace jq && exit 0; sleep 3; done; exit 1) > tel/apt.log 2>&1 &
         apt=$!
         d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
         echo "date=$d" >> "$GITHUB_OUTPUT"
@@ -816,6 +822,12 @@ jobs:
             head -n 40 tel/build.stderr
             echo '```'
           fi
+          if [ -s tel/apt.log ]; then
+            echo "## apt.log"
+            echo '```'
+            tail -n 20 tel/apt.log
+            echo '```'
+          fi
           echo "## Step timeline"
           echo '```'
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" --jq ".jobs[] | select(.runner_name == \"$RUNNER_NAME\") | .steps[] | select(.started_at != null and .completed_at != null) | [.name, ((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601))] | @tsv" 2>/dev/null
@@ -1023,6 +1035,12 @@ jobs:
             head -n 40 tel/build.stderr
             echo '```'
           fi
+          if [ -s tel/apt.log ]; then
+            echo "## apt.log"
+            echo '```'
+            tail -n 20 tel/apt.log
+            echo '```'
+          fi
           echo "## Step timeline"
           echo '```'
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" --jq ".jobs[] | select(.runner_name == \"$RUNNER_NAME\") | .steps[] | select(.started_at != null and .completed_at != null) | [.name, ((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601))] | @tsv" 2>/dev/null
@@ -1227,6 +1245,12 @@ jobs:
             head -n 40 tel/build.stderr
             echo '```'
           fi
+          if [ -s tel/apt.log ]; then
+            echo "## apt.log"
+            echo '```'
+            tail -n 20 tel/apt.log
+            echo '```'
+          fi
           echo "## Step timeline"
           echo '```'
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" --jq ".jobs[] | select(.runner_name == \"$RUNNER_NAME\") | .steps[] | select(.started_at != null and .completed_at != null) | [.name, ((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601))] | @tsv" 2>/dev/null
@@ -1426,6 +1450,12 @@ jobs:
             echo "## Compiler output"
             echo '```'
             head -n 40 tel/build.stderr
+            echo '```'
+          fi
+          if [ -s tel/apt.log ]; then
+            echo "## apt.log"
+            echo '```'
+            tail -n 20 tel/apt.log
             echo '```'
           fi
           echo "## Step timeline"
@@ -1632,6 +1662,12 @@ jobs:
             head -n 40 tel/build.stderr
             echo '```'
           fi
+          if [ -s tel/apt.log ]; then
+            echo "## apt.log"
+            echo '```'
+            tail -n 20 tel/apt.log
+            echo '```'
+          fi
           echo "## Step timeline"
           echo '```'
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" --jq ".jobs[] | select(.runner_name == \"$RUNNER_NAME\") | .steps[] | select(.started_at != null and .completed_at != null) | [.name, ((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601))] | @tsv" 2>/dev/null
@@ -1670,7 +1706,7 @@ jobs:
         git checkout -q FETCH_HEAD
         mkdir tel
         S0=$(perl -MTime::HiRes=time -e 'printf("%.3f\n",time)')
-        (export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a; timeout 120 sudo -E apt-get update -qq && timeout 300 sudo -E apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev libxkbcommon-x11-0 libx11-xcb1 libxcursor1 libxi6 libxrandr2 xvfb xdotool openbox imagemagick mesa-vulkan-drivers strace jq) > tel/apt.log 2>&1 &
+        (export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a; for i in 1 2 3; do timeout 120 sudo -E apt-get update -qq -o Acquire::Retries=3 -o Acquire::http::Timeout=20 && timeout 420 sudo -E apt-get install -y -qq -o Acquire::Retries=3 -o Acquire::http::Timeout=20 --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev libxkbcommon-x11-0 libx11-xcb1 libxcursor1 libxi6 libxrandr2 xvfb xdotool openbox imagemagick mesa-vulkan-drivers strace jq && exit 0; sleep 3; done; exit 1) > tel/apt.log 2>&1 &
         apt=$!
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component llvm-tools --component rust-src --target x86_64-unknown-linux-gnu --no-self-update > tel/rustup.log 2>&1
         echo "rustup rc=$?"
@@ -2001,6 +2037,12 @@ jobs:
             echo "## Compiler output"
             echo '```'
             head -n 40 tel/build.stderr
+            echo '```'
+          fi
+          if [ -s tel/apt.log ]; then
+            echo "## apt.log"
+            echo '```'
+            tail -n 20 tel/apt.log
             echo '```'
           fi
           echo "## Step timeline"

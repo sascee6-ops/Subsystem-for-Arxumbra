@@ -15,10 +15,10 @@ jobs:
         git init -q .
         git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
         git checkout -q FETCH_HEAD
-        (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev) &
+        (export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a; timeout 120 sudo -E apt-get update -qq && timeout 300 sudo -E apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev) &
         apt=$!
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target aarch64-unknown-linux-gnu --no-self-update
-        wait $apt
+        wait $apt || true
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
         path: |
@@ -71,10 +71,10 @@ jobs:
         git init -q .
         git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }}
         git checkout -q FETCH_HEAD
-        (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev) &
+        (export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a; timeout 120 sudo -E apt-get update -qq && timeout 300 sudo -E apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev) &
         apt=$!
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target x86_64-unknown-linux-gnu --no-self-update
-        wait $apt
+        wait $apt || true
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
         path: |

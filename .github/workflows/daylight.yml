@@ -46,7 +46,7 @@ jobs:
           --config 'profile.release.build-override.codegen-units=256' \
           --config 'profile.release.build-override.debug=false' \
           --config 'unstable.panic-immediate-abort=true' \
-          --config 'target.aarch64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
+          --config 'target.aarch64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options","-C","link-arg=-Wl,--icf=all"]' \
           --target aarch64-unknown-linux-gnu --bin subsystem-for-arxumbra
         mkdir -p dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
         cp target/aarch64-unknown-linux-gnu/release/subsystem-for-arxumbra dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
@@ -102,7 +102,7 @@ jobs:
           --config 'profile.release.build-override.codegen-units=256' \
           --config 'profile.release.build-override.debug=false' \
           --config 'unstable.panic-immediate-abort=true' \
-          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
+          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options","-C","link-arg=-Wl,--icf=all"]' \
           --target x86_64-unknown-linux-gnu --bin subsystem-for-arxumbra
         mkdir -p dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
         cp target/x86_64-unknown-linux-gnu/release/subsystem-for-arxumbra dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2

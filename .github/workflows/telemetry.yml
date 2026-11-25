@@ -134,6 +134,12 @@ jobs:
               }' > tel/symbols-by-crate.txt
             ;;
         esac
+        case "$RUNNER_OS" in
+          Linux)
+            mark elf_type "$("$L/llvm-readobj" --file-headers "$BINPATH" 2>/dev/null | awk '/Type:/{print $2; exit}')"
+            mark elf_relocations "$("$L/llvm-readobj" -r "$BINPATH" 2>/dev/null | grep -c '^ *0x')"
+            ;;
+        esac
         cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -e normal,build --prefix none -f '{p}' 2> tel/tree.err | sort -u > tel/crates.txt
         mark crates_in_graph "$(wc -l < tel/crates.txt)"
         cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -d --prefix none -f '{p}' 2>> tel/tree.err | grep -v '^$' | sort -u | head -40 > tel/duplicates.txt
@@ -348,6 +354,26 @@ jobs:
         kill -TERM $APID
         wait $APID 2>/dev/null
         mark panics_after_restart "$(grep -c -i panick "$TEL/app-warm.log")"
+        for i in 1 2 3 4 5 6 7 8 9 10; do
+          launch x
+          echo "$(dur $L0 $L1) $(dur $L0 $L2)" >> "$TEL/bench.txt"
+          kill -TERM $APID
+          wait $APID 2>/dev/null
+          sleep 0.5
+        done
+        sed -i '/^x_/d' "$TEL/metrics.txt"
+        mark startup_window_median_s "$(awk '{print $1}' "$TEL/bench.txt" | sort -n | awk '{a[NR]=$1} END{print a[int((NR+1)/2)]}')"
+        mark startup_first_frame_median_s "$(awk '{print $2}' "$TEL/bench.txt" | sort -n | awk '{a[NR]=$1} END{print a[int((NR+1)/2)]}')"
+        mark startup_first_frame_min_s "$(awk '{print $2}' "$TEL/bench.txt" | sort -n | head -1)"
+        mark startup_first_frame_max_s "$(awk '{print $2}' "$TEL/bench.txt" | sort -n | tail -1)"
+        LD_DEBUG=statistics LD_DEBUG_OUTPUT="$TEL/ld" "$BIN" > /dev/null 2>&1 &
+        LPID=$!
+        sleep 4
+        kill -TERM $LPID
+        wait $LPID 2>/dev/null
+        mark ld_total "$(cat "$TEL"/ld.* 2>/dev/null | grep -m1 'total startup time' | sed 's/.*: //')"
+        mark ld_relocation "$(cat "$TEL"/ld.* 2>/dev/null | grep -m1 'time needed for relocation' | sed 's/.*: //')"
+        rm -f "$TEL"/ld.*
         timeout -s INT 10 strace -f -c -o "$TEL/strace-summary.txt" "$BIN" > "$TEL/app-strace.log" 2>&1
         pkill -f "$BIN"
         sleep 1
@@ -554,6 +580,12 @@ jobs:
                 }
                 printf "%10d total symbol bytes\n", $total;
               }' > tel/symbols-by-crate.txt
+            ;;
+        esac
+        case "$RUNNER_OS" in
+          Linux)
+            mark elf_type "$("$L/llvm-readobj" --file-headers "$BINPATH" 2>/dev/null | awk '/Type:/{print $2; exit}')"
+            mark elf_relocations "$("$L/llvm-readobj" -r "$BINPATH" 2>/dev/null | grep -c '^ *0x')"
             ;;
         esac
         cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -e normal,build --prefix none -f '{p}' 2> tel/tree.err | sort -u > tel/crates.txt
@@ -770,6 +802,26 @@ jobs:
         kill -TERM $APID
         wait $APID 2>/dev/null
         mark panics_after_restart "$(grep -c -i panick "$TEL/app-warm.log")"
+        for i in 1 2 3 4 5 6 7 8 9 10; do
+          launch x
+          echo "$(dur $L0 $L1) $(dur $L0 $L2)" >> "$TEL/bench.txt"
+          kill -TERM $APID
+          wait $APID 2>/dev/null
+          sleep 0.5
+        done
+        sed -i '/^x_/d' "$TEL/metrics.txt"
+        mark startup_window_median_s "$(awk '{print $1}' "$TEL/bench.txt" | sort -n | awk '{a[NR]=$1} END{print a[int((NR+1)/2)]}')"
+        mark startup_first_frame_median_s "$(awk '{print $2}' "$TEL/bench.txt" | sort -n | awk '{a[NR]=$1} END{print a[int((NR+1)/2)]}')"
+        mark startup_first_frame_min_s "$(awk '{print $2}' "$TEL/bench.txt" | sort -n | head -1)"
+        mark startup_first_frame_max_s "$(awk '{print $2}' "$TEL/bench.txt" | sort -n | tail -1)"
+        LD_DEBUG=statistics LD_DEBUG_OUTPUT="$TEL/ld" "$BIN" > /dev/null 2>&1 &
+        LPID=$!
+        sleep 4
+        kill -TERM $LPID
+        wait $LPID 2>/dev/null
+        mark ld_total "$(cat "$TEL"/ld.* 2>/dev/null | grep -m1 'total startup time' | sed 's/.*: //')"
+        mark ld_relocation "$(cat "$TEL"/ld.* 2>/dev/null | grep -m1 'time needed for relocation' | sed 's/.*: //')"
+        rm -f "$TEL"/ld.*
         timeout -s INT 10 strace -f -c -o "$TEL/strace-summary.txt" "$BIN" > "$TEL/app-strace.log" 2>&1
         pkill -f "$BIN"
         sleep 1
@@ -973,6 +1025,12 @@ jobs:
                 }
                 printf "%10d total symbol bytes\n", $total;
               }' > tel/symbols-by-crate.txt
+            ;;
+        esac
+        case "$RUNNER_OS" in
+          Linux)
+            mark elf_type "$("$L/llvm-readobj" --file-headers "$BINPATH" 2>/dev/null | awk '/Type:/{print $2; exit}')"
+            mark elf_relocations "$("$L/llvm-readobj" -r "$BINPATH" 2>/dev/null | grep -c '^ *0x')"
             ;;
         esac
         cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -e normal,build --prefix none -f '{p}' 2> tel/tree.err | sort -u > tel/crates.txt
@@ -1185,6 +1243,12 @@ jobs:
               }' > tel/symbols-by-crate.txt
             ;;
         esac
+        case "$RUNNER_OS" in
+          Linux)
+            mark elf_type "$("$L/llvm-readobj" --file-headers "$BINPATH" 2>/dev/null | awk '/Type:/{print $2; exit}')"
+            mark elf_relocations "$("$L/llvm-readobj" -r "$BINPATH" 2>/dev/null | grep -c '^ *0x')"
+            ;;
+        esac
         cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -e normal,build --prefix none -f '{p}' 2> tel/tree.err | sort -u > tel/crates.txt
         mark crates_in_graph "$(wc -l < tel/crates.txt)"
         cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -d --prefix none -f '{p}' 2>> tel/tree.err | grep -v '^$' | sort -u | head -40 > tel/duplicates.txt
@@ -1390,6 +1454,12 @@ jobs:
                 }
                 printf "%10d total symbol bytes\n", $total;
               }' > tel/symbols-by-crate.txt
+            ;;
+        esac
+        case "$RUNNER_OS" in
+          Linux)
+            mark elf_type "$("$L/llvm-readobj" --file-headers "$BINPATH" 2>/dev/null | awk '/Type:/{print $2; exit}')"
+            mark elf_relocations "$("$L/llvm-readobj" -r "$BINPATH" 2>/dev/null | grep -c '^ *0x')"
             ;;
         esac
         cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -e normal,build --prefix none -f '{p}' 2> tel/tree.err | sort -u > tel/crates.txt
@@ -1600,6 +1670,12 @@ jobs:
                 }
                 printf "%10d total symbol bytes\n", $total;
               }' > tel/symbols-by-crate.txt
+            ;;
+        esac
+        case "$RUNNER_OS" in
+          Linux)
+            mark elf_type "$("$L/llvm-readobj" --file-headers "$BINPATH" 2>/dev/null | awk '/Type:/{print $2; exit}')"
+            mark elf_relocations "$("$L/llvm-readobj" -r "$BINPATH" 2>/dev/null | grep -c '^ *0x')"
             ;;
         esac
         cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -e normal,build --prefix none -f '{p}' 2> tel/tree.err | sort -u > tel/crates.txt
@@ -1932,6 +2008,26 @@ jobs:
         kill -TERM $APID
         wait $APID 2>/dev/null
         mark panics_after_restart "$(grep -c -i panick "$TEL/app-warm.log")"
+        for i in 1 2 3 4 5 6 7 8 9 10; do
+          launch x
+          echo "$(dur $L0 $L1) $(dur $L0 $L2)" >> "$TEL/bench.txt"
+          kill -TERM $APID
+          wait $APID 2>/dev/null
+          sleep 0.5
+        done
+        sed -i '/^x_/d' "$TEL/metrics.txt"
+        mark startup_window_median_s "$(awk '{print $1}' "$TEL/bench.txt" | sort -n | awk '{a[NR]=$1} END{print a[int((NR+1)/2)]}')"
+        mark startup_first_frame_median_s "$(awk '{print $2}' "$TEL/bench.txt" | sort -n | awk '{a[NR]=$1} END{print a[int((NR+1)/2)]}')"
+        mark startup_first_frame_min_s "$(awk '{print $2}' "$TEL/bench.txt" | sort -n | head -1)"
+        mark startup_first_frame_max_s "$(awk '{print $2}' "$TEL/bench.txt" | sort -n | tail -1)"
+        LD_DEBUG=statistics LD_DEBUG_OUTPUT="$TEL/ld" "$BIN" > /dev/null 2>&1 &
+        LPID=$!
+        sleep 4
+        kill -TERM $LPID
+        wait $LPID 2>/dev/null
+        mark ld_total "$(cat "$TEL"/ld.* 2>/dev/null | grep -m1 'total startup time' | sed 's/.*: //')"
+        mark ld_relocation "$(cat "$TEL"/ld.* 2>/dev/null | grep -m1 'time needed for relocation' | sed 's/.*: //')"
+        rm -f "$TEL"/ld.*
         timeout -s INT 10 strace -f -c -o "$TEL/strace-summary.txt" "$BIN" > "$TEL/app-strace.log" 2>&1
         pkill -f "$BIN"
         sleep 1
@@ -1977,6 +2073,12 @@ jobs:
                 }
                 printf "%10d total symbol bytes\n", $total;
               }' > tel/symbols-by-crate.txt
+            ;;
+        esac
+        case "$RUNNER_OS" in
+          Linux)
+            mark elf_type "$("$L/llvm-readobj" --file-headers "$BINPATH" 2>/dev/null | awk '/Type:/{print $2; exit}')"
+            mark elf_relocations "$("$L/llvm-readobj" -r "$BINPATH" 2>/dev/null | grep -c '^ *0x')"
             ;;
         esac
         cargo +$TC tree -Zgit=shallow-deps --locked --offline --target $TRIPLE -e normal,build --prefix none -f '{p}' 2> tel/tree.err | sort -u > tel/crates.txt

@@ -1,0 +1,24 @@
+name: Probe
+on:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  x86_64:
+    runs-on: ubuntu-24.04
+    steps:
+    - shell: bash
+      run: |
+        sudo apt-get update -qq
+        apt-cache search --names-only '^(llvm-)?bolt' | head -20
+        for v in 17 18 19 20 21 22; do echo "bolt-$v: $(apt-cache policy bolt-$v 2>/dev/null | sed -n 's/ *Candidate: //p')"; done
+        apt-cache show bolt-18 2>/dev/null | grep -E '^(Depends|Installed-Size|Section)' | head -5
+        which perf; uname -r; nproc
+  aarch64:
+    runs-on: ubuntu-24.04-arm
+    steps:
+    - shell: bash
+      run: |
+        sudo apt-get update -qq
+        apt-cache search --names-only '^(llvm-)?bolt' | head -20
+        for v in 17 18 19 20 21 22; do echo "bolt-$v: $(apt-cache policy bolt-$v 2>/dev/null | sed -n 's/ *Candidate: //p')"; done
+        which perf; uname -r; nproc

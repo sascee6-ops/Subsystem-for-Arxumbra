@@ -20,6 +20,7 @@ bevy = { git = "https://github.com/bevyengine/bevy", tag = "v0.20.1", default-fe
     "bevy_asset",
     "bevy_winit",
     "wayland",
+    "x11",
     "bevy_window",
     "bevy_render",
     "bevy_core_pipeline",

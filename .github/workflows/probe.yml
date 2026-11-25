@@ -9,16 +9,40 @@ jobs:
     - shell: bash
       run: |
         sudo apt-get update -qq
-        apt-cache search --names-only '^(llvm-)?bolt' | head -20
-        for v in 17 18 19 20 21 22; do echo "bolt-$v: $(apt-cache policy bolt-$v 2>/dev/null | sed -n 's/ *Candidate: //p')"; done
-        apt-cache show bolt-18 2>/dev/null | grep -E '^(Depends|Installed-Size|Section)' | head -5
-        which perf; uname -r; nproc
+        sudo apt-get install -y -qq --no-install-recommends bolt-20 > /dev/null 2>&1; echo "install rc=$?"
+        ls /usr/lib/llvm-20/bin | grep -i -E 'bolt|merge-fdata|perf2bolt'
+        find / -name 'libbolt_rt*' 2>/dev/null
+        ls /usr/bin | grep -i -E 'bolt|merge-fdata'
+        /usr/lib/llvm-20/bin/llvm-bolt --version | head -3
+        cat > t.c <<'EOC'
+        #include <stdio.h>
+        int f(int x){ return x*3+1; }
+        int main(int c,char**v){ long s=0; for(int i=0;i<2000000;i++) s+=f(i)%7; printf("%ld\n",s); return 0; }
+        EOC
+        cc -O1 -no-pie -Wl,-q t.c -o t
+        /usr/lib/llvm-20/bin/llvm-bolt t -instrument -instrumentation-file=$PWD/p -instrumentation-file-append-pid -instrumentation-sleep-time=2 -o t.inst 2>&1 | tail -3
+        ./t.inst; ls p* 2>&1 | head
+        /usr/lib/llvm-20/bin/merge-fdata p.* > m.fdata; wc -c m.fdata
+        /usr/lib/llvm-20/bin/llvm-bolt t -data=m.fdata -o t.opt -reorder-blocks=ext-tsp -reorder-functions=hfsort -split-functions -split-all-cold -split-eh -icf=1 -use-gnu-stack -dyno-stats 2>&1 | tail -4
+        ./t.opt
   aarch64:
     runs-on: ubuntu-24.04-arm
     steps:
     - shell: bash
       run: |
         sudo apt-get update -qq
-        apt-cache search --names-only '^(llvm-)?bolt' | head -20
-        for v in 17 18 19 20 21 22; do echo "bolt-$v: $(apt-cache policy bolt-$v 2>/dev/null | sed -n 's/ *Candidate: //p')"; done
-        which perf; uname -r; nproc
+        sudo apt-get install -y -qq --no-install-recommends bolt-20 > /dev/null 2>&1; echo "install rc=$?"
+        ls /usr/lib/llvm-20/bin | grep -i -E 'bolt|merge-fdata|perf2bolt'
+        find / -name 'libbolt_rt*' 2>/dev/null
+        /usr/lib/llvm-20/bin/llvm-bolt --version | head -3
+        cat > t.c <<'EOC'
+        #include <stdio.h>
+        int f(int x){ return x*3+1; }
+        int main(int c,char**v){ long s=0; for(int i=0;i<2000000;i++) s+=f(i)%7; printf("%ld\n",s); return 0; }
+        EOC
+        cc -O1 -no-pie -Wl,-q t.c -o t
+        /usr/lib/llvm-20/bin/llvm-bolt t -instrument -instrumentation-file=$PWD/p -instrumentation-file-append-pid -instrumentation-sleep-time=2 -o t.inst 2>&1 | tail -3
+        ./t.inst; ls p* 2>&1 | head
+        /usr/lib/llvm-20/bin/merge-fdata p.* > m.fdata; wc -c m.fdata
+        /usr/lib/llvm-20/bin/llvm-bolt t -data=m.fdata -o t.opt -reorder-blocks=ext-tsp -reorder-functions=hfsort -split-functions -split-all-cold -split-eh -icf=1 -use-gnu-stack -dyno-stats 2>&1 | tail -4
+        ./t.opt

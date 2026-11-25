@@ -20,10 +20,10 @@ jobs:
         int main(int c,char**v){ long s=0; for(int i=0;i<2000000;i++) s+=f(i)%7; printf("%ld\n",s); return 0; }
         EOC
         cc -O1 -no-pie -Wl,-q t.c -o t
-        /usr/lib/llvm-20/bin/llvm-bolt t -instrument -instrumentation-file=$PWD/p -instrumentation-file-append-pid -instrumentation-sleep-time=2 -o t.inst 2>&1 | tail -3
-        ./t.inst; ls p* 2>&1 | head
-        /usr/lib/llvm-20/bin/merge-fdata p.* > m.fdata; wc -c m.fdata
-        /usr/lib/llvm-20/bin/llvm-bolt t -data=m.fdata -o t.opt -reorder-blocks=ext-tsp -reorder-functions=hfsort -split-functions -split-all-cold -split-eh -icf=1 -use-gnu-stack -dyno-stats 2>&1 | tail -4
+        /usr/lib/llvm-20/bin/llvm-bolt t -instrument -instrumentation-file=$PWD/p -instrumentation-no-counters-clear -instrumentation-sleep-time=2 -o t.inst 2>&1 | tail -3
+        ./t.inst; ls -l p* 2>&1 | head
+        /usr/lib/llvm-20/bin/merge-fdata p > m.fdata; wc -c m.fdata
+        /usr/lib/llvm-20/bin/llvm-bolt t -data=p -o t.opt -reorder-blocks=ext-tsp -reorder-functions=hfsort -split-functions -split-all-cold -split-eh -icf=1 -use-gnu-stack -dyno-stats 2>&1 | tail -4
         ./t.opt
   aarch64:
     runs-on: ubuntu-24.04-arm
@@ -41,8 +41,8 @@ jobs:
         int main(int c,char**v){ long s=0; for(int i=0;i<2000000;i++) s+=f(i)%7; printf("%ld\n",s); return 0; }
         EOC
         cc -O1 -no-pie -Wl,-q t.c -o t
-        /usr/lib/llvm-20/bin/llvm-bolt t -instrument -instrumentation-file=$PWD/p -instrumentation-file-append-pid -instrumentation-sleep-time=2 -o t.inst 2>&1 | tail -3
-        ./t.inst; ls p* 2>&1 | head
-        /usr/lib/llvm-20/bin/merge-fdata p.* > m.fdata; wc -c m.fdata
-        /usr/lib/llvm-20/bin/llvm-bolt t -data=m.fdata -o t.opt -reorder-blocks=ext-tsp -reorder-functions=hfsort -split-functions -split-all-cold -split-eh -icf=1 -use-gnu-stack -dyno-stats 2>&1 | tail -4
+        /usr/lib/llvm-20/bin/llvm-bolt t -instrument -instrumentation-file=$PWD/p -instrumentation-no-counters-clear -instrumentation-sleep-time=2 -o t.inst 2>&1 | tail -3
+        ./t.inst; ls -l p* 2>&1 | head
+        /usr/lib/llvm-20/bin/merge-fdata p > m.fdata; wc -c m.fdata
+        /usr/lib/llvm-20/bin/llvm-bolt t -data=p -o t.opt -reorder-blocks=ext-tsp -reorder-functions=hfsort -split-functions -split-all-cold -split-eh -icf=1 -use-gnu-stack -dyno-stats 2>&1 | tail -4
         ./t.opt

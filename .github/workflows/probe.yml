@@ -9,11 +9,11 @@ jobs:
     - shell: bash
       run: |
         sudo apt-get update -qq
-        sudo apt-get install -y -qq --no-install-recommends bolt-20 > /dev/null 2>&1; echo "install rc=$?"
+        sudo apt-get install -y -qq --no-install-recommends bolt-20 > /dev/null 2>&1; echo "install rc=$?"; set +o pipefail
         ls /usr/lib/llvm-20/bin | grep -i -E 'bolt|merge-fdata|perf2bolt'
         find / -name 'libbolt_rt*' 2>/dev/null
         ls /usr/bin | grep -i -E 'bolt|merge-fdata'
-        /usr/lib/llvm-20/bin/llvm-bolt --version | head -3
+        /usr/lib/llvm-20/bin/llvm-bolt --version 2>&1 | head -3 || true
         cat > t.c <<'EOC'
         #include <stdio.h>
         int f(int x){ return x*3+1; }
@@ -31,10 +31,10 @@ jobs:
     - shell: bash
       run: |
         sudo apt-get update -qq
-        sudo apt-get install -y -qq --no-install-recommends bolt-20 > /dev/null 2>&1; echo "install rc=$?"
+        sudo apt-get install -y -qq --no-install-recommends bolt-20 > /dev/null 2>&1; echo "install rc=$?"; set +o pipefail
         ls /usr/lib/llvm-20/bin | grep -i -E 'bolt|merge-fdata|perf2bolt'
         find / -name 'libbolt_rt*' 2>/dev/null
-        /usr/lib/llvm-20/bin/llvm-bolt --version | head -3
+        /usr/lib/llvm-20/bin/llvm-bolt --version 2>&1 | head -3 || true
         cat > t.c <<'EOC'
         #include <stdio.h>
         int f(int x){ return x*3+1; }

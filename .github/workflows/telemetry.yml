@@ -238,9 +238,10 @@ jobs:
             sleep 0.025
           done
           L1=$(now)
-          for i in $(seq 1 1200); do
+          FF=0
+          for i in $(seq 1 600); do
             v=$(import -window root -resize 48x27! -colorspace Gray -depth 8 gray:- 2>/dev/null | od -An -tu1 -v | awk '{for(i=1;i<=NF;i++){s+=$i;n++}} END{print (n?s/n:0)}')
-            awk -v v="$v" 'BEGIN{exit !(v>3)}' && break
+            awk -v v="$v" 'BEGIN{exit !(v>3)}' && { FF=1; break; }
             sleep 0.025
           done
           L2=$(now)
@@ -272,6 +273,16 @@ jobs:
         }
         launch cold
         T0=$L0
+        if [ "$FF" != 1 ]; then
+          import -window root "$TEL/shots/00-no-first-frame.png"
+          mark tour_aborted "no first frame within 50 s"
+          kill -TERM $APID 2>/dev/null
+          wait $APID 2>/dev/null
+          mark panics "$(cat "$TEL"/app-*.log | grep -c -i panick)"
+          kill $WMPID $XPID 2>/dev/null
+          rm -rf "$HOME"
+          exit 0
+        fi
         sleep 6
         xdotool windowfocus "$WID"
         sleep 1
@@ -426,6 +437,14 @@ jobs:
             head -n 40 tel/build.stderr
             echo '```'
           fi
+          for x in tel/app-cold.log tel/app-warm.log; do
+            if [ -s "$x" ]; then
+              echo "## $x"
+              echo '```'
+              head -n 20 "$x"
+              echo '```'
+            fi
+          done
           if [ -s tel/apt.log ]; then
             echo "## apt.log"
             echo '```'
@@ -453,6 +472,7 @@ jobs:
       if: always()
       run: |
         grep -q "^build_rc|0$" tel/metrics.txt || exit 1
+        ! grep -q "^tour_aborted|" tel/metrics.txt || exit 1
         grep -q "^build_x11_rc|0$" tel/metrics.txt || exit 1
         grep -q "^panics|0$" tel/metrics.txt || exit 1
         grep -q "^cold_first_frame_s|" tel/metrics.txt || exit 1
@@ -686,9 +706,10 @@ jobs:
             sleep 0.025
           done
           L1=$(now)
-          for i in $(seq 1 1200); do
+          FF=0
+          for i in $(seq 1 600); do
             v=$(import -window root -resize 48x27! -colorspace Gray -depth 8 gray:- 2>/dev/null | od -An -tu1 -v | awk '{for(i=1;i<=NF;i++){s+=$i;n++}} END{print (n?s/n:0)}')
-            awk -v v="$v" 'BEGIN{exit !(v>3)}' && break
+            awk -v v="$v" 'BEGIN{exit !(v>3)}' && { FF=1; break; }
             sleep 0.025
           done
           L2=$(now)
@@ -720,6 +741,16 @@ jobs:
         }
         launch cold
         T0=$L0
+        if [ "$FF" != 1 ]; then
+          import -window root "$TEL/shots/00-no-first-frame.png"
+          mark tour_aborted "no first frame within 50 s"
+          kill -TERM $APID 2>/dev/null
+          wait $APID 2>/dev/null
+          mark panics "$(cat "$TEL"/app-*.log | grep -c -i panick)"
+          kill $WMPID $XPID 2>/dev/null
+          rm -rf "$HOME"
+          exit 0
+        fi
         sleep 6
         xdotool windowfocus "$WID"
         sleep 1
@@ -874,6 +905,14 @@ jobs:
             head -n 40 tel/build.stderr
             echo '```'
           fi
+          for x in tel/app-cold.log tel/app-warm.log; do
+            if [ -s "$x" ]; then
+              echo "## $x"
+              echo '```'
+              head -n 20 "$x"
+              echo '```'
+            fi
+          done
           if [ -s tel/apt.log ]; then
             echo "## apt.log"
             echo '```'
@@ -901,6 +940,7 @@ jobs:
       if: always()
       run: |
         grep -q "^build_rc|0$" tel/metrics.txt || exit 1
+        ! grep -q "^tour_aborted|" tel/metrics.txt || exit 1
         grep -q "^build_x11_rc|0$" tel/metrics.txt || exit 1
         grep -q "^panics|0$" tel/metrics.txt || exit 1
         grep -q "^cold_first_frame_s|" tel/metrics.txt || exit 1
@@ -1093,6 +1133,14 @@ jobs:
             head -n 40 tel/build.stderr
             echo '```'
           fi
+          for x in tel/app-cold.log tel/app-warm.log; do
+            if [ -s "$x" ]; then
+              echo "## $x"
+              echo '```'
+              head -n 20 "$x"
+              echo '```'
+            fi
+          done
           if [ -s tel/apt.log ]; then
             echo "## apt.log"
             echo '```'
@@ -1309,6 +1357,14 @@ jobs:
             head -n 40 tel/build.stderr
             echo '```'
           fi
+          for x in tel/app-cold.log tel/app-warm.log; do
+            if [ -s "$x" ]; then
+              echo "## $x"
+              echo '```'
+              head -n 20 "$x"
+              echo '```'
+            fi
+          done
           if [ -s tel/apt.log ]; then
             echo "## apt.log"
             echo '```'
@@ -1522,6 +1578,14 @@ jobs:
             head -n 40 tel/build.stderr
             echo '```'
           fi
+          for x in tel/app-cold.log tel/app-warm.log; do
+            if [ -s "$x" ]; then
+              echo "## $x"
+              echo '```'
+              head -n 20 "$x"
+              echo '```'
+            fi
+          done
           if [ -s tel/apt.log ]; then
             echo "## apt.log"
             echo '```'
@@ -1738,6 +1802,14 @@ jobs:
             head -n 40 tel/build.stderr
             echo '```'
           fi
+          for x in tel/app-cold.log tel/app-warm.log; do
+            if [ -s "$x" ]; then
+              echo "## $x"
+              echo '```'
+              head -n 20 "$x"
+              echo '```'
+            fi
+          done
           if [ -s tel/apt.log ]; then
             echo "## apt.log"
             echo '```'
@@ -1892,9 +1964,10 @@ jobs:
             sleep 0.025
           done
           L1=$(now)
-          for i in $(seq 1 1200); do
+          FF=0
+          for i in $(seq 1 600); do
             v=$(import -window root -resize 48x27! -colorspace Gray -depth 8 gray:- 2>/dev/null | od -An -tu1 -v | awk '{for(i=1;i<=NF;i++){s+=$i;n++}} END{print (n?s/n:0)}')
-            awk -v v="$v" 'BEGIN{exit !(v>3)}' && break
+            awk -v v="$v" 'BEGIN{exit !(v>3)}' && { FF=1; break; }
             sleep 0.025
           done
           L2=$(now)
@@ -1926,6 +1999,16 @@ jobs:
         }
         launch cold
         T0=$L0
+        if [ "$FF" != 1 ]; then
+          import -window root "$TEL/shots/00-no-first-frame.png"
+          mark tour_aborted "no first frame within 50 s"
+          kill -TERM $APID 2>/dev/null
+          wait $APID 2>/dev/null
+          mark panics "$(cat "$TEL"/app-*.log | grep -c -i panick)"
+          kill $WMPID $XPID 2>/dev/null
+          rm -rf "$HOME"
+          exit 0
+        fi
         sleep 6
         xdotool windowfocus "$WID"
         sleep 1
@@ -2141,6 +2224,14 @@ jobs:
             head -n 40 tel/build.stderr
             echo '```'
           fi
+          for x in tel/app-cold.log tel/app-warm.log; do
+            if [ -s "$x" ]; then
+              echo "## $x"
+              echo '```'
+              head -n 20 "$x"
+              echo '```'
+            fi
+          done
           if [ -s tel/apt.log ]; then
             echo "## apt.log"
             echo '```'
@@ -2167,6 +2258,7 @@ jobs:
       name: Gate
       if: always()
       run: |
+        ! grep -q "^tour_aborted|" tel/metrics.txt || exit 1
         grep -q "^build_x11_rc|0$" tel/metrics.txt || exit 1
         grep -q "^panics|0$" tel/metrics.txt || exit 1
         grep -q "^cold_first_frame_s|" tel/metrics.txt || exit 1

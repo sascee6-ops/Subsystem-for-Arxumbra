@@ -46,7 +46,7 @@ jobs:
           --config 'profile.release.build-override.codegen-units=256' \
           --config 'profile.release.build-override.debug=false' \
           --config 'unstable.panic-immediate-abort=true' \
-          --config 'target.aarch64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-Z","fmt-debug=none","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
+          --config 'target.aarch64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
           --target aarch64-unknown-linux-gnu --bin subsystem-for-arxumbra
         mkdir -p dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
         cp target/aarch64-unknown-linux-gnu/release/subsystem-for-arxumbra dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
@@ -102,7 +102,7 @@ jobs:
           --config 'profile.release.build-override.codegen-units=256' \
           --config 'profile.release.build-override.debug=false' \
           --config 'unstable.panic-immediate-abort=true' \
-          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-Z","fmt-debug=none","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
+          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
           --target x86_64-unknown-linux-gnu --bin subsystem-for-arxumbra
         mkdir -p dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
         cp target/x86_64-unknown-linux-gnu/release/subsystem-for-arxumbra dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
@@ -155,7 +155,7 @@ jobs:
           --config 'profile.release.build-override.codegen-units=256' \
           --config 'profile.release.build-override.debug=false' \
           --config 'unstable.panic-immediate-abort=true' \
-          --config 'target.aarch64-apple-darwin.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-Z","fmt-debug=none"]' \
+          --config 'target.aarch64-apple-darwin.rustflags=["-C","target-cpu=generic","-Z","location-detail=none"]' \
           --target aarch64-apple-darwin --bin subsystem-for-arxumbra
         mkdir -p dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
         cp target/aarch64-apple-darwin/release/subsystem-for-arxumbra dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
@@ -208,7 +208,7 @@ jobs:
           --config 'profile.release.build-override.codegen-units=256' \
           --config 'profile.release.build-override.debug=false' \
           --config 'unstable.panic-immediate-abort=true' \
-          --config 'target.x86_64-apple-darwin.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-Z","fmt-debug=none"]' \
+          --config 'target.x86_64-apple-darwin.rustflags=["-C","target-cpu=generic","-Z","location-detail=none"]' \
           --target x86_64-apple-darwin --bin subsystem-for-arxumbra
         mkdir -p dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
         cp target/x86_64-apple-darwin/release/subsystem-for-arxumbra dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
@@ -261,7 +261,7 @@ jobs:
           --config 'profile.release.build-override.codegen-units=256' \
           --config 'profile.release.build-override.debug=false' \
           --config 'unstable.panic-immediate-abort=true' \
-          --config 'target.aarch64-pc-windows-msvc.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-Z","fmt-debug=none","-C","linker=rust-lld","-C","target-feature=+crt-static"]' \
+          --config 'target.aarch64-pc-windows-msvc.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-C","linker=rust-lld","-C","target-feature=+crt-static"]' \
           --target aarch64-pc-windows-msvc --bin subsystem-for-arxumbra
         mkdir dist
         cp target/aarch64-pc-windows-msvc/release/subsystem-for-arxumbra.exe dist/AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.exe
@@ -313,7 +313,7 @@ jobs:
           --config 'profile.release.build-override.codegen-units=256' \
           --config 'profile.release.build-override.debug=false' \
           --config 'unstable.panic-immediate-abort=true' \
-          --config 'target.x86_64-pc-windows-msvc.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-Z","fmt-debug=none","-C","linker=rust-lld","-C","target-feature=+crt-static"]' \
+          --config 'target.x86_64-pc-windows-msvc.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-C","linker=rust-lld","-C","target-feature=+crt-static"]' \
           --target x86_64-pc-windows-msvc --bin subsystem-for-arxumbra
         mkdir dist
         cp target/x86_64-pc-windows-msvc/release/subsystem-for-arxumbra.exe dist/x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.exe

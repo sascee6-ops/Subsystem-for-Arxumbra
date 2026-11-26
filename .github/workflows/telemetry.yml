@@ -1888,7 +1888,7 @@ jobs:
         cp tel/unstripped bolt/in
         (
           T0=$(now) &&
-          /usr/lib/llvm-20/bin/llvm-bolt bolt/in -instrument -instrumentation-file=$PWD/bolt/p -instrumentation-no-counters-clear -instrumentation-sleep-time=5 -o bolt/inst > tel/bolt-instrument.log 2>&1 &&
+          /usr/lib/llvm-20/bin/llvm-bolt bolt/in -strict -instrument -instrumentation-file=$PWD/bolt/p -instrumentation-no-counters-clear -instrumentation-sleep-time=5 -o bolt/inst > tel/bolt-instrument.log 2>&1 &&
           mark bolt_instrument_s "$(dur $T0 $(now))" &&
           T0=$(now) &&
           (
@@ -2103,7 +2103,7 @@ jobs:
           mark bolt_train_s "$(dur $T0 $(now))" &&
           T0=$(now) &&
           test -s bolt/p &&
-          /usr/lib/llvm-20/bin/llvm-bolt bolt/in -data=bolt/p -o bolt/out -reorder-blocks=ext-tsp -reorder-functions=hfsort -split-functions -split-all-cold -split-eh -icf=1 -use-gnu-stack -dyno-stats > tel/bolt-optimize.log 2>&1 &&
+          /usr/lib/llvm-20/bin/llvm-bolt bolt/in -strict -data=bolt/p -o bolt/out -reorder-blocks=ext-tsp -reorder-functions=hfsort -split-functions -split-all-cold -split-eh -icf=1 -use-gnu-stack -dyno-stats > tel/bolt-optimize.log 2>&1 &&
           strip -s -o bolt/final bolt/out &&
           mark bolt_optimize_s "$(dur $T0 $(now))" &&
           mark bolt_profile_bytes "$(wc -c < bolt/p)" &&

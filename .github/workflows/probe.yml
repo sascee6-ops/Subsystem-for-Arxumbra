@@ -20,15 +20,15 @@ jobs:
         EOC
         cc -O1 -no-pie -Wl,-q t.c -o t
         $B/llvm-bolt t -instrument -instrumentation-file=$PWD/pA -instrumentation-no-counters-clear -instrumentation-sleep-time=2 -o tA 2>&1 | tail -1
-        timeout -s TERM 7 ./tA 30; echo "A (sleep 2, TERM at 7s): $(wc -c < pA) bytes"
+        timeout -s TERM 7 ./tA 30 || true; echo "A (sleep 2, TERM at 7s): $(wc -c < pA) bytes"
         $B/llvm-bolt t -instrument -instrumentation-file=$PWD/pB -o tB 2>&1 | tail -1
         ./tB 3 > /dev/null; echo "B (no sleep, normal exit): $(wc -c < pB) bytes"
         $B/llvm-bolt t -instrument -instrumentation-file=$PWD/pC -instrumentation-no-counters-clear -instrumentation-sleep-time=2 -o tC 2>&1 | tail -1
         ./tC 5 > /dev/null; echo "C (sleep 2, normal exit): $(wc -c < pC) bytes"
         $B/llvm-bolt t -instrument -instrumentation-file=$PWD/pD -o tD 2>&1 | tail -1
-        timeout -s TERM 3 ./tD 30; echo "D (no sleep, TERM): $(wc -c < pD) bytes"
+        timeout -s TERM 3 ./tD 30 || true; echo "D (no sleep, TERM): $(wc -c < pD) bytes"
         $B/llvm-bolt t -instrument -instrumentation-file=$PWD/pE -o tE 2>&1 | tail -1
-        timeout -s INT 3 ./tE 30; echo "E (no sleep, INT): $(wc -c < pE) bytes"
+        timeout -s INT 3 ./tE 30 || true; echo "E (no sleep, INT): $(wc -c < pE) bytes"
         for p in pA pB pC; do [ -s $p ] && { $B/llvm-bolt t -data=$p -o t.$p -reorder-blocks=ext-tsp -reorder-functions=hfsort -split-functions -split-all-cold -split-eh -icf=1 -use-gnu-stack 2>&1 | tail -2; ./t.$p 1; }; done
   aarch64:
     runs-on: ubuntu-24.04-arm
@@ -47,13 +47,13 @@ jobs:
         EOC
         cc -O1 -no-pie -Wl,-q t.c -o t
         $B/llvm-bolt t -instrument -instrumentation-file=$PWD/pA -instrumentation-no-counters-clear -instrumentation-sleep-time=2 -o tA 2>&1 | tail -1
-        timeout -s TERM 7 ./tA 30; echo "A (sleep 2, TERM at 7s): $(wc -c < pA) bytes"
+        timeout -s TERM 7 ./tA 30 || true; echo "A (sleep 2, TERM at 7s): $(wc -c < pA) bytes"
         $B/llvm-bolt t -instrument -instrumentation-file=$PWD/pB -o tB 2>&1 | tail -1
         ./tB 3 > /dev/null; echo "B (no sleep, normal exit): $(wc -c < pB) bytes"
         $B/llvm-bolt t -instrument -instrumentation-file=$PWD/pC -instrumentation-no-counters-clear -instrumentation-sleep-time=2 -o tC 2>&1 | tail -1
         ./tC 5 > /dev/null; echo "C (sleep 2, normal exit): $(wc -c < pC) bytes"
         $B/llvm-bolt t -instrument -instrumentation-file=$PWD/pD -o tD 2>&1 | tail -1
-        timeout -s TERM 3 ./tD 30; echo "D (no sleep, TERM): $(wc -c < pD) bytes"
+        timeout -s TERM 3 ./tD 30 || true; echo "D (no sleep, TERM): $(wc -c < pD) bytes"
         $B/llvm-bolt t -instrument -instrumentation-file=$PWD/pE -o tE 2>&1 | tail -1
-        timeout -s INT 3 ./tE 30; echo "E (no sleep, INT): $(wc -c < pE) bytes"
+        timeout -s INT 3 ./tE 30 || true; echo "E (no sleep, INT): $(wc -c < pE) bytes"
         for p in pA pB pC; do [ -s $p ] && { $B/llvm-bolt t -data=$p -o t.$p -reorder-blocks=ext-tsp -reorder-functions=hfsort -split-functions -split-all-cold -split-eh -icf=1 -use-gnu-stack 2>&1 | tail -2; ./t.$p 1; }; done

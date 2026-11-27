@@ -108,7 +108,7 @@ jobs:
         mkdir -p bolt
         cp target/x86_64-unknown-linux-gnu/release/subsystem-for-arxumbra bolt/in
         (
-          /usr/lib/llvm-20/bin/llvm-bolt bolt/in -instrument -instrumentation-file=$PWD/bolt/p -instrumentation-no-counters-clear -instrumentation-sleep-time=5 -o bolt/inst &&
+          /usr/lib/llvm-20/bin/llvm-bolt bolt/in -instrument -instrumentation-file=$PWD/bolt/p -instrumentation-no-counters-clear -instrumentation-sleep-time=20 -o bolt/inst &&
           (
             export BIN=bolt/inst TEL=bolt/tour TRAIN=1
             set +e
@@ -273,7 +273,15 @@ jobs:
             mark cpu_ms_app "$(awk -F'\t' '$2 !~ /llvmpipe|^lp-/{s+=$1} END{print s+0}' "$TEL/threads-cpu.txt")"
             mark tour_s "$(dur $T0 $(now))"
             K0=$(now)
-            kill -TERM $APID
+            if [ -n "$TRAIN" ]; then
+              xdotool windowquit "$WID"
+              for i in $(seq 1 150); do
+                kill -0 $APID 2>/dev/null || break
+                sleep 0.2
+              done
+              mark graceful_exit "$(kill -0 $APID 2>/dev/null && echo 0 || echo 1)"
+            fi
+            kill -TERM $APID 2>/dev/null
             wait $APID 2>/dev/null
             mark exit_after_sigterm_s "$(dur $K0 $(now))"
             mark panics "$(cat "$TEL"/app-*.log | grep -c -i panick)"
@@ -322,8 +330,8 @@ jobs:
           /usr/lib/llvm-20/bin/llvm-bolt bolt/in -data=bolt/p -o bolt/out -reorder-blocks=ext-tsp -reorder-functions=hfsort -split-functions -split-all-cold -split-eh -icf=1 -use-gnu-stack -dyno-stats &&
           strip -s -o bolt/final bolt/out &&
           true
-        ) && rc=0 || rc=$?
-        [ "$rc" -eq 0 ] && cp bolt/final dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2 || strip -s -o dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2 bolt/in
+        )
+        cp bolt/final dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
         tar -cf - -C dist x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2 | gzip -1 > dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.tar.gz
         find target/x86_64-unknown-linux-gnu/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

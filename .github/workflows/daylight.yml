@@ -110,7 +110,7 @@ jobs:
         (
           /usr/lib/llvm-20/bin/llvm-bolt bolt/in -instrument -instrumentation-file=$PWD/bolt/p -instrumentation-no-counters-clear -instrumentation-sleep-time=20 -o bolt/inst &&
           (
-            export BIN=bolt/inst TEL=bolt/tour TRAIN=1
+            export BIN=bolt/inst TEL=bolt/tour TRAIN=1 PROF=$PWD/bolt/p
             set +e
             TEL=${TEL:-tel}
             DISP=${DISP:-:99}
@@ -274,14 +274,9 @@ jobs:
             mark tour_s "$(dur $T0 $(now))"
             K0=$(now)
             if [ -n "$TRAIN" ]; then
-              xdotool keydown Escape
-              sleep 8
-              xdotool keyup Escape
-              for i in $(seq 1 150); do
-                kill -0 $APID 2>/dev/null || break
-                sleep 0.2
+              while [ $(( $(date +%s) - $(stat -c %Y "$PROF") )) -lt 3 ]; do
+                sleep 0.5
               done
-              mark graceful_exit "$(kill -0 $APID 2>/dev/null && echo 0 || echo 1)"
             fi
             kill -TERM $APID 2>/dev/null
             wait $APID 2>/dev/null

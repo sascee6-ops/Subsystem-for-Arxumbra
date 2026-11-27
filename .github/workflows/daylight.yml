@@ -15,10 +15,7 @@ jobs:
         git init -q .
         for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
         git checkout -q FETCH_HEAD
-        (export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a; for i in 1 2 3; do timeout 120 sudo -E apt-get update -qq -o Acquire::Retries=3 -o Acquire::http::Timeout=20 && timeout 420 sudo -E apt-get install -y -qq -o Acquire::Retries=3 -o Acquire::http::Timeout=20 --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev && exit 0; sleep 3; done; exit 1) &
-        apt=$!
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target aarch64-unknown-linux-gnu --no-self-update
-        wait $apt || true
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
         path: |
@@ -46,7 +43,7 @@ jobs:
           --config 'profile.release.build-override.codegen-units=256' \
           --config 'profile.release.build-override.debug=false' \
           --config 'unstable.panic-immediate-abort=true' \
-          --config 'target.aarch64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options","-C","relocation-model=static","-C","relro-level=partial","-C","link-arg=-Wl,--icf=all","-C","link-arg=-Wl,-O2"]' \
+          --config 'target.aarch64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options","-l","static:-bundle=gcc_eh","-C","relocation-model=static","-C","relro-level=partial","-C","link-arg=-Wl,--icf=all","-C","link-arg=-Wl,-O2"]' \
           --target aarch64-unknown-linux-gnu --bin subsystem-for-arxumbra
         mkdir -p dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
         cp target/aarch64-unknown-linux-gnu/release/subsystem-for-arxumbra dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
@@ -71,7 +68,7 @@ jobs:
         git init -q .
         for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
         git checkout -q FETCH_HEAD
-        (export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a; for i in 1 2 3; do timeout 120 sudo -E apt-get update -qq -o Acquire::Retries=3 -o Acquire::http::Timeout=20 && timeout 420 sudo -E apt-get install -y -qq -o Acquire::Retries=3 -o Acquire::http::Timeout=20 --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev bolt-20 libxkbcommon-x11-0 libx11-xcb1 libxcursor1 libxi6 libxrandr2 xvfb xdotool openbox imagemagick mesa-vulkan-drivers && exit 0; sleep 3; done; exit 1) &
+        (export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a; for i in 1 2 3; do timeout 120 sudo -E apt-get update -qq -o Acquire::Retries=3 -o Acquire::http::Timeout=20 && timeout 420 sudo -E apt-get install -y -qq -o Acquire::Retries=3 -o Acquire::http::Timeout=20 --no-install-recommends bolt-20 libxkbcommon-x11-0 libx11-xcb1 libxcursor1 libxi6 libxrandr2 xvfb xdotool openbox imagemagick mesa-vulkan-drivers && exit 0; sleep 3; done; exit 1) &
         apt=$!
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target x86_64-unknown-linux-gnu --no-self-update
         wait $apt || true
@@ -102,7 +99,7 @@ jobs:
           --config 'profile.release.build-override.codegen-units=256' \
           --config 'profile.release.build-override.debug=false' \
           --config 'unstable.panic-immediate-abort=true' \
-          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options","-C","relocation-model=static","-C","relro-level=partial","-C","link-arg=-Wl,--icf=all","-C","link-arg=-Wl,-O2","-C","link-arg=-Wl,--emit-relocs"]' \
+          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options","-l","static:-bundle=gcc_eh","-C","relocation-model=static","-C","relro-level=partial","-C","link-arg=-Wl,--icf=all","-C","link-arg=-Wl,-O2","-C","link-arg=-Wl,--emit-relocs"]' \
           --target x86_64-unknown-linux-gnu --bin subsystem-for-arxumbra
         mkdir -p dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
         mkdir -p bolt

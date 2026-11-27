@@ -15,12 +15,9 @@ jobs:
         git init -q .
         for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
         git checkout -q FETCH_HEAD
-        (export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a; for i in 1 2 3; do timeout 120 sudo -E apt-get update -qq -o Acquire::Retries=3 -o Acquire::http::Timeout=20 && timeout 420 sudo -E apt-get install -y -qq -o Acquire::Retries=3 -o Acquire::http::Timeout=20 --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev && exit 0; sleep 3; done; exit 1) &
-        apt=$!
         d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
         echo "date=$d" >> "$GITHUB_OUTPUT"
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-$d --profile minimal --component rustc-codegen-cranelift-preview --target aarch64-unknown-linux-gnu --no-self-update
-        wait $apt || true
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
         path: |
@@ -49,7 +46,7 @@ jobs:
           --config 'profile.dev.codegen-backend="cranelift"' \
           --config 'profile.dev.package."*".codegen-backend="llvm"' \
           --config 'profile.dev.build-override.codegen-backend="llvm"' \
-          --config 'target.aarch64-unknown-linux-gnu.rustflags=["-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
+          --config 'target.aarch64-unknown-linux-gnu.rustflags=["-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options","-l","static:-bundle=gcc_eh"]' \
           --target aarch64-unknown-linux-gnu --bin subsystem-for-arxumbra
         mkdir -p dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
         cp target/aarch64-unknown-linux-gnu/debug/subsystem-for-arxumbra dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
@@ -74,12 +71,9 @@ jobs:
         git init -q .
         for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
         git checkout -q FETCH_HEAD
-        (export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a; for i in 1 2 3; do timeout 120 sudo -E apt-get update -qq -o Acquire::Retries=3 -o Acquire::http::Timeout=20 && timeout 420 sudo -E apt-get install -y -qq -o Acquire::Retries=3 -o Acquire::http::Timeout=20 --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev && exit 0; sleep 3; done; exit 1) &
-        apt=$!
         d=$(curl -fsSL https://static.rust-lang.org/dist/channel-rust-nightly-date.txt)
         echo "date=$d" >> "$GITHUB_OUTPUT"
         RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-$d --profile minimal --component rustc-codegen-cranelift-preview --target x86_64-unknown-linux-gnu --no-self-update
-        wait $apt || true
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
         path: |
@@ -108,7 +102,7 @@ jobs:
           --config 'profile.dev.codegen-backend="cranelift"' \
           --config 'profile.dev.package."*".codegen-backend="llvm"' \
           --config 'profile.dev.build-override.codegen-backend="llvm"' \
-          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options"]' \
+          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options","-l","static:-bundle=gcc_eh"]' \
           --target x86_64-unknown-linux-gnu --bin subsystem-for-arxumbra
         mkdir -p dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
         cp target/x86_64-unknown-linux-gnu/debug/subsystem-for-arxumbra dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
@@ -273,7 +267,7 @@ jobs:
           --config 'profile.dev.build-override.opt-level=0' \
           --config 'profile.dev.build-override.codegen-units=256' \
           --config 'profile.dev.build-override.debug=false' \
-          --config 'target.aarch64-pc-windows-msvc.rustflags=["-C","target-cpu=generic","-C","linker=rust-lld"]' \
+          --config 'target.aarch64-pc-windows-msvc.rustflags=["-C","target-cpu=generic","-C","linker=rust-lld","-C","target-feature=+crt-static"]' \
           --target aarch64-pc-windows-msvc --bin subsystem-for-arxumbra
         mkdir dist
         cp target/aarch64-pc-windows-msvc/debug/subsystem-for-arxumbra.exe dist/AArch64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2.exe
@@ -328,7 +322,7 @@ jobs:
           --config 'profile.dev.codegen-backend="cranelift"' \
           --config 'profile.dev.package."*".codegen-backend="llvm"' \
           --config 'profile.dev.build-override.codegen-backend="llvm"' \
-          --config 'target.x86_64-pc-windows-msvc.rustflags=["-C","linker=rust-lld"]' \
+          --config 'target.x86_64-pc-windows-msvc.rustflags=["-C","linker=rust-lld","-C","target-feature=+crt-static"]' \
           --target x86_64-pc-windows-msvc --bin subsystem-for-arxumbra
         mkdir dist
         cp target/x86_64-pc-windows-msvc/debug/subsystem-for-arxumbra.exe dist/x86_64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2.exe

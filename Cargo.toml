@@ -32,3 +32,6 @@ bevy = { git = "https://github.com/bevyengine/bevy", tag = "v0.20.1", default-fe
     "png",
     "default_font",
 ] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+wayland-backend = { version = "0.3.17", default-features = false, features = ["dlopen"] }

@@ -274,7 +274,9 @@ jobs:
             mark tour_s "$(dur $T0 $(now))"
             K0=$(now)
             if [ -n "$TRAIN" ]; then
-              xdotool windowquit "$WID"
+              xdotool keydown Escape
+              sleep 8
+              xdotool keyup Escape
               for i in $(seq 1 150); do
                 kill -0 $APID 2>/dev/null || break
                 sleep 0.2

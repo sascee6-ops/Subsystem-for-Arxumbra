@@ -1,6 +1,7 @@
 use std::{ffi::OsString, sync::Arc};
 
 use smithay::{
+    backend::renderer::element::solid::SolidColorBuffer,
     desktop::{PopupManager, Space, Window, WindowSurfaceType},
     input::{Seat, SeatState},
     reexports::{
@@ -39,6 +40,10 @@ pub struct Smallvil {
     pub popups: PopupManager,
 
     pub seat: Seat<Self>,
+
+    pub drm: Option<crate::drm::Drm>,
+    pub vt: Option<i32>,
+    pub cursor: SolidColorBuffer,
 }
 
 impl Smallvil {
@@ -57,7 +62,7 @@ impl Smallvil {
         let data_device_state = DataDeviceState::new::<Self>(&dh);
 
         let mut seat_state = SeatState::new();
-        let mut seat: Seat<Self> = seat_state.new_wl_seat(&dh, "winit");
+        let mut seat: Seat<Self> = seat_state.new_wl_seat(&dh, "seat0");
 
         seat.add_keyboard(Default::default(), 200, 25).unwrap();
 
@@ -85,6 +90,9 @@ impl Smallvil {
             data_device_state,
             popups,
             seat,
+            drm: None,
+            vt: None,
+            cursor: SolidColorBuffer::new((10, 10), [1.0, 1.0, 1.0, 1.0]),
         }
     }
 

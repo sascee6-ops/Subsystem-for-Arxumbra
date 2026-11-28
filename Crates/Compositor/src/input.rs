@@ -1,24 +1,44 @@
 use smithay::{
     backend::input::{
-        AbsolutePositionEvent, Axis, AxisSource, ButtonState, Event, InputBackend, InputEvent,
-        KeyboardKeyEvent, PointerAxisEvent, PointerButtonEvent,
+        AbsolutePositionEvent, Axis, AxisSource, ButtonState, Event, InputBackend, InputEvent, KeyState,
+        KeyboardKeyEvent, PointerAxisEvent, PointerButtonEvent, PointerMotionEvent,
     },
     input::{
-        keyboard::FilterResult,
+        keyboard::{FilterResult, Keysym},
         pointer::{AxisFrame, ButtonEvent, MotionEvent},
     },
     reexports::wayland_server::protocol::wl_surface::WlSurface,
-    utils::SERIAL_COUNTER,
+    utils::{Logical, Point, SERIAL_COUNTER},
 };
 
 use crate::state::Smallvil;
 
 impl Smallvil {
+    fn move_pointer(&mut self, pos: Point<f64, Logical>, time: smithay::backend::input::InputTime) {
+        let serial = SERIAL_COUNTER.next_serial();
+
+        let pointer = self.seat.get_pointer().unwrap();
+
+        let under = self.surface_under(pos);
+
+        pointer.motion(
+            self,
+            under,
+            &MotionEvent {
+                location: pos,
+                serial,
+                time,
+            },
+        );
+        pointer.frame(self);
+    }
+
     pub fn process_input_event<I: InputBackend>(&mut self, event: InputEvent<I>) {
         match event {
             InputEvent::Keyboard { event, .. } => {
                 let serial = SERIAL_COUNTER.next_serial();
                 let time = Event::time(&event);
+                let pressed = event.state() == KeyState::Pressed;
 
                 self.seat.get_keyboard().unwrap().input::<(), _>(
                     self,
@@ -26,10 +46,34 @@ impl Smallvil {
                     event.state(),
                     serial,
                     time,
-                    |_, _, _| FilterResult::Forward,
+                    move |state, modifiers, handle| {
+                        let sym = handle.modified_sym();
+                        let first = Keysym::XF86_Switch_VT_1.raw();
+                        if pressed && modifiers.ctrl && modifiers.alt && sym == Keysym::BackSpace {
+                            state.loop_signal.stop();
+                            FilterResult::Intercept(())
+                        } else if pressed && (first..first + 12).contains(&sym.raw()) {
+                            state.vt = Some((sym.raw() - first + 1) as i32);
+                            FilterResult::Intercept(())
+                        } else {
+                            FilterResult::Forward
+                        }
+                    },
                 );
             }
-            InputEvent::PointerMotion { .. } => {}
+            InputEvent::PointerMotion { event, .. } => {
+                let output_geo = self
+                    .space
+                    .output_geometry(self.space.outputs().next().unwrap())
+                    .unwrap()
+                    .to_f64();
+                let current = self.seat.get_pointer().unwrap().current_location();
+                let pos = Point::<f64, Logical>::from((
+                    (current.x + event.delta_x()).clamp(output_geo.loc.x, output_geo.loc.x + output_geo.size.w - 1.0),
+                    (current.y + event.delta_y()).clamp(output_geo.loc.y, output_geo.loc.y + output_geo.size.h - 1.0),
+                ));
+                self.move_pointer(pos, event.time());
+            }
             InputEvent::PointerMotionAbsolute { event, .. } => {
                 let output = self.space.outputs().next().unwrap();
 
@@ -37,22 +81,7 @@ impl Smallvil {
 
                 let pos = event.position_transformed(output_geo.size) + output_geo.loc.to_f64();
 
-                let serial = SERIAL_COUNTER.next_serial();
-
-                let pointer = self.seat.get_pointer().unwrap();
-
-                let under = self.surface_under(pos);
-
-                pointer.motion(
-                    self,
-                    under,
-                    &MotionEvent {
-                        location: pos,
-                        serial,
-                        time: event.time(),
-                    },
-                );
-                pointer.frame(self);
+                self.move_pointer(pos, event.time());
             }
             InputEvent::PointerButton { event, .. } => {
                 let pointer = self.seat.get_pointer().unwrap();

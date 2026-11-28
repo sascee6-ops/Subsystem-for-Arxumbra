@@ -15,7 +15,7 @@ use smithay::{
 use crate::Smallvil;
 
 pub fn init_winit(
-    event_loop: &mut EventLoop<Smallvil>,
+    event_loop: &mut EventLoop<'static, Smallvil>,
     state: &mut Smallvil,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let (mut backend, winit) = winit::init()?;

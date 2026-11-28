@@ -4,7 +4,7 @@ version = "0.0.0-s2"
 edition = "2024"
 
 [workspace]
-members = ["kernel", "Crates/Subsystem-for-Arxumbra"]
+members = ["kernel", "Crates/Subsystem-for-Arxumbra", "Crates/Compositor"]
 resolver = "3"
 
 [lib]

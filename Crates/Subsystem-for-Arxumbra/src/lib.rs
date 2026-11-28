@@ -152,13 +152,6 @@ fn root() -> std::path::PathBuf {
     }
 }
 
-#[cfg(target_os = "android")]
-#[unsafe(no_mangle)]
-fn android_main(android_app: bevy::android::android_activity::AndroidApp) {
-    bevy::android::ANDROID_APP.set(android_app).ok();
-    Entry_point();
-}
-
 pub fn Entry_point() {
     std::iter::once(root().join("Subsystem-for-Arxumbra"))
     .inspect(|home| std::fs::create_dir_all(home).unwrap())

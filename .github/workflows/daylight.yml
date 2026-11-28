@@ -46,11 +46,11 @@ jobs:
           --config 'unstable.panic-immediate-abort=true' \
           --config "target.aarch64-linux-android.linker='$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang'" \
           --config 'target.aarch64-linux-android.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-C","link-arg=-Wl,-z,max-page-size=16384"]' \
-          --target aarch64-linux-android -p Subsystem-for-Arxumbra --lib
+          --target aarch64-linux-android --lib
         BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
         JAR=$(ls "$ANDROID_HOME"/platforms/*/android.jar | sort -V | tail -1)
         mkdir -p dist apk/lib/arm64-v8a
-        cp target/aarch64-linux-android/release/libSubsystem_for_Arxumbra.so apk/lib/arm64-v8a/libSubsystem_for_Arxumbra.so
+        cp target/aarch64-linux-android/release/libsubsystem_for_arxumbra.so apk/lib/arm64-v8a/libsubsystem_for_arxumbra.so
         cat > apk/AndroidManifest.xml <<'XML'
         <?xml version="1.0" encoding="utf-8"?>
         <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.github.ichxtenebra.arxumbra">
@@ -58,7 +58,7 @@ jobs:
           <uses-feature android:glEsVersion="0x00030000" android:required="true"/>
           <application android:label="Subsystem for Arxumbra" android:hasCode="false" android:extractNativeLibs="false" android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
             <activity android:name="android.app.NativeActivity" android:exported="true" android:launchMode="singleTask" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|uiMode|density|navigation|touchscreen">
-              <meta-data android:name="android.app.lib_name" android:value="Subsystem_for_Arxumbra"/>
+              <meta-data android:name="android.app.lib_name" android:value="subsystem_for_arxumbra"/>
               <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -128,11 +128,11 @@ jobs:
           --config 'unstable.panic-immediate-abort=true' \
           --config "target.x86_64-linux-android.linker='$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android24-clang'" \
           --config 'target.x86_64-linux-android.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-C","link-arg=-Wl,-z,max-page-size=16384"]' \
-          --target x86_64-linux-android -p Subsystem-for-Arxumbra --lib
+          --target x86_64-linux-android --lib
         BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
         JAR=$(ls "$ANDROID_HOME"/platforms/*/android.jar | sort -V | tail -1)
         mkdir -p dist apk/lib/x86_64
-        cp target/x86_64-linux-android/release/libSubsystem_for_Arxumbra.so apk/lib/x86_64/libSubsystem_for_Arxumbra.so
+        cp target/x86_64-linux-android/release/libsubsystem_for_arxumbra.so apk/lib/x86_64/libsubsystem_for_arxumbra.so
         cat > apk/AndroidManifest.xml <<'XML'
         <?xml version="1.0" encoding="utf-8"?>
         <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.github.ichxtenebra.arxumbra">
@@ -140,7 +140,7 @@ jobs:
           <uses-feature android:glEsVersion="0x00030000" android:required="true"/>
           <application android:label="Subsystem for Arxumbra" android:hasCode="false" android:extractNativeLibs="false" android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
             <activity android:name="android.app.NativeActivity" android:exported="true" android:launchMode="singleTask" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|uiMode|density|navigation|touchscreen">
-              <meta-data android:name="android.app.lib_name" android:value="Subsystem_for_Arxumbra"/>
+              <meta-data android:name="android.app.lib_name" android:value="subsystem_for_arxumbra"/>
               <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

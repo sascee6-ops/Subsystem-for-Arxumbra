@@ -3,11 +3,6 @@ name = "Subsystem-for-Arxumbra"
 version = "0.0.0-s2"
 edition = "2024"
 
-[lib]
-name = "Subsystem_for_Arxumbra"
-path = "src/lib.rs"
-crate-type = ["rlib", "cdylib"]
-
 [dependencies]
 kernel = { path = "../../kernel" }
 mimalloc = { git = "https://github.com/purpleprotocol/mimalloc_rust", rev = "a35cc759c071fd7bd586685048367839002b95dd", default-features = false }

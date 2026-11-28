@@ -7,9 +7,17 @@ edition = "2024"
 members = ["kernel", "Crates/Subsystem-for-Arxumbra"]
 resolver = "3"
 
+[lib]
+name = "subsystem_for_arxumbra"
+path = "src/android.rs"
+crate-type = ["cdylib"]
+
 [[bin]]
 name = "subsystem-for-arxumbra"
 path = "src/main.rs"
 
 [dependencies]
 Subsystem-for-Arxumbra = { path = "Crates/Subsystem-for-Arxumbra" }
+
+[target.'cfg(target_os = "android")'.dependencies]
+bevy = { git = "https://github.com/bevyengine/bevy", tag = "v0.20.1", default-features = false, features = ["android-native-activity"] }

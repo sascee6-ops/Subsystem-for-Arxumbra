@@ -1,37 +1,23 @@
 [package]
-name = "Subsystem-for-Arxumbra"
-version = "0.0.0-s0"
+name = "Arxumbra"
+version = "0.0.0-s2"
 edition = "2024"
+
+[workspace]
+members = ["kernel", "Crates/Subsystem-for-Arxumbra"]
+resolver = "3"
+
+[lib]
+name = "subsystem_for_arxumbra"
+path = "src/android.rs"
+crate-type = ["cdylib"]
 
 [[bin]]
 name = "subsystem-for-arxumbra"
 path = "src/main.rs"
 
 [dependencies]
-mimalloc = { git = "https://github.com/purpleprotocol/mimalloc_rust", tag = "v0.1.52", default-features = false, features = [] }
-bevy = { git = "https://github.com/bevyengine/bevy", tag = "v0.20.0", default-features = false, features = [
-    "std",
-    "multi_threaded",
-    "async_executor",
-    "bevy_asset",
-    "bevy_winit",
-    "wayland",
-    "bevy_window",
-    "bevy_render",
-    "bevy_core_pipeline",
-    "bevy_camera",
-    "bevy_image",
-    "png",
-    "bevy_sprite",
-    "bevy_sprite_render",
-    "bevy_text",
-    "bevy_log",
-    "default_font",
-] }
+Subsystem-for-Arxumbra = { path = "Crates/Subsystem-for-Arxumbra" }
 
-[profile.release]
-opt-level = 3
-lto = "fat"
-codegen-units = 1
-strip = true
-panic = "abort"
+[target.'cfg(target_os = "android")'.dependencies]
+bevy = { git = "https://github.com/bevyengine/bevy", tag = "v0.20.1", default-features = false, features = ["android-native-activity"] }

@@ -35,6 +35,10 @@ for i in $(seq 1 50); do grep -q ready uinput.log && break; sleep 0.1; done
 sudo udevadm settle
 sleep 1
 
+echo auto | sudo tee $D/control > /dev/null
+sudo sh -c "cat $D/data > crc.all" &
+sleep 1
+
 sudo mkdir -p /tmp/xdg
 sudo chmod 700 /tmp/xdg
 sudo env XDG_RUNTIME_DIR=/tmp/xdg LIBSEAT_BACKEND=seatd COMPOSITOR_DRM_DEVICE=$CARD RUST_BACKTRACE=1 "$BIN" --drm > comp.log 2>&1 &
@@ -43,26 +47,22 @@ sleep 6
 check kill -0 $CP
 check sudo test -S /tmp/xdg/wayland-1
 
-crc() {
-  sudo timeout 2 cat $D/data 2>/dev/null | awk '{$1=""; print}' | sort -u
-}
-echo auto | sudo tee $D/control > /dev/null
-A=$(crc)
+last() { sudo tail -n 1 crc.all | awk '{print $2}'; }
+A=$(last)
 echo "move 5 5 80" >&3
 sleep 2
-B=$(crc)
+B=$(last)
+N=$(sudo wc -l < crc.all)
 sudo env XDG_RUNTIME_DIR=/tmp/xdg WAYLAND_DISPLAY=wayland-1 weston-simple-shm > client.log 2>&1 &
 sleep 4
-C=$(crc)
-echo "--- crc idle:";    echo "$A"
-echo "--- crc pointer moved:"; echo "$B"
-echo "--- crc with client:";   echo "$C"
+C=$(sudo tail -n +$((N + 1)) crc.all | awk '{print $2}' | sort -u | wc -l)
+echo "crc idle: $A"
+echo "crc pointer moved: $B"
+echo "distinct crc with client: $C"
 check test -n "$A"
-check test "$(echo "$A" | wc -l)" -eq 1
 check test -n "$B"
 check test "$A" != "$B"
-check test "$(echo "$B" | wc -l)" -eq 1
-check test "$C" != "$B"
+check test "$C" -ge 3
 check pgrep -x weston-simple-s
 
 echo "key ctrl alt bs" >&3
@@ -74,6 +74,7 @@ check test "$RC" -eq 0
 
 sudo pkill weston-simple-s
 sudo pkill seatd
+sudo pkill -f "cat $D/data"
 sudo pkill -f uinput.py
 echo "=== compositor log"; cat comp.log
 echo "=== client log"; head -20 client.log

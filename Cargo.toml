@@ -7,6 +7,11 @@ edition = "2024"
 members = ["kernel"]
 resolver = "3"
 
+[lib]
+name = "subsystem_for_arxumbra"
+path = "src/android.rs"
+crate-type = ["cdylib"]
+
 [[bin]]
 name = "subsystem-for-arxumbra"
 path = "src/main.rs"
@@ -35,3 +40,6 @@ bevy = { git = "https://github.com/bevyengine/bevy", tag = "v0.20.1", default-fe
 
 [target.'cfg(target_os = "linux")'.dependencies]
 wayland-backend = { version = "0.3.17", default-features = false, features = ["dlopen"] }
+
+[target.'cfg(target_os = "android")'.dependencies]
+bevy = { git = "https://github.com/bevyengine/bevy", tag = "v0.20.1", default-features = false, features = ["android-native-activity"] }

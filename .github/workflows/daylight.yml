@@ -48,7 +48,7 @@ jobs:
         mkdir -p dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
         cp target/aarch64-unknown-linux-gnu/release/subsystem-for-arxumbra dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
         tar -cf - -C dist AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2 | gzip -1 > dist/AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.tar.gz
-        find target/aarch64-unknown-linux-gnu/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/aarch64-unknown-linux-gnu/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: AArch64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
@@ -327,7 +327,7 @@ jobs:
         )
         cp bolt/final dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
         tar -cf - -C dist x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2 | gzip -1 > dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.tar.gz
-        find target/x86_64-unknown-linux-gnu/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/x86_64-unknown-linux-gnu/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
@@ -380,7 +380,7 @@ jobs:
         mkdir -p dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
         cp target/aarch64-apple-darwin/release/subsystem-for-arxumbra dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
         tar -cf - -C dist AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2 | gzip -1 > dist/AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.tar.gz
-        find target/aarch64-apple-darwin/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/aarch64-apple-darwin/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: AArch64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
@@ -433,7 +433,7 @@ jobs:
         mkdir -p dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
         cp target/x86_64-apple-darwin/release/subsystem-for-arxumbra dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
         tar -cf - -C dist x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2 | gzip -1 > dist/x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.tar.gz
-        find target/x86_64-apple-darwin/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/x86_64-apple-darwin/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: x86_64-macOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
@@ -485,7 +485,7 @@ jobs:
           --target aarch64-pc-windows-msvc --bin subsystem-for-arxumbra
         mkdir dist
         cp target/aarch64-pc-windows-msvc/release/subsystem-for-arxumbra.exe dist/AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.exe
-        find target/aarch64-pc-windows-msvc/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/aarch64-pc-windows-msvc/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: AArch64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
@@ -537,7 +537,7 @@ jobs:
           --target x86_64-pc-windows-msvc --bin subsystem-for-arxumbra
         mkdir dist
         cp target/x86_64-pc-windows-msvc/release/subsystem-for-arxumbra.exe dist/x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.exe
-        find target/x86_64-pc-windows-msvc/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/x86_64-pc-windows-msvc/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: x86_64-Windows-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
@@ -545,3 +545,402 @@ jobs:
         if-no-files-found: error
         retention-days: 14
         compression-level: 1
+  AArch64-Android:
+    name: AArch64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+    - id: toolchain
+      shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        git init -q .
+        for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
+        git checkout -q FETCH_HEAD
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target aarch64-linux-android --no-self-update
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: AArch64-Android-Daylight-nightly-2026-11-22-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
+    - shell: bash
+      run: |
+        set -x
+        export CC_aarch64_linux_android="$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang" AR_aarch64_linux_android="$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
+        cargo +nightly-2026-11-22 build -Zgit=shallow-deps -Zbuild-std=std,panic_abort -Ztrim-paths --locked --release \
+          --config 'net.retry=10' \
+          --config 'profile.release.opt-level=3' \
+          --config 'profile.release.lto="fat"' \
+          --config 'profile.release.codegen-units=1' \
+          --config 'profile.release.debug=false' \
+          --config 'profile.release.debug-assertions=false' \
+          --config 'profile.release.overflow-checks=false' \
+          --config 'profile.release.incremental=false' \
+          --config 'profile.release.rpath=false' \
+          --config 'profile.release.strip=true' \
+          --config 'profile.release.panic="immediate-abort"' \
+          --config 'profile.release.trim-paths="all"' \
+          --config 'profile.release.build-override.opt-level=0' \
+          --config 'profile.release.build-override.codegen-units=256' \
+          --config 'profile.release.build-override.debug=false' \
+          --config 'unstable.panic-immediate-abort=true' \
+          --config "target.aarch64-linux-android.linker='$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang'" \
+          --config 'target.aarch64-linux-android.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-C","link-arg=-Wl,-z,max-page-size=16384"]' \
+          --target aarch64-linux-android --lib
+        BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+        JAR=$(ls "$ANDROID_HOME"/platforms/*/android.jar | sort -V | tail -1)
+        mkdir -p dist apk/lib/arm64-v8a
+        cp target/aarch64-linux-android/release/libsubsystem_for_arxumbra.so apk/lib/arm64-v8a/libsubsystem_for_arxumbra.so
+        cat > apk/AndroidManifest.xml <<'XML'
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.github.ichxtenebra.arxumbra">
+          <uses-feature android:glEsVersion="0x00030000" android:required="true"/>
+          <application android:label="Subsystem for Arxumbra" android:hasCode="false" android:extractNativeLibs="false" android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+            <activity android:name="android.app.NativeActivity" android:exported="true" android:launchMode="singleTask" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|uiMode|density|navigation|touchscreen">
+              <meta-data android:name="android.app.lib_name" android:value="subsystem_for_arxumbra"/>
+              <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+              </intent-filter>
+            </activity>
+          </application>
+        </manifest>
+        XML
+        "$BT/aapt2" link -o apk/base.apk --manifest apk/AndroidManifest.xml -I "$JAR" --min-sdk-version 24 --target-sdk-version 35 --version-code 1 --version-name 0.0.0-s2
+        (cd apk && zip -q -0 -r base.apk lib)
+        "$BT/zipalign" -P 16 -f 4 apk/base.apk apk/aligned.apk
+        keytool -genkeypair -keystore apk/debug.keystore -storepass android -keypass android -alias debug -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Subsystem for Arxumbra" 2>/dev/null
+        "$BT/apksigner" sign --ks apk/debug.keystore --ks-pass pass:android --key-pass pass:android --out dist/AArch64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk apk/aligned.apk
+        "$BT/apksigner" verify dist/AArch64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk
+        "$BT/aapt2" dump badging dist/AArch64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk | grep "native-code: 'arm64-v8a'" > /dev/null
+        find target/aarch64-linux-android/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: AArch64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        path: dist/AArch64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk
+        if-no-files-found: error
+        retention-days: 14
+        compression-level: 0
+  x86_64-Android:
+    name: x86_64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+    - id: toolchain
+      shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        git init -q .
+        for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
+        git checkout -q FETCH_HEAD
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target x86_64-linux-android --no-self-update
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: x86_64-Android-Daylight-nightly-2026-11-22-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
+    - shell: bash
+      run: |
+        set -x
+        export CC_x86_64_linux_android="$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android24-clang" AR_x86_64_linux_android="$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
+        cargo +nightly-2026-11-22 build -Zgit=shallow-deps -Zbuild-std=std,panic_abort -Ztrim-paths --locked --release \
+          --config 'net.retry=10' \
+          --config 'profile.release.opt-level=3' \
+          --config 'profile.release.lto="fat"' \
+          --config 'profile.release.codegen-units=1' \
+          --config 'profile.release.debug=false' \
+          --config 'profile.release.debug-assertions=false' \
+          --config 'profile.release.overflow-checks=false' \
+          --config 'profile.release.incremental=false' \
+          --config 'profile.release.rpath=false' \
+          --config 'profile.release.strip=true' \
+          --config 'profile.release.panic="immediate-abort"' \
+          --config 'profile.release.trim-paths="all"' \
+          --config 'profile.release.build-override.opt-level=0' \
+          --config 'profile.release.build-override.codegen-units=256' \
+          --config 'profile.release.build-override.debug=false' \
+          --config 'unstable.panic-immediate-abort=true' \
+          --config "target.x86_64-linux-android.linker='$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android24-clang'" \
+          --config 'target.x86_64-linux-android.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-C","link-arg=-Wl,-z,max-page-size=16384"]' \
+          --target x86_64-linux-android --lib
+        BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+        JAR=$(ls "$ANDROID_HOME"/platforms/*/android.jar | sort -V | tail -1)
+        mkdir -p dist apk/lib/x86_64
+        cp target/x86_64-linux-android/release/libsubsystem_for_arxumbra.so apk/lib/x86_64/libsubsystem_for_arxumbra.so
+        cat > apk/AndroidManifest.xml <<'XML'
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.github.ichxtenebra.arxumbra">
+          <uses-feature android:glEsVersion="0x00030000" android:required="true"/>
+          <application android:label="Subsystem for Arxumbra" android:hasCode="false" android:extractNativeLibs="false" android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+            <activity android:name="android.app.NativeActivity" android:exported="true" android:launchMode="singleTask" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|uiMode|density|navigation|touchscreen">
+              <meta-data android:name="android.app.lib_name" android:value="subsystem_for_arxumbra"/>
+              <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+              </intent-filter>
+            </activity>
+          </application>
+        </manifest>
+        XML
+        "$BT/aapt2" link -o apk/base.apk --manifest apk/AndroidManifest.xml -I "$JAR" --min-sdk-version 24 --target-sdk-version 35 --version-code 1 --version-name 0.0.0-s2
+        (cd apk && zip -q -0 -r base.apk lib)
+        "$BT/zipalign" -P 16 -f 4 apk/base.apk apk/aligned.apk
+        keytool -genkeypair -keystore apk/debug.keystore -storepass android -keypass android -alias debug -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Subsystem for Arxumbra" 2>/dev/null
+        "$BT/apksigner" sign --ks apk/debug.keystore --ks-pass pass:android --key-pass pass:android --out dist/x86_64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk apk/aligned.apk
+        "$BT/apksigner" verify dist/x86_64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk
+        "$BT/aapt2" dump badging dist/x86_64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk | grep "native-code: 'x86_64'" > /dev/null
+        find target/x86_64-linux-android/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: x86_64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        path: dist/x86_64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk
+        if-no-files-found: error
+        retention-days: 14
+        compression-level: 0
+  AArch64-iOS:
+    name: AArch64-iOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+    runs-on: macos-15
+    timeout-minutes: 120
+    steps:
+    - id: toolchain
+      shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        git init -q .
+        for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
+        git checkout -q FETCH_HEAD
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target aarch64-apple-ios --no-self-update
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: AArch64-iOS-Daylight-nightly-2026-11-22-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
+    - shell: bash
+      run: |
+        set -x
+        export IPHONEOS_DEPLOYMENT_TARGET=15.0
+        cargo +nightly-2026-11-22 build -Zgit=shallow-deps -Zbuild-std=std,panic_abort -Ztrim-paths --locked --release \
+          --config 'net.retry=10' \
+          --config 'profile.release.opt-level=3' \
+          --config 'profile.release.lto="fat"' \
+          --config 'profile.release.codegen-units=1' \
+          --config 'profile.release.debug=false' \
+          --config 'profile.release.debug-assertions=false' \
+          --config 'profile.release.overflow-checks=false' \
+          --config 'profile.release.incremental=false' \
+          --config 'profile.release.rpath=false' \
+          --config 'profile.release.strip=true' \
+          --config 'profile.release.panic="immediate-abort"' \
+          --config 'profile.release.trim-paths="all"' \
+          --config 'profile.release.build-override.opt-level=0' \
+          --config 'profile.release.build-override.codegen-units=256' \
+          --config 'profile.release.build-override.debug=false' \
+          --config 'unstable.panic-immediate-abort=true' \
+          --config 'target.aarch64-apple-ios.rustflags=["-C","target-cpu=generic","-Z","location-detail=none"]' \
+          --target aarch64-apple-ios --bin subsystem-for-arxumbra
+        mkdir -p dist/ios/Payload/Subsystem-for-Arxumbra.app
+        cp target/aarch64-apple-ios/release/subsystem-for-arxumbra dist/ios/Payload/Subsystem-for-Arxumbra.app/Subsystem-for-Arxumbra
+        cat > dist/ios/Payload/Subsystem-for-Arxumbra.app/Info.plist <<'PLIST'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+          <key>CFBundleExecutable</key><string>Subsystem-for-Arxumbra</string>
+          <key>CFBundleIdentifier</key><string>io.github.ichxtenebra.arxumbra</string>
+          <key>CFBundleName</key><string>Subsystem for Arxumbra</string>
+          <key>CFBundlePackageType</key><string>APPL</string>
+          <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+          <key>CFBundleVersion</key><string>1</string>
+          <key>CFBundleShortVersionString</key><string>0.0.0</string>
+          <key>MinimumOSVersion</key><string>15.0</string>
+          <key>LSRequiresIPhoneOS</key><true/>
+          <key>UIDeviceFamily</key><array><integer>1</integer><integer>2</integer></array>
+          <key>UIRequiredDeviceCapabilities</key><array><string>metal</string></array>
+          <key>UILaunchScreen</key><dict/>
+          <key>UIRequiresFullScreen</key><true/>
+          <key>UIStatusBarHidden</key><true/>
+          <key>UISupportedInterfaceOrientations</key><array><string>UIInterfaceOrientationPortrait</string><string>UIInterfaceOrientationLandscapeLeft</string><string>UIInterfaceOrientationLandscapeRight</string></array>
+        </dict>
+        </plist>
+        PLIST
+        plutil -lint dist/ios/Payload/Subsystem-for-Arxumbra.app/Info.plist
+        codesign --force --sign - --timestamp=none dist/ios/Payload/Subsystem-for-Arxumbra.app
+        codesign --verify --strict dist/ios/Payload/Subsystem-for-Arxumbra.app
+        vtool -show-build dist/ios/Payload/Subsystem-for-Arxumbra.app/Subsystem-for-Arxumbra | grep "platform IOS" > /dev/null
+        (cd dist/ios && zip -q -r -X ../AArch64-iOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.ipa Payload)
+        find target/aarch64-apple-ios/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: AArch64-iOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        path: dist/AArch64-iOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.ipa
+        if-no-files-found: error
+        retention-days: 14
+        compression-level: 0
+  AArch64-iOS-Simulator:
+    name: AArch64-iOS-Simulator-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+    runs-on: macos-15
+    timeout-minutes: 120
+    steps:
+    - id: toolchain
+      shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        git init -q .
+        for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
+        git checkout -q FETCH_HEAD
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target aarch64-apple-ios-sim --no-self-update
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: AArch64-iOS-Simulator-Daylight-nightly-2026-11-22-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
+    - shell: bash
+      run: |
+        set -x
+        export IPHONEOS_DEPLOYMENT_TARGET=15.0
+        cargo +nightly-2026-11-22 build -Zgit=shallow-deps -Zbuild-std=std,panic_abort -Ztrim-paths --locked --release \
+          --config 'net.retry=10' \
+          --config 'profile.release.opt-level=3' \
+          --config 'profile.release.lto="fat"' \
+          --config 'profile.release.codegen-units=1' \
+          --config 'profile.release.debug=false' \
+          --config 'profile.release.debug-assertions=false' \
+          --config 'profile.release.overflow-checks=false' \
+          --config 'profile.release.incremental=false' \
+          --config 'profile.release.rpath=false' \
+          --config 'profile.release.strip=true' \
+          --config 'profile.release.panic="immediate-abort"' \
+          --config 'profile.release.trim-paths="all"' \
+          --config 'profile.release.build-override.opt-level=0' \
+          --config 'profile.release.build-override.codegen-units=256' \
+          --config 'profile.release.build-override.debug=false' \
+          --config 'unstable.panic-immediate-abort=true' \
+          --config 'target.aarch64-apple-ios-sim.rustflags=["-C","target-cpu=generic","-Z","location-detail=none"]' \
+          --target aarch64-apple-ios-sim --bin subsystem-for-arxumbra
+        mkdir -p dist/ios/Subsystem-for-Arxumbra.app
+        cp target/aarch64-apple-ios-sim/release/subsystem-for-arxumbra dist/ios/Subsystem-for-Arxumbra.app/Subsystem-for-Arxumbra
+        cat > dist/ios/Subsystem-for-Arxumbra.app/Info.plist <<'PLIST'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+          <key>CFBundleExecutable</key><string>Subsystem-for-Arxumbra</string>
+          <key>CFBundleIdentifier</key><string>io.github.ichxtenebra.arxumbra</string>
+          <key>CFBundleName</key><string>Subsystem for Arxumbra</string>
+          <key>CFBundlePackageType</key><string>APPL</string>
+          <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+          <key>CFBundleVersion</key><string>1</string>
+          <key>CFBundleShortVersionString</key><string>0.0.0</string>
+          <key>MinimumOSVersion</key><string>15.0</string>
+          <key>LSRequiresIPhoneOS</key><true/>
+          <key>UIDeviceFamily</key><array><integer>1</integer><integer>2</integer></array>
+          <key>UIRequiredDeviceCapabilities</key><array><string>metal</string></array>
+          <key>UILaunchScreen</key><dict/>
+          <key>UIRequiresFullScreen</key><true/>
+          <key>UIStatusBarHidden</key><true/>
+          <key>UISupportedInterfaceOrientations</key><array><string>UIInterfaceOrientationPortrait</string><string>UIInterfaceOrientationLandscapeLeft</string><string>UIInterfaceOrientationLandscapeRight</string></array>
+        </dict>
+        </plist>
+        PLIST
+        plutil -lint dist/ios/Subsystem-for-Arxumbra.app/Info.plist
+        codesign --force --sign - --timestamp=none dist/ios/Subsystem-for-Arxumbra.app
+        codesign --verify --strict dist/ios/Subsystem-for-Arxumbra.app
+        vtool -show-build dist/ios/Subsystem-for-Arxumbra.app/Subsystem-for-Arxumbra | grep "platform IOSSIMULATOR" > /dev/null
+        (cd dist/ios && zip -q -r -X ../AArch64-iOS-Simulator-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.zip Subsystem-for-Arxumbra.app)
+        find target/aarch64-apple-ios-sim/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: AArch64-iOS-Simulator-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        path: dist/AArch64-iOS-Simulator-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.zip
+        if-no-files-found: error
+        retention-days: 14
+        compression-level: 0
+  x86_64-iOS-Simulator:
+    name: x86_64-iOS-Simulator-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+    runs-on: macos-15
+    timeout-minutes: 120
+    steps:
+    - id: toolchain
+      shell: bash
+      run: |
+        exec >/dev/null 2>&1
+        git init -q .
+        for i in 1 2 3 4 5; do git fetch -q --depth 1 https://github.com/${{ github.repository }} ${{ github.sha }} && break; sleep 3; done
+        git checkout -q FETCH_HEAD
+        RUSTUP_MAX_RETRIES=10 rustup toolchain install nightly-2026-11-22 --profile minimal --component rust-src --target x86_64-apple-ios --no-self-update
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: x86_64-iOS-Simulator-Daylight-nightly-2026-11-22-${{ hashFiles('Cargo.lock', 'Cargo.toml', '.github/workflows/daylight.yml') }}
+    - shell: bash
+      run: |
+        set -x
+        export IPHONEOS_DEPLOYMENT_TARGET=15.0
+        cargo +nightly-2026-11-22 build -Zgit=shallow-deps -Zbuild-std=std,panic_abort -Ztrim-paths --locked --release \
+          --config 'net.retry=10' \
+          --config 'profile.release.opt-level=3' \
+          --config 'profile.release.lto="fat"' \
+          --config 'profile.release.codegen-units=1' \
+          --config 'profile.release.debug=false' \
+          --config 'profile.release.debug-assertions=false' \
+          --config 'profile.release.overflow-checks=false' \
+          --config 'profile.release.incremental=false' \
+          --config 'profile.release.rpath=false' \
+          --config 'profile.release.strip=true' \
+          --config 'profile.release.panic="immediate-abort"' \
+          --config 'profile.release.trim-paths="all"' \
+          --config 'profile.release.build-override.opt-level=0' \
+          --config 'profile.release.build-override.codegen-units=256' \
+          --config 'profile.release.build-override.debug=false' \
+          --config 'unstable.panic-immediate-abort=true' \
+          --config 'target.x86_64-apple-ios.rustflags=["-C","target-cpu=generic","-Z","location-detail=none"]' \
+          --target x86_64-apple-ios --bin subsystem-for-arxumbra
+        mkdir -p dist/ios/Subsystem-for-Arxumbra.app
+        cp target/x86_64-apple-ios/release/subsystem-for-arxumbra dist/ios/Subsystem-for-Arxumbra.app/Subsystem-for-Arxumbra
+        cat > dist/ios/Subsystem-for-Arxumbra.app/Info.plist <<'PLIST'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+          <key>CFBundleExecutable</key><string>Subsystem-for-Arxumbra</string>
+          <key>CFBundleIdentifier</key><string>io.github.ichxtenebra.arxumbra</string>
+          <key>CFBundleName</key><string>Subsystem for Arxumbra</string>
+          <key>CFBundlePackageType</key><string>APPL</string>
+          <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+          <key>CFBundleVersion</key><string>1</string>
+          <key>CFBundleShortVersionString</key><string>0.0.0</string>
+          <key>MinimumOSVersion</key><string>15.0</string>
+          <key>LSRequiresIPhoneOS</key><true/>
+          <key>UIDeviceFamily</key><array><integer>1</integer><integer>2</integer></array>
+          <key>UIRequiredDeviceCapabilities</key><array><string>metal</string></array>
+          <key>UILaunchScreen</key><dict/>
+          <key>UIRequiresFullScreen</key><true/>
+          <key>UIStatusBarHidden</key><true/>
+          <key>UISupportedInterfaceOrientations</key><array><string>UIInterfaceOrientationPortrait</string><string>UIInterfaceOrientationLandscapeLeft</string><string>UIInterfaceOrientationLandscapeRight</string></array>
+        </dict>
+        </plist>
+        PLIST
+        plutil -lint dist/ios/Subsystem-for-Arxumbra.app/Info.plist
+        codesign --force --sign - --timestamp=none dist/ios/Subsystem-for-Arxumbra.app
+        codesign --verify --strict dist/ios/Subsystem-for-Arxumbra.app
+        vtool -show-build dist/ios/Subsystem-for-Arxumbra.app/Subsystem-for-Arxumbra | grep "platform IOSSIMULATOR" > /dev/null
+        (cd dist/ios && zip -q -r -X ../x86_64-iOS-Simulator-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.zip Subsystem-for-Arxumbra.app)
+        find target/x86_64-apple-ios/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: x86_64-iOS-Simulator-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
+        path: dist/x86_64-iOS-Simulator-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.zip
+        if-no-files-found: error
+        retention-days: 14
+        compression-level: 0

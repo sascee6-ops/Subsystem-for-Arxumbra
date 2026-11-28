@@ -133,20 +133,28 @@ fn rank(name: &str, folder: bool) -> u8 {
     }
 }
 
+#[cfg(target_os = "android")]
+fn root() -> std::path::PathBuf {
+    bevy::android::ANDROID_APP.get().unwrap().internal_data_path().unwrap()
+}
+
+#[cfg(not(target_os = "android"))]
+fn root() -> std::path::PathBuf {
+    if cfg!(target_os = "windows") {
+        std::path::PathBuf::from(std::env::var_os("APPDATA").unwrap())
+    } else if cfg!(any(target_os = "macos", target_os = "ios")) {
+        std::path::PathBuf::from(std::env::var_os("HOME").unwrap()).join("Library/Application Support")
+    } else {
+        std::env::var_os("XDG_DATA_HOME").map_or_else(
+            || std::path::PathBuf::from(std::env::var_os("HOME").unwrap()).join(".local/share"),
+            std::path::PathBuf::from,
+        )
+    }
+}
+
+#[bevy::prelude::bevy_main]
 fn main() {
-    std::iter::once(
-        (if cfg!(target_os = "windows") {
-            std::path::PathBuf::from(std::env::var_os("APPDATA").unwrap())
-        } else if cfg!(target_os = "macos") {
-            std::path::PathBuf::from(std::env::var_os("HOME").unwrap()).join("Library/Application Support")
-        } else {
-            std::env::var_os("XDG_DATA_HOME").map_or_else(
-                || std::path::PathBuf::from(std::env::var_os("HOME").unwrap()).join(".local/share"),
-                std::path::PathBuf::from,
-            )
-        })
-        .join("Subsystem-for-Arxumbra"),
-    )
+    std::iter::once(root().join("Subsystem-for-Arxumbra"))
     .inspect(|home| std::fs::create_dir_all(home).unwrap())
     .map(|home| {
         (
@@ -158,6 +166,10 @@ fn main() {
                 "Linux-Subsystem-for-Arxumbra"
             } else if cfg!(target_os = "macos") {
                 "macOS-Subsystem-for-Arxumbra"
+            } else if cfg!(target_os = "android") {
+                "Android-Subsystem-for-Arxumbra"
+            } else if cfg!(target_os = "ios") {
+                "iOS-Subsystem-for-Arxumbra"
             } else {
                 "Windows-Subsystem-for-Arxumbra"
             },

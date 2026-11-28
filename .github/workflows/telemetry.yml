@@ -96,7 +96,7 @@ jobs:
         mark build_s "$(dur $B0 $B1)"
         mark build_warnings "$(grep -c '^warning' tel/build.stderr)"
         cp target/aarch64-unknown-linux-gnu/debug/subsystem-for-arxumbra tel/subsystem-for-arxumbra
-        find target/aarch64-unknown-linux-gnu/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/aarch64-unknown-linux-gnu/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
         [ "$rc" -eq 0 ] || tail -n 60 tel/build.stderr
     - shell: bash
       name: Static metrics
@@ -546,7 +546,7 @@ jobs:
         mark build_s "$(dur $B0 $B1)"
         mark build_warnings "$(grep -c '^warning' tel/build.stderr)"
         cp target/x86_64-unknown-linux-gnu/debug/subsystem-for-arxumbra tel/subsystem-for-arxumbra
-        find target/x86_64-unknown-linux-gnu/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/x86_64-unknown-linux-gnu/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
         [ "$rc" -eq 0 ] || tail -n 60 tel/build.stderr
     - shell: bash
       name: Static metrics
@@ -993,7 +993,7 @@ jobs:
         mark build_s "$(dur $B0 $B1)"
         mark build_warnings "$(grep -c '^warning' tel/build.stderr)"
         cp target/aarch64-apple-darwin/debug/subsystem-for-arxumbra tel/subsystem-for-arxumbra
-        find target/aarch64-apple-darwin/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/aarch64-apple-darwin/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
         [ "$rc" -eq 0 ] || tail -n 60 tel/build.stderr
     - shell: bash
       name: Static metrics
@@ -1221,7 +1221,7 @@ jobs:
         mark build_s "$(dur $B0 $B1)"
         mark build_warnings "$(grep -c '^warning' tel/build.stderr)"
         cp target/x86_64-apple-darwin/debug/subsystem-for-arxumbra tel/subsystem-for-arxumbra
-        find target/x86_64-apple-darwin/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/x86_64-apple-darwin/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
         [ "$rc" -eq 0 ] || tail -n 60 tel/build.stderr
     - shell: bash
       name: Static metrics
@@ -1446,7 +1446,7 @@ jobs:
         mark build_s "$(dur $B0 $B1)"
         mark build_warnings "$(grep -c '^warning' tel/build.stderr)"
         cp target/aarch64-pc-windows-msvc/debug/subsystem-for-arxumbra.exe tel/subsystem-for-arxumbra.exe
-        find target/aarch64-pc-windows-msvc/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/aarch64-pc-windows-msvc/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
         [ "$rc" -eq 0 ] || tail -n 60 tel/build.stderr
     - shell: bash
       name: Static metrics
@@ -1674,7 +1674,7 @@ jobs:
         mark build_s "$(dur $B0 $B1)"
         mark build_warnings "$(grep -c '^warning' tel/build.stderr)"
         cp target/x86_64-pc-windows-msvc/debug/subsystem-for-arxumbra.exe tel/subsystem-for-arxumbra.exe
-        find target/x86_64-pc-windows-msvc/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/x86_64-pc-windows-msvc/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
         [ "$rc" -eq 0 ] || tail -n 60 tel/build.stderr
     - shell: bash
       name: Static metrics
@@ -1902,7 +1902,7 @@ jobs:
         mark build_s "$(dur $B0 $B1)"
         mark build_warnings "$(grep -c '^warning' tel/build.stderr)"
         cp target/aarch64-unknown-linux-gnu/release/subsystem-for-arxumbra tel/subsystem-for-arxumbra
-        find target/aarch64-unknown-linux-gnu/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/aarch64-unknown-linux-gnu/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
         [ "$rc" -eq 0 ] || tail -n 60 tel/build.stderr
     - shell: bash
       name: Static metrics
@@ -2351,7 +2351,7 @@ jobs:
         cp target/x86_64-unknown-linux-gnu/release/subsystem-for-arxumbra tel/unstripped
         strip -s -o tel/subsystem-for-arxumbra tel/unstripped
         mark unstripped_binary_bytes "$(wc -c < tel/unstripped)"
-        find target/x86_64-unknown-linux-gnu/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/x86_64-unknown-linux-gnu/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
         [ "$rc" -eq 0 ] || tail -n 60 tel/build.stderr
     - shell: bash
       name: Bolt
@@ -3266,7 +3266,7 @@ jobs:
         mark build_s "$(dur $B0 $B1)"
         mark build_warnings "$(grep -c '^warning' tel/build.stderr)"
         cp target/aarch64-apple-darwin/release/subsystem-for-arxumbra tel/subsystem-for-arxumbra
-        find target/aarch64-apple-darwin/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/aarch64-apple-darwin/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
         [ "$rc" -eq 0 ] || tail -n 60 tel/build.stderr
     - shell: bash
       name: Static metrics
@@ -3491,7 +3491,7 @@ jobs:
         mark build_s "$(dur $B0 $B1)"
         mark build_warnings "$(grep -c '^warning' tel/build.stderr)"
         cp target/x86_64-apple-darwin/release/subsystem-for-arxumbra tel/subsystem-for-arxumbra
-        find target/x86_64-apple-darwin/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/x86_64-apple-darwin/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
         [ "$rc" -eq 0 ] || tail -n 60 tel/build.stderr
     - shell: bash
       name: Static metrics
@@ -3716,7 +3716,7 @@ jobs:
         mark build_s "$(dur $B0 $B1)"
         mark build_warnings "$(grep -c '^warning' tel/build.stderr)"
         cp target/aarch64-pc-windows-msvc/release/subsystem-for-arxumbra.exe tel/subsystem-for-arxumbra.exe
-        find target/aarch64-pc-windows-msvc/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/aarch64-pc-windows-msvc/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
         [ "$rc" -eq 0 ] || tail -n 60 tel/build.stderr
     - shell: bash
       name: Static metrics
@@ -3941,7 +3941,7 @@ jobs:
         mark build_s "$(dur $B0 $B1)"
         mark build_warnings "$(grep -c '^warning' tel/build.stderr)"
         cp target/x86_64-pc-windows-msvc/release/subsystem-for-arxumbra.exe tel/subsystem-for-arxumbra.exe
-        find target/x86_64-pc-windows-msvc/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/x86_64-pc-windows-msvc/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
         [ "$rc" -eq 0 ] || tail -n 60 tel/build.stderr
     - shell: bash
       name: Static metrics

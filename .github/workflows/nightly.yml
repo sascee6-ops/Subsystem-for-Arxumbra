@@ -405,6 +405,7 @@ jobs:
         "$BT/apksigner" sign --ks apk/debug.keystore --ks-pass pass:android --key-pass pass:android --out dist/AArch64-Android-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2.apk apk/aligned.apk
         "$BT/apksigner" verify dist/AArch64-Android-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2.apk
         "$BT/aapt2" dump badging dist/AArch64-Android-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2.apk > apk/badging.txt
+        cat apk/badging.txt
         grep "native-code: 'arm64-v8a'" apk/badging.txt > /dev/null
         grep "^sdkVersion:'24'" apk/badging.txt > /dev/null
         grep "^targetSdkVersion:'35'" apk/badging.txt > /dev/null
@@ -494,6 +495,7 @@ jobs:
         "$BT/apksigner" sign --ks apk/debug.keystore --ks-pass pass:android --key-pass pass:android --out dist/x86_64-Android-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2.apk apk/aligned.apk
         "$BT/apksigner" verify dist/x86_64-Android-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2.apk
         "$BT/aapt2" dump badging dist/x86_64-Android-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2.apk > apk/badging.txt
+        cat apk/badging.txt
         grep "native-code: 'x86_64'" apk/badging.txt > /dev/null
         grep "^sdkVersion:'24'" apk/badging.txt > /dev/null
         grep "^targetSdkVersion:'35'" apk/badging.txt > /dev/null

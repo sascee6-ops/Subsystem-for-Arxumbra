@@ -1,45 +1,15 @@
 [package]
-name = "Subsystem-for-Arxumbra"
+name = "Arxumbra"
 version = "0.0.0-s2"
 edition = "2024"
 
 [workspace]
-members = ["kernel"]
+members = ["kernel", "Crates/Subsystem-for-Arxumbra"]
 resolver = "3"
-
-[lib]
-name = "subsystem_for_arxumbra"
-path = "src/android.rs"
-crate-type = ["cdylib"]
 
 [[bin]]
 name = "subsystem-for-arxumbra"
 path = "src/main.rs"
 
 [dependencies]
-kernel = { path = "kernel" }
-mimalloc = { git = "https://github.com/purpleprotocol/mimalloc_rust", rev = "a35cc759c071fd7bd586685048367839002b95dd", default-features = false }
-redb = { git = "https://github.com/cberner/redb", tag = "v4.5.0", default-features = false, features = ["std"] }
-bevy = { git = "https://github.com/bevyengine/bevy", tag = "v0.20.1", default-features = false, features = [
-    "std",
-    "bevy_asset",
-    "bevy_winit",
-    "wayland",
-    "x11",
-    "bevy_window",
-    "bevy_render",
-    "bevy_core_pipeline",
-    "bevy_camera",
-    "bevy_image",
-    "bevy_sprite",
-    "bevy_sprite_render",
-    "bevy_text",
-    "png",
-    "default_font",
-] }
-
-[target.'cfg(target_os = "linux")'.dependencies]
-wayland-backend = { version = "0.3.17", default-features = false, features = ["dlopen"] }
-
-[target.'cfg(target_os = "android")'.dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", tag = "v0.20.1", default-features = false, features = ["android-native-activity"] }
+Subsystem-for-Arxumbra = { path = "Crates/Subsystem-for-Arxumbra" }

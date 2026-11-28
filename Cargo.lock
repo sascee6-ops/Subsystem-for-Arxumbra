@@ -3,6 +3,13 @@
 version = 4
 
 [[package]]
+name = "Arxumbra"
+version = "0.0.0-s2"
+dependencies = [
+ "Subsystem-for-Arxumbra",
+]
+
+[[package]]
 name = "Subsystem-for-Arxumbra"
 version = "0.0.0-s2"
 dependencies = [

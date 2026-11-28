@@ -46,11 +46,11 @@ jobs:
           --config 'profile.dev.build-override.debug=false' \
           --config "target.aarch64-linux-android.linker='$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang'" \
           --config 'target.aarch64-linux-android.rustflags=["-C","target-cpu=generic","-C","link-arg=-Wl,-z,max-page-size=16384"]' \
-          --target aarch64-linux-android --lib
+          --target aarch64-linux-android -p Subsystem-for-Arxumbra --lib
         BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
         JAR=$(ls "$ANDROID_HOME"/platforms/*/android.jar | sort -V | tail -1)
         mkdir -p dist apk/lib/arm64-v8a
-        cp target/aarch64-linux-android/debug/libsubsystem_for_arxumbra.so apk/lib/arm64-v8a/libsubsystem_for_arxumbra.so
+        cp target/aarch64-linux-android/debug/libSubsystem_for_Arxumbra.so apk/lib/arm64-v8a/libSubsystem_for_Arxumbra.so
         cat > apk/AndroidManifest.xml <<'XML'
         <?xml version="1.0" encoding="utf-8"?>
         <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.github.ichxtenebra.arxumbra">
@@ -58,7 +58,7 @@ jobs:
           <uses-feature android:glEsVersion="0x00030000" android:required="true"/>
           <application android:label="Subsystem for Arxumbra" android:hasCode="false" android:extractNativeLibs="false" android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
             <activity android:name="android.app.NativeActivity" android:exported="true" android:launchMode="singleTask" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|uiMode|density|navigation|touchscreen">
-              <meta-data android:name="android.app.lib_name" android:value="subsystem_for_arxumbra"/>
+              <meta-data android:name="android.app.lib_name" android:value="Subsystem_for_Arxumbra"/>
               <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -77,7 +77,7 @@ jobs:
         grep "native-code: 'arm64-v8a'" apk/badging.txt > /dev/null
         grep "^minSdkVersion:'24'" apk/badging.txt > /dev/null
         grep "^targetSdkVersion:'35'" apk/badging.txt > /dev/null
-        find target/aarch64-linux-android/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/aarch64-linux-android/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' -o -name 'Arxumbra-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: AArch64-Android-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
@@ -128,11 +128,11 @@ jobs:
           --config 'profile.dev.build-override.debug=false' \
           --config "target.x86_64-linux-android.linker='$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android24-clang'" \
           --config 'target.x86_64-linux-android.rustflags=["-C","target-cpu=generic","-C","link-arg=-Wl,-z,max-page-size=16384"]' \
-          --target x86_64-linux-android --lib
+          --target x86_64-linux-android -p Subsystem-for-Arxumbra --lib
         BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
         JAR=$(ls "$ANDROID_HOME"/platforms/*/android.jar | sort -V | tail -1)
         mkdir -p dist apk/lib/x86_64
-        cp target/x86_64-linux-android/debug/libsubsystem_for_arxumbra.so apk/lib/x86_64/libsubsystem_for_arxumbra.so
+        cp target/x86_64-linux-android/debug/libSubsystem_for_Arxumbra.so apk/lib/x86_64/libSubsystem_for_Arxumbra.so
         cat > apk/AndroidManifest.xml <<'XML'
         <?xml version="1.0" encoding="utf-8"?>
         <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.github.ichxtenebra.arxumbra">
@@ -140,7 +140,7 @@ jobs:
           <uses-feature android:glEsVersion="0x00030000" android:required="true"/>
           <application android:label="Subsystem for Arxumbra" android:hasCode="false" android:extractNativeLibs="false" android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
             <activity android:name="android.app.NativeActivity" android:exported="true" android:launchMode="singleTask" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|uiMode|density|navigation|touchscreen">
-              <meta-data android:name="android.app.lib_name" android:value="subsystem_for_arxumbra"/>
+              <meta-data android:name="android.app.lib_name" android:value="Subsystem_for_Arxumbra"/>
               <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -159,7 +159,7 @@ jobs:
         grep "native-code: 'x86_64'" apk/badging.txt > /dev/null
         grep "^minSdkVersion:'24'" apk/badging.txt > /dev/null
         grep "^targetSdkVersion:'35'" apk/badging.txt > /dev/null
-        find target/x86_64-linux-android/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/x86_64-linux-android/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' -o -name 'Arxumbra-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: x86_64-Android-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
@@ -240,7 +240,7 @@ jobs:
         codesign --verify --strict dist/ios/Payload/Subsystem-for-Arxumbra.app
         vtool -show-build dist/ios/Payload/Subsystem-for-Arxumbra.app/Subsystem-for-Arxumbra | grep -w "platform IOS" > /dev/null
         (cd dist/ios && zip -q -r -X ../AArch64-iOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2.ipa Payload)
-        find target/aarch64-apple-ios/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/aarch64-apple-ios/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' -o -name 'Arxumbra-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: AArch64-iOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
@@ -296,7 +296,7 @@ jobs:
         mkdir -p dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
         cp target/aarch64-unknown-linux-gnu/debug/subsystem-for-arxumbra dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
         tar -cf - -C dist AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2 | gzip -1 > dist/AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2.tar.gz
-        find target/aarch64-unknown-linux-gnu/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/aarch64-unknown-linux-gnu/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' -o -name 'Arxumbra-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: AArch64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
@@ -352,7 +352,7 @@ jobs:
         mkdir -p dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
         cp target/x86_64-unknown-linux-gnu/debug/subsystem-for-arxumbra dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
         tar -cf - -C dist x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2 | gzip -1 > dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2.tar.gz
-        find target/x86_64-unknown-linux-gnu/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/x86_64-unknown-linux-gnu/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' -o -name 'Arxumbra-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
@@ -408,7 +408,7 @@ jobs:
         mkdir -p dist/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
         cp target/aarch64-apple-darwin/debug/subsystem-for-arxumbra dist/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
         tar -cf - -C dist AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2 | gzip -1 > dist/AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2.tar.gz
-        find target/aarch64-apple-darwin/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/aarch64-apple-darwin/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' -o -name 'Arxumbra-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: AArch64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
@@ -464,7 +464,7 @@ jobs:
         mkdir -p dist/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
         cp target/x86_64-apple-darwin/debug/subsystem-for-arxumbra dist/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
         tar -cf - -C dist x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2 | gzip -1 > dist/x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2.tar.gz
-        find target/x86_64-apple-darwin/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/x86_64-apple-darwin/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' -o -name 'Arxumbra-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: x86_64-macOS-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
@@ -516,7 +516,7 @@ jobs:
           --target aarch64-pc-windows-msvc --bin subsystem-for-arxumbra
         mkdir dist
         cp target/aarch64-pc-windows-msvc/debug/subsystem-for-arxumbra.exe dist/AArch64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2.exe
-        find target/aarch64-pc-windows-msvc/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/aarch64-pc-windows-msvc/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' -o -name 'Arxumbra-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: AArch64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
@@ -571,7 +571,7 @@ jobs:
           --target x86_64-pc-windows-msvc --bin subsystem-for-arxumbra
         mkdir dist
         cp target/x86_64-pc-windows-msvc/debug/subsystem-for-arxumbra.exe dist/x86_64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2.exe
-        find target/x86_64-pc-windows-msvc/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
+        find target/x86_64-pc-windows-msvc/debug -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' -o -name 'Arxumbra-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: x86_64-Windows-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2

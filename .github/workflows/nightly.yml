@@ -102,7 +102,7 @@ jobs:
           --config 'profile.dev.codegen-backend="cranelift"' \
           --config 'profile.dev.package."*".codegen-backend="llvm"' \
           --config 'profile.dev.build-override.codegen-backend="llvm"' \
-          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options","-C","link-arg=-Wl,--whole-archive","-C","link-arg=-l:libgcc_eh.a","-C","link-arg=-Wl,--no-whole-archive"]' \
+          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options","-C","link-arg=-Wl,--whole-archive","-C","link-arg=-l:libgcc_eh.a","-C","link-arg=-Wl,--no-whole-archive","-Z","pre-link-arg=-Wl,-u,__popcountdi2","-Z","pre-link-arg=-l:libgcc.a"]' \
           --target x86_64-unknown-linux-gnu --bin subsystem-for-arxumbra
         mkdir -p dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2
         cp target/x86_64-unknown-linux-gnu/debug/subsystem-for-arxumbra dist/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2/x86_64-Linux-Subsystem-for-Arxumbra-Nightly-v0.0.0.0.0.0-s2

@@ -99,7 +99,7 @@ jobs:
           --config 'profile.release.build-override.codegen-units=256' \
           --config 'profile.release.build-override.debug=false' \
           --config 'unstable.panic-immediate-abort=true' \
-          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options","-C","link-arg=-Wl,--whole-archive","-C","link-arg=-l:libgcc_eh.a","-C","link-arg=-Wl,--no-whole-archive","-C","relocation-model=static","-C","relro-level=partial","-C","link-arg=-Wl,--icf=all","-C","link-arg=-Wl,-O2","-C","link-arg=-Wl,--emit-relocs"]' \
+          --config 'target.x86_64-unknown-linux-gnu.rustflags=["-C","target-cpu=generic","-Z","location-detail=none","-C","linker-features=+lld","-C","link-self-contained=+linker","-Z","unstable-options","-C","link-arg=-Wl,--whole-archive","-C","link-arg=-l:libgcc_eh.a","-C","link-arg=-Wl,--no-whole-archive","-Z","pre-link-arg=-Wl,-u,__popcountdi2","-Z","pre-link-arg=-l:libgcc.a","-C","relocation-model=static","-C","relro-level=partial","-C","link-arg=-Wl,--icf=all","-C","link-arg=-Wl,-O2","-C","link-arg=-Wl,--emit-relocs"]' \
           --target x86_64-unknown-linux-gnu --bin subsystem-for-arxumbra
         mkdir -p dist/x86_64-Linux-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2
         mkdir -p bolt

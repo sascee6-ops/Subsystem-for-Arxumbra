@@ -615,6 +615,13 @@ jobs:
         "$BT/apksigner" sign --ks apk/debug.keystore --ks-pass pass:android --key-pass pass:android --out dist/AArch64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk apk/aligned.apk
         "$BT/apksigner" verify dist/AArch64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk
         "$BT/aapt2" dump badging dist/AArch64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk | grep "native-code: 'arm64-v8a'" > /dev/null
+        ls -l target/aarch64-linux-android/release/libsubsystem_for_arxumbra.so dist/AArch64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk
+        readelf -d target/aarch64-linux-android/release/libsubsystem_for_arxumbra.so | grep -E 'NEEDED|SONAME'
+        readelf -lW target/aarch64-linux-android/release/libsubsystem_for_arxumbra.so | grep LOAD
+        nm -D --defined-only target/aarch64-linux-android/release/libsubsystem_for_arxumbra.so | grep -E 'android_main|ANativeActivity_onCreate'
+        nm -D --undefined-only target/aarch64-linux-android/release/libsubsystem_for_arxumbra.so | grep -c .
+        "$BT/aapt2" dump badging dist/AArch64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk | grep -E 'package|sdkVersion|native-code|launchable|uses-gl'
+        unzip -v dist/AArch64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk
         find target/aarch64-linux-android/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
@@ -693,6 +700,13 @@ jobs:
         "$BT/apksigner" sign --ks apk/debug.keystore --ks-pass pass:android --key-pass pass:android --out dist/x86_64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk apk/aligned.apk
         "$BT/apksigner" verify dist/x86_64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk
         "$BT/aapt2" dump badging dist/x86_64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk | grep "native-code: 'x86_64'" > /dev/null
+        ls -l target/x86_64-linux-android/release/libsubsystem_for_arxumbra.so dist/x86_64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk
+        readelf -d target/x86_64-linux-android/release/libsubsystem_for_arxumbra.so | grep -E 'NEEDED|SONAME'
+        readelf -lW target/x86_64-linux-android/release/libsubsystem_for_arxumbra.so | grep LOAD
+        nm -D --defined-only target/x86_64-linux-android/release/libsubsystem_for_arxumbra.so | grep -E 'android_main|ANativeActivity_onCreate'
+        nm -D --undefined-only target/x86_64-linux-android/release/libsubsystem_for_arxumbra.so | grep -c .
+        "$BT/aapt2" dump badging dist/x86_64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk | grep -E 'package|sdkVersion|native-code|launchable|uses-gl'
+        unzip -v dist/x86_64-Android-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.apk
         find target/x86_64-linux-android/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
@@ -774,6 +788,11 @@ jobs:
         codesign --verify --strict dist/ios/Payload/Subsystem-for-Arxumbra.app
         vtool -show-build dist/ios/Payload/Subsystem-for-Arxumbra.app/Subsystem-for-Arxumbra | grep "platform IOS" > /dev/null
         (cd dist/ios && zip -q -r -X ../AArch64-iOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.ipa Payload)
+        ls -l target/aarch64-apple-ios/release/subsystem-for-arxumbra dist/AArch64-iOS-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.*
+        otool -L target/aarch64-apple-ios/release/subsystem-for-arxumbra
+        lipo -info target/aarch64-apple-ios/release/subsystem-for-arxumbra
+        vtool -show-build target/aarch64-apple-ios/release/subsystem-for-arxumbra
+        codesign -dv dist/ios/Payload/Subsystem-for-Arxumbra.app
         find target/aarch64-apple-ios/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
@@ -855,6 +874,11 @@ jobs:
         codesign --verify --strict dist/ios/Subsystem-for-Arxumbra.app
         vtool -show-build dist/ios/Subsystem-for-Arxumbra.app/Subsystem-for-Arxumbra | grep "platform IOSSIMULATOR" > /dev/null
         (cd dist/ios && zip -q -r -X ../AArch64-iOS-Simulator-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.zip Subsystem-for-Arxumbra.app)
+        ls -l target/aarch64-apple-ios-sim/release/subsystem-for-arxumbra dist/AArch64-iOS-Simulator-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.*
+        otool -L target/aarch64-apple-ios-sim/release/subsystem-for-arxumbra
+        lipo -info target/aarch64-apple-ios-sim/release/subsystem-for-arxumbra
+        vtool -show-build target/aarch64-apple-ios-sim/release/subsystem-for-arxumbra
+        codesign -dv dist/ios/Subsystem-for-Arxumbra.app
         find target/aarch64-apple-ios-sim/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
@@ -936,6 +960,11 @@ jobs:
         codesign --verify --strict dist/ios/Subsystem-for-Arxumbra.app
         vtool -show-build dist/ios/Subsystem-for-Arxumbra.app/Subsystem-for-Arxumbra | grep "platform IOSSIMULATOR" > /dev/null
         (cd dist/ios && zip -q -r -X ../x86_64-iOS-Simulator-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.zip Subsystem-for-Arxumbra.app)
+        ls -l target/x86_64-apple-ios/release/subsystem-for-arxumbra dist/x86_64-iOS-Simulator-Subsystem-for-Arxumbra-Daylight-v0.0.0.0.0.0-s2.*
+        otool -L target/x86_64-apple-ios/release/subsystem-for-arxumbra
+        lipo -info target/x86_64-apple-ios/release/subsystem-for-arxumbra
+        vtool -show-build target/x86_64-apple-ios/release/subsystem-for-arxumbra
+        codesign -dv dist/ios/Subsystem-for-Arxumbra.app
         find target/x86_64-apple-ios/release -maxdepth 2 \( -iname 'subsystem[-_]for[-_]arxumbra*' -o -iname 'libsubsystem[-_]for[-_]arxumbra*' -o -name 'kernel-*' -o -name 'libkernel-*' \) -exec rm -rf {} +
     - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:

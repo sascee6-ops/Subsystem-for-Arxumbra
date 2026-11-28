@@ -119,6 +119,9 @@ jobs:
         esac
         mark dynamic_deps "$(wc -l < tel/dynamic-deps.txt)"
         case "$RUNNER_OS" in
+          Linux) "$L/llvm-nm" -D --undefined-only "$BINPATH" 2>/dev/null | sort -u > tel/dynamic-imports.txt ;;
+        esac
+        case "$RUNNER_OS" in
           Windows) ;;
           *)
             "$L/llvm-nm" --print-size --size-sort --demangle "$BINPATH" 2>/dev/null | perl -ne '
@@ -407,7 +410,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt dynamic-imports.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'
@@ -565,6 +568,9 @@ jobs:
           *) "$L/llvm-objdump" -p "$BINPATH" 2>/dev/null | grep -E 'NEEDED|DLL Name' | sort -u > tel/dynamic-deps.txt ;;
         esac
         mark dynamic_deps "$(wc -l < tel/dynamic-deps.txt)"
+        case "$RUNNER_OS" in
+          Linux) "$L/llvm-nm" -D --undefined-only "$BINPATH" 2>/dev/null | sort -u > tel/dynamic-imports.txt ;;
+        esac
         case "$RUNNER_OS" in
           Windows) ;;
           *)
@@ -854,7 +860,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt dynamic-imports.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'
@@ -1010,6 +1016,9 @@ jobs:
         esac
         mark dynamic_deps "$(wc -l < tel/dynamic-deps.txt)"
         case "$RUNNER_OS" in
+          Linux) "$L/llvm-nm" -D --undefined-only "$BINPATH" 2>/dev/null | sort -u > tel/dynamic-imports.txt ;;
+        esac
+        case "$RUNNER_OS" in
           Windows) ;;
           *)
             "$L/llvm-nm" --print-size --size-sort --demangle "$BINPATH" 2>/dev/null | perl -ne '
@@ -1082,7 +1091,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt dynamic-imports.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'
@@ -1235,6 +1244,9 @@ jobs:
         esac
         mark dynamic_deps "$(wc -l < tel/dynamic-deps.txt)"
         case "$RUNNER_OS" in
+          Linux) "$L/llvm-nm" -D --undefined-only "$BINPATH" 2>/dev/null | sort -u > tel/dynamic-imports.txt ;;
+        esac
+        case "$RUNNER_OS" in
           Windows) ;;
           *)
             "$L/llvm-nm" --print-size --size-sort --demangle "$BINPATH" 2>/dev/null | perl -ne '
@@ -1307,7 +1319,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt dynamic-imports.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'
@@ -1457,6 +1469,9 @@ jobs:
         esac
         mark dynamic_deps "$(wc -l < tel/dynamic-deps.txt)"
         case "$RUNNER_OS" in
+          Linux) "$L/llvm-nm" -D --undefined-only "$BINPATH" 2>/dev/null | sort -u > tel/dynamic-imports.txt ;;
+        esac
+        case "$RUNNER_OS" in
           Windows) ;;
           *)
             "$L/llvm-nm" --print-size --size-sort --demangle "$BINPATH" 2>/dev/null | perl -ne '
@@ -1529,7 +1544,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt dynamic-imports.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'
@@ -1682,6 +1697,9 @@ jobs:
         esac
         mark dynamic_deps "$(wc -l < tel/dynamic-deps.txt)"
         case "$RUNNER_OS" in
+          Linux) "$L/llvm-nm" -D --undefined-only "$BINPATH" 2>/dev/null | sort -u > tel/dynamic-imports.txt ;;
+        esac
+        case "$RUNNER_OS" in
           Windows) ;;
           *)
             "$L/llvm-nm" --print-size --size-sort --demangle "$BINPATH" 2>/dev/null | perl -ne '
@@ -1754,7 +1772,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt dynamic-imports.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'
@@ -1906,6 +1924,9 @@ jobs:
           *) "$L/llvm-objdump" -p "$BINPATH" 2>/dev/null | grep -E 'NEEDED|DLL Name' | sort -u > tel/dynamic-deps.txt ;;
         esac
         mark dynamic_deps "$(wc -l < tel/dynamic-deps.txt)"
+        case "$RUNNER_OS" in
+          Linux) "$L/llvm-nm" -D --undefined-only "$BINPATH" 2>/dev/null | sort -u > tel/dynamic-imports.txt ;;
+        esac
         case "$RUNNER_OS" in
           Windows) ;;
           *)
@@ -2195,7 +2216,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt dynamic-imports.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'
@@ -2592,6 +2613,9 @@ jobs:
           *) "$L/llvm-objdump" -p "$BINPATH" 2>/dev/null | grep -E 'NEEDED|DLL Name' | sort -u > tel/dynamic-deps.txt ;;
         esac
         mark dynamic_deps "$(wc -l < tel/dynamic-deps.txt)"
+        case "$RUNNER_OS" in
+          Linux) "$L/llvm-nm" -D --undefined-only "$BINPATH" 2>/dev/null | sort -u > tel/dynamic-imports.txt ;;
+        esac
         case "$RUNNER_OS" in
           Windows) ;;
           *)
@@ -3109,7 +3133,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt dynamic-imports.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'
@@ -3265,6 +3289,9 @@ jobs:
         esac
         mark dynamic_deps "$(wc -l < tel/dynamic-deps.txt)"
         case "$RUNNER_OS" in
+          Linux) "$L/llvm-nm" -D --undefined-only "$BINPATH" 2>/dev/null | sort -u > tel/dynamic-imports.txt ;;
+        esac
+        case "$RUNNER_OS" in
           Windows) ;;
           *)
             "$L/llvm-nm" --print-size --size-sort --demangle "$BINPATH" 2>/dev/null | perl -ne '
@@ -3337,7 +3364,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt dynamic-imports.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'
@@ -3487,6 +3514,9 @@ jobs:
         esac
         mark dynamic_deps "$(wc -l < tel/dynamic-deps.txt)"
         case "$RUNNER_OS" in
+          Linux) "$L/llvm-nm" -D --undefined-only "$BINPATH" 2>/dev/null | sort -u > tel/dynamic-imports.txt ;;
+        esac
+        case "$RUNNER_OS" in
           Windows) ;;
           *)
             "$L/llvm-nm" --print-size --size-sort --demangle "$BINPATH" 2>/dev/null | perl -ne '
@@ -3559,7 +3589,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt dynamic-imports.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'
@@ -3709,6 +3739,9 @@ jobs:
         esac
         mark dynamic_deps "$(wc -l < tel/dynamic-deps.txt)"
         case "$RUNNER_OS" in
+          Linux) "$L/llvm-nm" -D --undefined-only "$BINPATH" 2>/dev/null | sort -u > tel/dynamic-imports.txt ;;
+        esac
+        case "$RUNNER_OS" in
           Windows) ;;
           *)
             "$L/llvm-nm" --print-size --size-sort --demangle "$BINPATH" 2>/dev/null | perl -ne '
@@ -3781,7 +3814,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt dynamic-imports.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'
@@ -3931,6 +3964,9 @@ jobs:
         esac
         mark dynamic_deps "$(wc -l < tel/dynamic-deps.txt)"
         case "$RUNNER_OS" in
+          Linux) "$L/llvm-nm" -D --undefined-only "$BINPATH" 2>/dev/null | sort -u > tel/dynamic-imports.txt ;;
+        esac
+        case "$RUNNER_OS" in
           Windows) ;;
           *)
             "$L/llvm-nm" --print-size --size-sort --demangle "$BINPATH" 2>/dev/null | perl -ne '
@@ -4003,7 +4039,7 @@ jobs:
             echo "units: $(jq length tel/units.json), cpu seconds: $(jq '[.[].duration] | add | round' tel/units.json), critical wall seconds: $(jq '[.[] | .start + .duration] | max | round' tel/units.json)"
             cp "$f" tel/cargo-timing.html
           fi
-          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
+          for x in sections.txt symbols-by-crate.txt dynamic-deps.txt dynamic-imports.txt target-dirs.txt duplicates.txt tree.err strace-summary.txt loaded-libs.txt threads-cpu.txt bolt/threads-cpu.txt bolt-train-metrics.txt bolt-instrument.log bolt-optimize.log; do
             if [ -s "tel/$x" ]; then
               echo "## $x"
               echo '```'

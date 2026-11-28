@@ -35,10 +35,6 @@ for i in $(seq 1 50); do grep -q ready uinput.log && break; sleep 0.1; done
 sudo udevadm settle
 sleep 1
 
-echo auto | sudo tee $D/control > /dev/null
-sudo sh -c "cat $D/data > crc.all" &
-sleep 1
-
 sudo mkdir -p /tmp/xdg
 sudo chmod 700 /tmp/xdg
 sudo env XDG_RUNTIME_DIR=/tmp/xdg LIBSEAT_BACKEND=seatd COMPOSITOR_DRM_DEVICE=$CARD RUST_BACKTRACE=1 "$BIN" --drm > comp.log 2>&1 &
@@ -47,7 +43,12 @@ sleep 6
 check kill -0 $CP
 check sudo test -S /tmp/xdg/wayland-1
 
+echo auto | sudo tee $D/control > /dev/null
+sudo sh -c "cat $D/data > crc.all" &
+sleep 1
 last() { sudo tail -n 1 crc.all | awk '{print $2}'; }
+echo "move 1 0 5" >&3
+sleep 2
 A=$(last)
 echo "move 5 5 80" >&3
 sleep 2

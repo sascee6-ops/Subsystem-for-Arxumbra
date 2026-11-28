@@ -17,7 +17,7 @@ CARD=
 IDX=
 for c in /sys/class/drm/card[0-9]*; do
   case "$c" in *-*) continue ;; esac
-  if [[ $(readlink -f "$c/device/driver") == *vkms ]]; then
+  if [[ $(readlink -f "$c/device") == *vkms* ]]; then
     IDX=${c##*card}
     CARD=/dev/dri/card$IDX
   fi

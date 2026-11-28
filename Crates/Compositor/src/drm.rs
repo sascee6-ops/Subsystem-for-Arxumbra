@@ -80,6 +80,7 @@ pub fn init(
     let seat = session.seat();
 
     let path = std::env::var_os("COMPOSITOR_DRM_DEVICE")
+        .filter(|path| !path.is_empty())
         .map(std::path::PathBuf::from)
         .or_else(|| primary_gpu(&seat).ok().flatten())
         .or_else(|| all_gpus(&seat).ok().and_then(|gpus| gpus.into_iter().next()))
